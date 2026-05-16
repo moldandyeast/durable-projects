@@ -1,0 +1,101 @@
+name = "durable-projects"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Add your custom domain when ready:
+# routes = [{ pattern = "projects.example.com", custom_domain = true }]
+
+[[durable_objects.bindings]]
+name = "PROJECT_DO"
+class_name = "ProjectDO"
+
+[[durable_objects.bindings]]
+name = "INDEX_DO"
+class_name = "IndexDO"
+
+[[durable_objects.bindings]]
+name = "SITE_DIRECTORY_DO"
+class_name = "SiteDirectoryDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ProjectDO", "IndexDO", "SiteDirectoryDO"]
+
+[[unsafe.bindings]]
+name = "READ_LIMIT"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 300, period = 60 }
+
+[[unsafe.bindings]]
+name = "API_LIMIT"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 60, period = 60 }
+
+[[unsafe.bindings]]
+name = "WS_LIMIT"
+type = "ratelimit"
+namespace_id = "1003"
+simple = { limit = 10, period = 60 }
+
+[[unsafe.bindings]]
+name = "WRITE_LIMIT"
+type = "ratelimit"
+namespace_id = "1004"
+simple = { limit = 30, period = 60 }
+
+[[unsafe.bindings]]
+name = "INDEX_LIMIT"
+type = "ratelimit"
+namespace_id = "1005"
+simple = { limit = 60, period = 60 }
+
+[vars]
+DEV_BYPASS_AUTH = "false"
+
+[env.dev.vars]
+DEV_BYPASS_AUTH = "true"
+
+[[env.dev.durable_objects.bindings]]
+name = "PROJECT_DO"
+class_name = "ProjectDO"
+
+[[env.dev.durable_objects.bindings]]
+name = "INDEX_DO"
+class_name = "IndexDO"
+
+[[env.dev.durable_objects.bindings]]
+name = "SITE_DIRECTORY_DO"
+class_name = "SiteDirectoryDO"
+
+[[env.dev.unsafe.bindings]]
+name = "READ_LIMIT"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 300, period = 60 }
+
+[[env.dev.unsafe.bindings]]
+name = "API_LIMIT"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 60, period = 60 }
+
+[[env.dev.unsafe.bindings]]
+name = "WS_LIMIT"
+type = "ratelimit"
+namespace_id = "1003"
+simple = { limit = 10, period = 60 }
+
+[[env.dev.unsafe.bindings]]
+name = "WRITE_LIMIT"
+type = "ratelimit"
+namespace_id = "1004"
+simple = { limit = 30, period = 60 }
+
+[[env.dev.unsafe.bindings]]
+name = "INDEX_LIMIT"
+type = "ratelimit"
+namespace_id = "1005"
+simple = { limit = 60, period = 60 }
