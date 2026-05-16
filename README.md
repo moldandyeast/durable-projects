@@ -18,6 +18,7 @@ With `[env.dev.vars] DEV_BYPASS_AUTH = "true"`, `/admin` and `/admin/api/*` work
 | `npm run dev` | `wrangler dev --env dev` |
 | `npm test` | Vitest |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run verify` | Block accidental secrets / forbidden filenames (run before push) |
 | `npm run deploy` | `wrangler deploy` |
 
 ## URLs (local defaults)

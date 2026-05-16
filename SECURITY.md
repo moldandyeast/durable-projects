@@ -31,10 +31,13 @@ Trusted-author markdown may still embed **iframes** (`frame-src https:`) and rem
 
 ## Operational checklist
 
-1. Never commit `.dev.vars`, `.env`, or PEM keys.
-2. Keep **`DEV_BYPASS_AUTH=false`** in production `[vars]` (already default).
-3. Restrict **`/admin*`** with Cloudflare Access (and optionally service tokens for agents).
-4. Rotate GitHub / Cloudflare tokens if they were ever pasted into a tracked file (not currently the case).
+1. Never commit `.dev.vars`, `.env`, or PEM keys — templates **`*.example`** only.
+2. Run **`npm run verify`** before you push (also runs on CI via `.github/workflows/repo-hygiene.yml`).
+3. Keep **`DEV_BYPASS_AUTH=false`** in production `[vars]` (already default).
+4. Restrict **`/admin*`** with Cloudflare Access (and optionally service tokens for agents).
+5. Rotate GitHub / Cloudflare tokens if they were ever pasted into a tracked file (not currently the case).
+
+See **`.env.example`** for safe placeholders — copy values into **`.dev.vars`** locally (Wrangler); never commit that file.
 
 ## Reporting
 
