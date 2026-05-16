@@ -1,6 +1,8 @@
 import type { Client, Env, IndexEntry, ProjectData, ProjectEnvelope, TeamMember } from "./types";
 import { canAuthor, forbidden } from "./auth";
 import { generateSlug, isValidSlug } from "./slug";
+import { BodyTooLargeError, readBoundedText, readJsonBody } from "./request-body";
+import { applySecurityHeaders } from "./security-headers";
 import { adminTemplate } from "./views/admin";
 import { homePage, sortEntries } from "./views/home";
 import { projectPublicPage } from "./views/project-public";
@@ -13,6 +15,11 @@ const PROJECT_URL_RE = /^\/([0-9a-hjkmnpqrstvwxyz]{8})(\.md)?$/;
 const API_PROJECT_RE = /^\/api\/projects\/([0-9a-hjkmnpqrstvwxyz]{8})$/;
 const ADMIN_API_PROJECT_RE = /^\/admin\/api\/projects\/([0-9a-hjkmnpqrstvwxyz]{8})$/;
 
+/** Max JSON body for create/update project (markdown + gallery). */
+const MAX_PROJECT_PAYLOAD = 512 * 1024;
+/** Max JSON for team/client admin payloads. */
+const MAX_ADMIN_ENTITY_JSON = 64 * 1024;
+
 function isPublicApiPath(pathname: string): boolean {
   return pathname.startsWith("/api/");
 }
@@ -23,8 +30,9 @@ function corsPreflightPublicApi(): Response {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Headers": "*",
+      "Access-Control-Allow-Headers": "Accept, Content-Type",
       "Access-Control-Max-Age": "86400",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }
@@ -34,11 +42,24 @@ function withPublicApiCors(pathname: string, response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set("Access-Control-Allow-Origin", "*");
   headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", "Accept, Content-Type");
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers,
   });
+}
+
+/** Authoring APIs expect JSON bodies. */
+function requireJsonContentType(request: Request): Response | null {
+  const ct = request.headers.get("Content-Type") ?? "";
+  if (!ct.toLowerCase().includes("application/json")) {
+    return new Response("Content-Type must be application/json", {
+      status: 415,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+  return null;
 }
 
 async function allow(limit: Env["READ_LIMIT"], key: string): Promise<boolean> {
@@ -158,8 +179,36 @@ function tagMatches(entry: IndexEntry, tag: string): boolean {
   return entry.tags.some((x) => x.toLowerCase() === t);
 }
 
+function methodNotAllowed(allow: string): Response {
+  return new Response("Method Not Allowed", {
+    status: 405,
+    headers: { Allow: allow },
+  });
+}
+
 async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Response> {
   const ip = request.headers.get("CF-Connecting-IP") ?? "anon";
+
+  if (url.pathname === "/" && request.method !== "GET") {
+    return methodNotAllowed("GET");
+  }
+
+  if (
+    ["/api/index", "/api/team", "/api/clients"].includes(url.pathname) &&
+    request.method !== "GET"
+  ) {
+    return methodNotAllowed("GET");
+  }
+
+  const pubApiProjEarly = url.pathname.match(API_PROJECT_RE);
+  if (pubApiProjEarly && request.method !== "GET") {
+    return methodNotAllowed("GET");
+  }
+
+  const pubProjEarly = url.pathname.match(PROJECT_URL_RE);
+  if (pubProjEarly && request.method !== "GET") {
+    return methodNotAllowed("GET");
+  }
 
   if (url.pathname === "/admin" && request.method === "GET") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
@@ -408,14 +457,21 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
 }
 
 async function createProject(request: Request, env: Env): Promise<Response> {
-  const input = await request.json<
-    Partial<ProjectData> & {
-      title?: string;
-      summary?: string;
-      tags?: string[];
-      body?: string;
+  const rej = requireJsonContentType(request);
+  if (rej) return rej;
+
+  let input: Partial<ProjectData> & { title?: string; summary?: string; tags?: string[]; body?: string };
+  try {
+    input = (await readJsonBody(request, MAX_PROJECT_PAYLOAD)) as typeof input;
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) {
+      return new Response("Payload too large", { status: 413 });
     }
-  >();
+    if (e instanceof SyntaxError) {
+      return new Response("Invalid JSON", { status: 400 });
+    }
+    throw e;
+  }
 
   let id = "";
   for (let attempt = 0; attempt < 24; attempt++) {
@@ -468,7 +524,24 @@ async function adminGetProject(id: string, env: Env): Promise<Response> {
 
 async function updateProject(id: string, request: Request, env: Env): Promise<Response> {
   if (!isValidSlug(id)) return new Response("Not found", { status: 404 });
-  const body = await request.text();
+
+  const rej = requireJsonContentType(request);
+  if (rej) return rej;
+
+  let body: string;
+  try {
+    body = await readBoundedText(request, MAX_PROJECT_PAYLOAD);
+    if (body.trim()) JSON.parse(body);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) {
+      return new Response("Payload too large", { status: 413 });
+    }
+    if (e instanceof SyntaxError) {
+      return new Response("Invalid JSON", { status: 400 });
+    }
+    throw e;
+  }
+
   const upd = await projectStub(env, id).fetch("https://p/internal/update", {
     method: "POST",
     body,
@@ -513,7 +586,18 @@ async function collectUsedClientIds(env: Env): Promise<Set<string>> {
 }
 
 async function adminCreateMember(request: Request, env: Env): Promise<Response> {
-  const body = await request.json<{ name?: string; role?: string; url?: string }>();
+  const rej = requireJsonContentType(request);
+  if (rej) return rej;
+
+  let body: { name?: string; role?: string; url?: string };
+  try {
+    body = (await readJsonBody(request, MAX_ADMIN_ENTITY_JSON)) as typeof body;
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return new Response("Payload too large", { status: 413 });
+    if (e instanceof SyntaxError) return new Response("Invalid JSON", { status: 400 });
+    throw e;
+  }
+
   if (!body.name?.trim()) return new Response("Bad request", { status: 400 });
   const used = await collectUsedMemberIds(env);
   let id = "";
@@ -538,7 +622,18 @@ async function adminCreateMember(request: Request, env: Env): Promise<Response> 
 }
 
 async function adminPutMember(id: string, request: Request, env: Env): Promise<Response> {
-  const body = await request.json<{ name?: string; role?: string; url?: string }>();
+  const rej = requireJsonContentType(request);
+  if (rej) return rej;
+
+  let body: { name?: string; role?: string; url?: string };
+  try {
+    body = (await readJsonBody(request, MAX_ADMIN_ENTITY_JSON)) as typeof body;
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return new Response("Payload too large", { status: 413 });
+    if (e instanceof SyntaxError) return new Response("Invalid JSON", { status: 400 });
+    throw e;
+  }
+
   const batch = await siteStub(env).fetch("https://site/internal/members/get-batch", {
     method: "POST",
     body: JSON.stringify({ ids: [id] }),
@@ -563,7 +658,18 @@ async function adminPutMember(id: string, request: Request, env: Env): Promise<R
 }
 
 async function adminCreateClient(request: Request, env: Env): Promise<Response> {
-  const body = await request.json<{ name?: string; url?: string }>();
+  const rej = requireJsonContentType(request);
+  if (rej) return rej;
+
+  let body: { name?: string; url?: string };
+  try {
+    body = (await readJsonBody(request, MAX_ADMIN_ENTITY_JSON)) as typeof body;
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return new Response("Payload too large", { status: 413 });
+    if (e instanceof SyntaxError) return new Response("Invalid JSON", { status: 400 });
+    throw e;
+  }
+
   if (!body.name?.trim()) return new Response("Bad request", { status: 400 });
   const used = await collectUsedClientIds(env);
   let id = "";
@@ -587,7 +693,18 @@ async function adminCreateClient(request: Request, env: Env): Promise<Response> 
 }
 
 async function adminPutClient(id: string, request: Request, env: Env): Promise<Response> {
-  const body = await request.json<{ name?: string; url?: string }>();
+  const rej = requireJsonContentType(request);
+  if (rej) return rej;
+
+  let body: { name?: string; url?: string };
+  try {
+    body = (await readJsonBody(request, MAX_ADMIN_ENTITY_JSON)) as typeof body;
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return new Response("Payload too large", { status: 413 });
+    if (e instanceof SyntaxError) return new Response("Invalid JSON", { status: 400 });
+    throw e;
+  }
+
   const batch = await siteStub(env).fetch("https://site/internal/clients/get-batch", {
     method: "POST",
     body: JSON.stringify({ ids: [id] }),
@@ -613,9 +730,13 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (request.method === "OPTIONS" && isPublicApiPath(url.pathname)) {
-      return corsPreflightPublicApi();
+      return applySecurityHeaders(corsPreflightPublicApi(), request);
     }
     const response = await dispatchRequest(request, env, url);
-    return withPublicApiCors(url.pathname, response);
+    const corsed = withPublicApiCors(url.pathname, response);
+    const adminHtml =
+      url.pathname === "/admin" &&
+      (corsed.headers.get("Content-Type") ?? "").includes("text/html");
+    return applySecurityHeaders(corsed, request, { adminHtml });
   },
 };

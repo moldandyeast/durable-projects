@@ -2,9 +2,9 @@ name = "durable-projects"
 main = "src/index.ts"
 compatibility_date = "2026-05-01"
 compatibility_flags = ["nodejs_compat"]
-
-# Add your custom domain when ready:
-# routes = [{ pattern = "projects.example.com", custom_domain = true }]
+routes = [
+  { pattern = "work.moldandyeast.com", custom_domain = true },
+]
 
 [[durable_objects.bindings]]
 name = "PROJECT_DO"

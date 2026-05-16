@@ -1,6 +1,6 @@
 # Durable Projects
 
-Portfolio-style projects on Cloudflare Workers + Durable Objects (`ProjectDO`, `IndexDO`, `SiteDirectoryDO`). See design notes in the parent repo: `docs/superpowers/specs/2026-05-16-durable-projects-design.md`.
+Portfolio-style projects on Cloudflare Workers + Durable Objects (`ProjectDO`, `IndexDO`, `SiteDirectoryDO`). This repo is safe for **public** GitHub: see [SECURITY.md](./SECURITY.md).
 
 ## Local dev
 
@@ -27,6 +27,8 @@ With `[env.dev.vars] DEV_BYPASS_AUTH = "true"`, `/admin` and `/admin/api/*` work
 - `/:id` — HTML; `/:id.md` or `Accept: text/markdown` — markdown export
 - `/admin` — browser authoring (projects + team + clients CMS)
 
-Production: attach Cloudflare Access to `/admin*` and set `DEV_BYPASS_AUTH=false`.
+Production URL: [`https://work.moldandyeast.com`](https://work.moldandyeast.com) (configured in `wrangler.toml`). Attach Cloudflare Access to `/admin*` and keep `DEV_BYPASS_AUTH=false` in production.
 
-Add a `routes` entry in `wrangler.toml` when you have a custom domain.
+Response **security headers** (CSP, HSTS on that host, etc.) are documented in [SECURITY.md](./SECURITY.md).
+
+Ensure DNS: Cloudflare dashboard → **Workers Routes** / custom domain setup completes after `wrangler deploy` (proxy **orange cloud** for `work.moldandyeast.com` when using zone DNS).

@@ -2,3 +2,11 @@ node_modules/
 .wrangler/
 dist/
 .DS_Store
+
+# Secrets & local overrides (never commit)
+.env
+.env.*
+!.env.example
+.dev.vars
+*.pem
+.secrets
