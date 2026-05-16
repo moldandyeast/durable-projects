@@ -6,6 +6,7 @@ import { applySecurityHeaders } from "./security-headers";
 import { adminTemplate } from "./views/admin";
 import { homePage, sortEntries } from "./views/home";
 import { projectPublicPage } from "./views/project-public";
+import { renderMarkdown } from "./markdown";
 
 export { ProjectDO } from "./project-do";
 export { IndexDO } from "./index-do";
@@ -19,6 +20,8 @@ const ADMIN_API_PROJECT_RE = /^\/admin\/api\/projects\/([0-9a-hjkmnpqrstvwxyz]{8
 const MAX_PROJECT_PAYLOAD = 512 * 1024;
 /** Max JSON for team/client admin payloads. */
 const MAX_ADMIN_ENTITY_JSON = 64 * 1024;
+/** Max JSON for POST /admin/api/preview ({ body: markdown }). */
+const MAX_PREVIEW_JSON = 512 * 1024;
 
 function isPublicApiPath(pathname: string): boolean {
   return pathname.startsWith("/api/");
@@ -225,6 +228,12 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
     return new Response(await res.text(), {
       headers: { "Content-Type": "application/json; charset=utf-8" },
     });
+  }
+
+  if (url.pathname === "/admin/api/preview" && request.method === "POST") {
+    if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
+    if (!canAuthor(request, env)) return forbidden(request, url);
+    return adminPreviewMarkdown(request);
   }
 
   if (url.pathname === "/admin/api/projects" && request.method === "POST") {
@@ -513,6 +522,33 @@ async function createProject(request: Request, env: Env): Promise<Response> {
   if (!idxRes.ok) return new Response("Index register failed", { status: 500 });
 
   return Response.json(created, { status: 201 });
+}
+
+async function adminPreviewMarkdown(request: Request): Promise<Response> {
+  const rej = requireJsonContentType(request);
+  if (rej) return rej;
+
+  let parsed: unknown;
+  try {
+    parsed = await readJsonBody(request, MAX_PREVIEW_JSON);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return new Response("Payload too large", { status: 413 });
+    if (e instanceof SyntaxError) return new Response("Invalid JSON", { status: 400 });
+    throw e;
+  }
+
+  const body =
+    parsed &&
+    typeof parsed === "object" &&
+    "body" in parsed &&
+    typeof (parsed as { body: unknown }).body === "string"
+      ? (parsed as { body: string }).body
+      : "";
+
+  const html = await renderMarkdown(body);
+  return new Response(JSON.stringify({ html }), {
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
 }
 
 async function adminGetProject(id: string, env: Env): Promise<Response> {

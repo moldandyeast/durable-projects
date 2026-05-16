@@ -549,12 +549,6 @@ export function layoutPage(
       gap: 1rem;
       margin-top: 1rem;
     }
-    body.admin-app textarea[name="body"] {
-      min-height: 18rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-      font-size: 0.875rem;
-      line-height: 1.55;
-    }
     body.admin-app textarea[name="gallery_json"] {
       min-height: 6rem;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
@@ -586,6 +580,98 @@ export function layoutPage(
       font-style: normal;
       padding: 1rem 0;
     }
+    body.admin-app #view-editor .admin-view-title {
+      margin-bottom: 0.35rem;
+    }
+    body.admin-app .admin-editor-layout {
+      display: grid;
+      grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(16rem, 26rem);
+      gap: 0;
+      align-items: stretch;
+      min-height: calc(100vh - 11rem);
+      margin-top: 1.25rem;
+      border-top: 1px solid var(--adm-line);
+    }
+    @media (max-width: 72rem) {
+      body.admin-app .admin-editor-layout {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      body.admin-app .admin-editor-meta {
+        border-right: none;
+        border-bottom: 1px solid var(--adm-line);
+        padding: 1.25rem 0;
+      }
+      body.admin-app .admin-editor-md {
+        border-bottom: 1px solid var(--adm-line);
+        padding: 1.25rem 0;
+      }
+      body.admin-app .admin-editor-preview {
+        border-left: none;
+        padding: 1.25rem 0 0;
+      }
+    }
+    body.admin-app .admin-editor-meta {
+      padding: 1.25rem 1.5rem 1.5rem 0;
+      border-right: 1px solid var(--adm-line);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    body.admin-app .admin-editor-meta .admin-actions {
+      margin-top: auto;
+      padding-top: 0.75rem;
+    }
+    body.admin-app .admin-editor-md {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 0;
+      min-width: 0;
+    }
+    body.admin-app .admin-editor-md textarea[name="body"] {
+      flex: 1;
+      min-height: min(70vh, 28rem);
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 0.875rem;
+      line-height: 1.55;
+      max-width: none;
+    }
+    body.admin-app .admin-editor-preview {
+      padding: 1.25rem 0 1.5rem 1.5rem;
+      border-left: 1px solid var(--adm-line);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 0;
+      min-width: 0;
+    }
+    body.admin-app .admin-preview-pane {
+      flex: 1;
+      overflow-y: auto;
+      min-height: min(70vh, 28rem);
+      padding-right: 0.35rem;
+    }
+    body.admin-app .admin-preview-placeholder {
+      margin: 0;
+      color: var(--adm-muted);
+      font-size: 0.875rem;
+    }
+    body.admin-app .admin-preview-pane.article-body {
+      color: var(--fg-soft);
+      font-size: 0.9375rem;
+      line-height: 1.65;
+    }
+    body.admin-app .admin-preview-pane.article-body h1,
+    body.admin-app .admin-preview-pane.article-body h2,
+    body.admin-app .admin-preview-pane.article-body h3 {
+      color: var(--fg);
+    }
+
     body.admin-app .admin-view[hidden] { display: none !important; }
   </style>
 </head>

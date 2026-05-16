@@ -24,49 +24,59 @@ export function adminTemplate(): string {
     <section id="view-editor" class="admin-view" aria-labelledby="editor-heading">
       <h1 id="editor-heading" class="admin-view-title">Project editor</h1>
       <section class="admin-panel">
-        <label class="admin-label" for="proj-select">Project</label>
-        <select id="proj-select"><option value="">— New —</option></select>
-        <form id="proj-form" class="admin-grid">
-          <div>
-            <label class="admin-label" for="pf-title">Title</label>
-            <input id="pf-title" name="title" placeholder="" required />
-          </div>
-          <div>
-            <label class="admin-label" for="pf-summary">Summary</label>
-            <input id="pf-summary" name="summary" placeholder="" />
-          </div>
-          <div>
-            <label class="admin-label" for="pf-tags">Tags</label>
-            <input id="pf-tags" name="tags" placeholder="Comma-separated" />
-          </div>
-          <div>
-            <label class="admin-label" for="pf-client">Client</label>
-            <select id="pf-client" name="client_id"><option value="">— None —</option></select>
-          </div>
-          <div>
-            <label class="admin-label" for="pf-sort">Sort date</label>
-            <input id="pf-sort" name="sort_date" placeholder="YYYY-MM-DD" />
-          </div>
-          <div>
-            <label class="admin-label" for="pf-preview">Preview image URL</label>
-            <input id="pf-preview" name="preview_image" placeholder="" />
-          </div>
-          <div>
-            <label class="admin-label" for="pf-team-ids">Collaborator IDs</label>
-            <input id="pf-team-ids" name="team_member_ids" placeholder="Slug ids, comma-separated" />
-          </div>
-          <div>
-            <label class="admin-label" for="pf-gallery">Gallery JSON</label>
-            <textarea id="pf-gallery" name="gallery_json" rows="4" placeholder='[{"url":"","caption":"","alt":""}]'></textarea>
-          </div>
-          <div>
-            <label class="admin-label" for="pf-body">Body · Markdown</label>
-            <textarea id="pf-body" name="body" rows="16" placeholder="#"></textarea>
-          </div>
-          <div class="admin-actions">
-            <button type="submit" id="btn-save">Save</button>
-            <button type="button" id="btn-new">New</button>
-            <button type="button" id="btn-del">Archive</button>
+        <form id="proj-form">
+          <div class="admin-editor-layout">
+            <aside class="admin-editor-meta">
+              <div>
+                <label class="admin-label" for="proj-select">Project</label>
+                <select id="proj-select"><option value="">— New —</option></select>
+              </div>
+              <div>
+                <label class="admin-label" for="pf-title">Title</label>
+                <input id="pf-title" name="title" placeholder="" required />
+              </div>
+              <div>
+                <label class="admin-label" for="pf-summary">Summary</label>
+                <input id="pf-summary" name="summary" placeholder="" />
+              </div>
+              <div>
+                <label class="admin-label" for="pf-tags">Tags</label>
+                <input id="pf-tags" name="tags" placeholder="Comma-separated" />
+              </div>
+              <div>
+                <label class="admin-label" for="pf-client">Client</label>
+                <select id="pf-client" name="client_id"><option value="">— None —</option></select>
+              </div>
+              <div>
+                <label class="admin-label" for="pf-sort">Sort date</label>
+                <input id="pf-sort" name="sort_date" placeholder="YYYY-MM-DD" />
+              </div>
+              <div>
+                <label class="admin-label" for="pf-preview">Preview image URL</label>
+                <input id="pf-preview" name="preview_image" placeholder="" />
+              </div>
+              <div>
+                <label class="admin-label" for="pf-team-ids">Collaborator IDs</label>
+                <input id="pf-team-ids" name="team_member_ids" placeholder="Slug ids, comma-separated" />
+              </div>
+              <div>
+                <label class="admin-label" for="pf-gallery">Gallery JSON</label>
+                <textarea id="pf-gallery" name="gallery_json" rows="4" placeholder='[{"url":"","caption":"","alt":""}]'></textarea>
+              </div>
+              <div class="admin-actions">
+                <button type="submit" id="btn-save">Save</button>
+                <button type="button" id="btn-new">New</button>
+                <button type="button" id="btn-del">Archive</button>
+              </div>
+            </aside>
+            <div class="admin-editor-md">
+              <label class="admin-label" for="pf-body">Markdown</label>
+              <textarea id="pf-body" name="body" placeholder="#" spellcheck="false"></textarea>
+            </div>
+            <aside class="admin-editor-preview">
+              <div class="admin-label" id="preview-label">Preview</div>
+              <div id="md-preview" class="admin-preview-pane article-body" aria-labelledby="preview-label" aria-live="polite"></div>
+            </aside>
           </div>
         </form>
       </section>
@@ -120,8 +130,47 @@ export function adminTemplate(): string {
 
   <script>
     async function j(url, opt) {
-      const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opt || {}));
-      return r;
+      opt = opt || {};
+      var headers = Object.assign({ "Content-Type": "application/json" }, opt.headers || {});
+      return fetch(url, Object.assign({}, opt, { headers: headers }));
+    }
+
+    var previewTimer;
+    var previewAbort;
+
+    function previewPlaceholder() {
+      var pane = document.getElementById("md-preview");
+      if (!pane) return;
+      pane.innerHTML = '<p class="admin-preview-placeholder">Markdown preview</p>';
+    }
+
+    async function refreshPreview() {
+      var ta = document.getElementById("pf-body");
+      var pane = document.getElementById("md-preview");
+      if (!ta || !pane) return;
+      if (!ta.value.trim()) {
+        previewPlaceholder();
+        return;
+      }
+      if (previewAbort) previewAbort.abort();
+      previewAbort = new AbortController();
+      try {
+        var r = await j("/admin/api/preview", {
+          method: "POST",
+          body: JSON.stringify({ body: ta.value }),
+          signal: previewAbort.signal,
+        });
+        if (!r.ok) return;
+        var data = await r.json();
+        pane.innerHTML = data.html || "";
+      } catch (e) {
+        if (e.name === "AbortError") return;
+      }
+    }
+
+    function schedulePreview() {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(refreshPreview, 240);
     }
 
     function showView(name) {
@@ -141,6 +190,7 @@ export function adminTemplate(): string {
       try {
         history.replaceState(null, "", "#" + name);
       } catch (e) {}
+      if (name === "editor") schedulePreview();
     }
 
     function viewFromHash() {
@@ -252,6 +302,7 @@ export function adminTemplate(): string {
       if (!id) {
         document.getElementById("proj-form").reset();
         document.getElementById("pf-client").value = "";
+        previewPlaceholder();
         return;
       }
       var r = await j("/admin/api/projects/" + id);
@@ -266,6 +317,7 @@ export function adminTemplate(): string {
       f.team_member_ids.value = (p.team_member_ids || []).join(", ");
       f.gallery_json.value = JSON.stringify(p.gallery_images || [], null, 2);
       f.body.value = p.body || "";
+      schedulePreview();
     }
 
     bindNav();
@@ -335,7 +387,10 @@ export function adminTemplate(): string {
       loadProject("");
     });
 
+    document.getElementById("pf-body").addEventListener("input", schedulePreview);
+
     loadLists();
+    previewPlaceholder();
   </script>`;
 
   return layoutPage("Admin", inner, { bodyClass: "admin-app", extraHead: ADMIN_FONT_HEAD });
