@@ -212,7 +212,7 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
 
   if (url.pathname === "/admin" && request.method === "GET") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return new Response(adminTemplate(), {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
@@ -220,7 +220,7 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
 
   if (url.pathname === "/admin/api/projects" && request.method === "GET") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     const res = await indexStub(env).fetch("https://idx/internal/list-all");
     return new Response(await res.text(), {
       headers: { "Content-Type": "application/json; charset=utf-8" },
@@ -229,14 +229,14 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
 
   if (url.pathname === "/admin/api/projects" && request.method === "POST") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return createProject(request, env);
   }
 
   const adminProj = url.pathname.match(ADMIN_API_PROJECT_RE);
   if (adminProj && ["GET", "PUT", "DELETE"].includes(request.method)) {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     const id = adminProj[1];
     if (request.method === "GET") return adminGetProject(id, env);
     if (request.method === "PUT") return updateProject(id, request, env);
@@ -245,25 +245,25 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
 
   if (url.pathname === "/admin/api/team/members" && request.method === "GET") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return siteStub(env).fetch("https://site/internal/members/list");
   }
 
   if (url.pathname === "/admin/api/team/members" && request.method === "POST") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return adminCreateMember(request, env);
   }
 
   const adminTeamId = url.pathname.match(/^\/admin\/api\/team\/members\/([0-9a-hjkmnpqrstvwxyz]{8})$/);
   if (adminTeamId && request.method === "PUT") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return adminPutMember(adminTeamId[1], request, env);
   }
   if (adminTeamId && request.method === "DELETE") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return siteStub(env).fetch("https://site/internal/members/delete", {
       method: "POST",
       body: JSON.stringify({ id: adminTeamId[1] }),
@@ -272,25 +272,25 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
 
   if (url.pathname === "/admin/api/clients" && request.method === "GET") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return siteStub(env).fetch("https://site/internal/clients/list");
   }
 
   if (url.pathname === "/admin/api/clients" && request.method === "POST") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return adminCreateClient(request, env);
   }
 
   const adminClientId = url.pathname.match(/^\/admin\/api\/clients\/([0-9a-hjkmnpqrstvwxyz]{8})$/);
   if (adminClientId && request.method === "PUT") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return adminPutClient(adminClientId[1], request, env);
   }
   if (adminClientId && request.method === "DELETE") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
-    if (!canAuthor(request, env)) return forbidden();
+    if (!canAuthor(request, env)) return forbidden(request, url);
     return siteStub(env).fetch("https://site/internal/clients/delete", {
       method: "POST",
       body: JSON.stringify({ id: adminClientId[1] }),
@@ -736,6 +736,7 @@ export default {
     const corsed = withPublicApiCors(url.pathname, response);
     const adminHtml =
       url.pathname === "/admin" &&
+      corsed.status === 200 &&
       (corsed.headers.get("Content-Type") ?? "").includes("text/html");
     return applySecurityHeaders(corsed, request, { adminHtml });
   },

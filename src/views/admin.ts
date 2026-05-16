@@ -1,61 +1,210 @@
 import { layoutPage } from "./shared";
 
-/** Minimal authoring shell — loads data via `/admin/api/*`. */
+const ADMIN_FONT_HEAD = `<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet"/>`;
+
+/** Authoring shell — `/admin/api/*`. Swiss minimal UI; Editor / Collaborators / Clients as separate views. */
 export function adminTemplate(): string {
   const inner = `
-<main style="max-width:56rem;margin:0 auto;padding:1rem 1rem 3rem">
-  <h1 style="margin-top:0">Projects admin</h1>
-  <p class="muted"><a href="/">← Public site</a></p>
+<div class="admin-shell">
+  <header class="admin-header">
+    <div class="admin-header__row">
+      <span class="admin-wordmark">Studio</span>
+      <a href="/" class="admin-header__exit">Public site</a>
+    </div>
+    <nav class="admin-nav" aria-label="Admin sections">
+      <button type="button" class="admin-nav__btn is-active" data-view="editor">Editor</button>
+      <button type="button" class="admin-nav__btn" data-view="collaborators">Collaborators</button>
+      <button type="button" class="admin-nav__btn" data-view="clients">Clients</button>
+    </nav>
+  </header>
 
-  <section style="margin:2rem 0;padding:1rem;border:1px solid var(--border);border-radius:8px;background:var(--card)">
-    <h2 style="margin-top:0">Team members</h2>
-    <div id="team-list" class="muted">Loading…</div>
-    <form id="team-form" style="margin-top:1rem;display:grid;gap:0.5rem;max-width:28rem">
-      <input name="name" placeholder="Name" required />
-      <input name="role" placeholder="Role (optional)" />
-      <input name="url" placeholder="URL (optional)" />
-      <button type="submit">Add member</button>
-    </form>
-  </section>
+  <main class="admin-main">
+    <section id="view-editor" class="admin-view" aria-labelledby="editor-heading">
+      <h1 id="editor-heading" class="admin-view-title">Project editor</h1>
+      <section class="admin-panel">
+        <label class="admin-label" for="proj-select">Project</label>
+        <select id="proj-select"><option value="">— New —</option></select>
+        <form id="proj-form" class="admin-grid">
+          <div>
+            <label class="admin-label" for="pf-title">Title</label>
+            <input id="pf-title" name="title" placeholder="" required />
+          </div>
+          <div>
+            <label class="admin-label" for="pf-summary">Summary</label>
+            <input id="pf-summary" name="summary" placeholder="" />
+          </div>
+          <div>
+            <label class="admin-label" for="pf-tags">Tags</label>
+            <input id="pf-tags" name="tags" placeholder="Comma-separated" />
+          </div>
+          <div>
+            <label class="admin-label" for="pf-client">Client</label>
+            <select id="pf-client" name="client_id"><option value="">— None —</option></select>
+          </div>
+          <div>
+            <label class="admin-label" for="pf-sort">Sort date</label>
+            <input id="pf-sort" name="sort_date" placeholder="YYYY-MM-DD" />
+          </div>
+          <div>
+            <label class="admin-label" for="pf-preview">Preview image URL</label>
+            <input id="pf-preview" name="preview_image" placeholder="" />
+          </div>
+          <div>
+            <label class="admin-label" for="pf-team-ids">Collaborator IDs</label>
+            <input id="pf-team-ids" name="team_member_ids" placeholder="Slug ids, comma-separated" />
+          </div>
+          <div>
+            <label class="admin-label" for="pf-gallery">Gallery JSON</label>
+            <textarea id="pf-gallery" name="gallery_json" rows="4" placeholder='[{"url":"","caption":"","alt":""}]'></textarea>
+          </div>
+          <div>
+            <label class="admin-label" for="pf-body">Body · Markdown</label>
+            <textarea id="pf-body" name="body" rows="16" placeholder="#"></textarea>
+          </div>
+          <div class="admin-actions">
+            <button type="submit" id="btn-save">Save</button>
+            <button type="button" id="btn-new">New</button>
+            <button type="button" id="btn-del">Archive</button>
+          </div>
+        </form>
+      </section>
+    </section>
 
-  <section style="margin:2rem 0;padding:1rem;border:1px solid var(--border);border-radius:8px;background:var(--card)">
-    <h2 style="margin-top:0">Clients</h2>
-    <div id="clients-list" class="muted">Loading…</div>
-    <form id="client-form" style="margin-top:1rem;display:grid;gap:0.5rem;max-width:28rem">
-      <input name="name" placeholder="Name (e.g. IDEO)" required />
-      <input name="url" placeholder="Client URL (optional)" />
-      <button type="submit">Add client</button>
-    </form>
-  </section>
+    <section id="view-collaborators" class="admin-view" aria-labelledby="collab-heading" hidden>
+      <h1 id="collab-heading" class="admin-view-title">Collaborators</h1>
+      <section class="admin-panel">
+        <h2>Directory</h2>
+        <ul id="team-list" class="admin-list"></ul>
+        <h2>Add collaborator</h2>
+        <form id="team-form" class="admin-grid">
+          <div>
+            <label class="admin-label" for="tf-name">Name</label>
+            <input id="tf-name" name="name" placeholder="" required />
+          </div>
+          <div>
+            <label class="admin-label" for="tf-role">Role</label>
+            <input id="tf-role" name="role" placeholder="Optional" />
+          </div>
+          <div>
+            <label class="admin-label" for="tf-url">URL</label>
+            <input id="tf-url" name="url" placeholder="Optional" />
+          </div>
+          <div><button type="submit">Add</button></div>
+        </form>
+      </section>
+    </section>
 
-  <section style="margin:2rem 0;padding:1rem;border:1px solid var(--border);border-radius:8px;background:var(--card)">
-    <h2 style="margin-top:0">Projects</h2>
-    <label>Pick project <select id="proj-select"><option value="">— New —</option></select></label>
-    <form id="proj-form" style="margin-top:1rem;display:grid;gap:0.6rem">
-      <input name="title" placeholder="Title" required />
-      <input name="summary" placeholder="Summary" />
-      <input name="tags" placeholder="Tags (comma-separated)" />
-      <label>Client <select name="client_id"><option value="">— None —</option></select></label>
-      <input name="sort_date" placeholder="sort_date ISO (e.g. 2024-03-15)" />
-      <input name="preview_image" placeholder="Preview image URL" />
-      <label>Team member IDs (comma-separated slugs)</label>
-      <input name="team_member_ids" placeholder="aaaaaaaa, bbbbbbbb" />
-      <label>Gallery JSON array: [{"url":"…","caption":"","alt":""}]</label>
-      <textarea name="gallery_json" rows="3" placeholder='[]'></textarea>
-      <label>Body (markdown)</label>
-      <textarea name="body" rows="14" placeholder="# Hello"></textarea>
-      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-        <button type="submit" id="btn-save">Save</button>
-        <button type="button" id="btn-new">New</button>
-        <button type="button" id="btn-del" style="color:#b91c1c">Soft-delete</button>
-      </div>
-    </form>
-  </section>
+    <section id="view-clients" class="admin-view" aria-labelledby="clients-heading" hidden>
+      <h1 id="clients-heading" class="admin-view-title">Clients</h1>
+      <section class="admin-panel">
+        <h2>Directory</h2>
+        <ul id="clients-list" class="admin-list"></ul>
+        <h2>Add client</h2>
+        <form id="client-form" class="admin-grid">
+          <div>
+            <label class="admin-label" for="cf-name">Name</label>
+            <input id="cf-name" name="name" placeholder="" required />
+          </div>
+          <div>
+            <label class="admin-label" for="cf-url">URL</label>
+            <input id="cf-url" name="url" placeholder="Optional" />
+          </div>
+          <div><button type="submit">Add</button></div>
+        </form>
+      </section>
+    </section>
+  </main>
+</div>
 
   <script>
     async function j(url, opt) {
       const r = await fetch(url, Object.assign({ headers: { "Content-Type": "application/json" } }, opt || {}));
       return r;
+    }
+
+    function showView(name) {
+      var ids = { editor: "view-editor", collaborators: "view-collaborators", clients: "view-clients" };
+      var navBtns = document.querySelectorAll(".admin-nav__btn");
+      Object.keys(ids).forEach(function(key) {
+        var el = document.getElementById(ids[key]);
+        if (el) el.hidden = key !== name;
+      });
+      navBtns.forEach(function(btn) {
+        var v = btn.getAttribute("data-view");
+        var on = v === name;
+        btn.classList.toggle("is-active", on);
+        if (on) btn.setAttribute("aria-current", "page");
+        else btn.removeAttribute("aria-current");
+      });
+      try {
+        history.replaceState(null, "", "#" + name);
+      } catch (e) {}
+    }
+
+    function viewFromHash() {
+      var h = (location.hash || "#editor").replace(/^#/, "");
+      if (h === "collaborators" || h === "clients" || h === "editor") return h;
+      return "editor";
+    }
+
+    function bindNav() {
+      document.querySelectorAll(".admin-nav__btn").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          showView(btn.getAttribute("data-view"));
+        });
+      });
+      window.addEventListener("hashchange", function() {
+        showView(viewFromHash());
+      });
+      showView(viewFromHash());
+    }
+
+    function fillTeamList(members) {
+      var ul = document.getElementById("team-list");
+      ul.textContent = "";
+      if (!members.length) {
+        var empty = document.createElement("li");
+        empty.className = "admin-list__empty";
+        empty.textContent = "No collaborators yet.";
+        ul.appendChild(empty);
+        return;
+      }
+      members.forEach(function(m) {
+        var li = document.createElement("li");
+        var line = document.createElement("span");
+        line.textContent = m.name + (m.role ? " — " + m.role : "");
+        var meta = document.createElement("span");
+        meta.className = "admin-list__meta";
+        meta.textContent = m.id;
+        li.appendChild(line);
+        li.appendChild(meta);
+        ul.appendChild(li);
+      });
+    }
+
+    function fillClientsList(clients) {
+      var ul = document.getElementById("clients-list");
+      ul.textContent = "";
+      if (!clients.length) {
+        var empty = document.createElement("li");
+        empty.className = "admin-list__empty";
+        empty.textContent = "No clients yet.";
+        ul.appendChild(empty);
+        return;
+      }
+      clients.forEach(function(c) {
+        var li = document.createElement("li");
+        var line = document.createElement("span");
+        line.textContent = c.name;
+        var meta = document.createElement("span");
+        meta.className = "admin-list__meta";
+        meta.textContent = c.id;
+        li.appendChild(line);
+        li.appendChild(meta);
+        ul.appendChild(li);
+      });
     }
 
     async function loadLists() {
@@ -68,29 +217,24 @@ export function adminTemplate(): string {
       const clients = await cl.json();
       const projects = await pr.json();
 
-      document.getElementById("team-list").textContent = team.members.map(function(m) {
-        return m.id + " · " + m.name + (m.role ? " (" + m.role + ")" : "");
-      }).join("\\n") || "(none)";
-
-      document.getElementById("clients-list").textContent = clients.clients.map(function(c) {
-        return c.id + " · " + c.name;
-      }).join("\\n") || "(none)";
+      fillTeamList(team.members || []);
+      fillClientsList(clients.clients || []);
 
       var sel = document.getElementById("proj-select");
       while (sel.options.length > 1) sel.remove(1);
-      projects.projects.forEach(function(p) {
+      (projects.projects || []).forEach(function(p) {
         var o = document.createElement("option");
         o.value = p.id;
-        o.textContent = p.title + " (" + p.id + ")";
+        o.textContent = p.title + " · " + p.id;
         sel.appendChild(o);
       });
 
-      var csel = document.querySelector("[name=client_id]");
+      var csel = document.getElementById("pf-client");
       while (csel.options.length > 1) csel.remove(1);
-      clients.clients.forEach(function(c) {
+      (clients.clients || []).forEach(function(c) {
         var o = document.createElement("option");
         o.value = c.id;
-        o.textContent = c.name + " (" + c.id + ")";
+        o.textContent = c.name + " · " + c.id;
         csel.appendChild(o);
       });
     }
@@ -107,7 +251,7 @@ export function adminTemplate(): string {
     async function loadProject(id) {
       if (!id) {
         document.getElementById("proj-form").reset();
-        document.querySelector("[name=client_id]").value = "";
+        document.getElementById("pf-client").value = "";
         return;
       }
       var r = await j("/admin/api/projects/" + id);
@@ -123,6 +267,8 @@ export function adminTemplate(): string {
       f.gallery_json.value = JSON.stringify(p.gallery_images || [], null, 2);
       f.body.value = p.body || "";
     }
+
+    bindNav();
 
     document.getElementById("proj-select").addEventListener("change", function() {
       loadProject(this.value);
@@ -182,7 +328,7 @@ export function adminTemplate(): string {
 
     document.getElementById("btn-del").addEventListener("click", async function() {
       var id = document.getElementById("proj-select").value;
-      if (!id || !confirm("Soft-delete this project?")) return;
+      if (!id || !confirm("Archive this project?")) return;
       await j("/admin/api/projects/" + id, { method: "DELETE" });
       document.getElementById("proj-select").value = "";
       await loadLists();
@@ -190,8 +336,7 @@ export function adminTemplate(): string {
     });
 
     loadLists();
-  </script>
-</main>`;
+  </script>`;
 
-  return layoutPage("Admin — Projects", inner);
+  return layoutPage("Admin", inner, { bodyClass: "admin-app", extraHead: ADMIN_FONT_HEAD });
 }

@@ -23,7 +23,8 @@ const CSP_PUBLIC = [
 const CSP_ADMIN = [
   "default-src 'self'",
   "script-src 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
   "img-src https: data:",
   "connect-src 'self'",
   "base-uri 'self'",

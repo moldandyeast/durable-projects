@@ -16,34 +16,37 @@ export function sortEntries(entries: IndexEntry[]): IndexEntry[] {
 export function homePage(entries: IndexEntry[], clientLabels: Map<string, string>): string {
   const cards = entries
     .map((e) => {
-      const thumb = e.preview_image ?
-          `<img src="${escapeHtml(e.preview_image)}" alt="" width="120" height="80" style="object-fit:cover;border-radius:6px;width:100%;max-height:140px"/>`
-      : `<div style="height:120px;background:#eee;border-radius:6px"></div>`;
+      const media = e.preview_image
+        ? `<div class="card-media"><img src="${escapeHtml(e.preview_image)}" alt="" loading="lazy"/></div>`
+        : `<div class="card-media" aria-hidden="true"></div>`;
       const client =
-        e.client_id && clientLabels.has(e.client_id) ?
-          `<span class="muted">${escapeHtml(clientLabels.get(e.client_id)!)}</span>`
-        : "";
+        e.client_id && clientLabels.has(e.client_id)
+          ? `<span class="client-pill">${escapeHtml(clientLabels.get(e.client_id)!)}</span>`
+          : "";
+      const summary =
+        e.summary.length > 160 ? `${escapeHtml(e.summary.slice(0, 160))}…` : escapeHtml(e.summary);
       return `
-      <a href="/${escapeHtml(e.id)}" style="text-decoration:none;color:inherit;display:block;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden">
-        ${thumb}
-        <div style="padding:0.85rem 1rem">
-          <div style="font-weight:600">${escapeHtml(e.title)}</div>
-          <div class="muted" style="margin-top:0.25rem;font-size:0.9rem">${escapeHtml(e.summary.slice(0, 140))}${e.summary.length > 140 ? "…" : ""}</div>
-          ${client ? `<div style="margin-top:0.5rem">${client}</div>` : ""}
+      <a href="/${escapeHtml(e.id)}" class="project-card">
+        ${media}
+        <div class="card-body">
+          <h2 class="card-title">${escapeHtml(e.title)}</h2>
+          <p class="card-summary">${summary}</p>
+          ${client}
         </div>
       </a>`;
     })
     .join("");
 
-  const grid = cards ?
-      `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem">${cards}</div>`
-    : `<p class="muted">No projects yet.</p>`;
+  const grid = cards ? `<div class="card-grid">${cards}</div>` : `<p class="empty-state">No projects yet.</p>`;
 
   const inner = `
-<main>
-  <header style="margin-bottom:2rem">
-    <h1 style="margin:0">Projects</h1>
-    <p class="muted" style="margin:0.5rem 0 0">Portfolio work · filter with <code>?tag=</code> and <code>?client=&lt;client id&gt;</code></p>
+<header class="site-nav">
+  <a class="brand" href="/">Work</a>
+</header>
+<main class="page">
+  <header class="hero">
+    <h1>Projects</h1>
+    <p class="lede">Portfolio work · filter with <code>?tag=</code> and <code>?client=&lt;client id&gt;</code></p>
   </header>
   ${grid}
 </main>`;

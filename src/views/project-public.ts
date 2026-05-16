@@ -6,11 +6,11 @@ function gallerySection(images: GalleryImage[]): string {
   const figures = images
     .map((img) => {
       const alt = escapeHtml(img.alt ?? "");
-      const cap = img.caption ? `<figcaption class="muted">${escapeHtml(img.caption)}</figcaption>` : "";
-      return `<figure style="margin:0 0 1rem"><img src="${escapeHtml(img.url)}" alt="${alt}" style="max-width:100%;height:auto;border-radius:6px"/>${cap}</figure>`;
+      const cap = img.caption ? `<figcaption>${escapeHtml(img.caption)}</figcaption>` : "";
+      return `<figure><img src="${escapeHtml(img.url)}" alt="${alt}" loading="lazy"/>${cap}</figure>`;
     })
     .join("\n");
-  return `<section style="margin:2rem 0"><h2 class="muted" style="font-size:1rem;margin-bottom:0.75rem">Gallery</h2><div style="display:grid;gap:1rem">${figures}</div></section>`;
+  return `<section><h2 class="section-title">Gallery</h2><div class="gallery-grid">${figures}</div></section>`;
 }
 
 function teamSection(team: TeamMember[]): string {
@@ -21,16 +21,16 @@ function teamSection(team: TeamMember[]): string {
       const link = m.url
         ? `<a href="${escapeHtml(m.url)}" rel="noopener noreferrer">${escapeHtml(m.name)}</a>${role}`
         : `<strong>${escapeHtml(m.name)}</strong>${role}`;
-      return `<li style="margin:0.35rem 0">${link}</li>`;
+      return `<li>${link}</li>`;
     })
     .join("");
-  return `<section style="margin:2rem 0"><h2 class="muted" style="font-size:1rem;margin-bottom:0.5rem">Team</h2><ul style="margin:0;padding-left:1.2rem">${items}</ul></section>`;
+  return `<section><h2 class="section-title">Team</h2><ul class="team-list">${items}</ul></section>`;
 }
 
 function sortDateDisplay(sort_date: string | undefined): string {
   if (!sort_date?.trim()) return "";
   const y = sort_date.slice(0, 4);
-  return y.length === 4 ? y : escapeHtml(sort_date);
+  return y.length === 4 ? y : sort_date.trim();
 }
 
 export function projectPublicPage(project: ProjectData, team: TeamMember[], client: Client | undefined): string {
@@ -47,19 +47,26 @@ export function projectPublicPage(project: ProjectData, team: TeamMember[], clie
 
   const sd = sortDateDisplay(project.sort_date);
 
+  const metaParts: string[] = [];
+  if (sd) metaParts.push(`<span><strong>Sort</strong> ${escapeHtml(sd)}</span>`);
+  metaParts.push(
+    `<span><strong>Updated</strong> <time datetime="${escapeHtml(project.edited_at)}">${escapeHtml(project.edited_at.slice(0, 10))}</time></span>`,
+  );
+  const metaRow = `<div class="meta-row">${metaParts.join("")}</div>`;
+
   const inner = `
-<main>
-  <p class="muted"><a href="/">← Projects</a></p>
+<header class="site-nav">
+  <a class="brand" href="/">Work</a>
+</header>
+<main class="page">
+  <div class="back-row"><a href="/">← All projects</a></div>
   <article>
-    <header style="margin-bottom:2rem">
-      <h1 style="margin:0 0 0.5rem;font-size:2rem">${escapeHtml(project.title)}</h1>
-      ${project.summary ? `<p style="font-size:1.15rem;margin:0 0 1rem">${escapeHtml(project.summary)}</p>` : ""}
+    <header class="project-header">
+      <h1>${escapeHtml(project.title)}</h1>
+      ${project.summary ? `<p class="dek">${escapeHtml(project.summary)}</p>` : ""}
       ${clientLine}
       ${tags}
-      <p class="muted" style="margin:0.5rem 0 0">
-        ${sd ? `Sort: ${escapeHtml(sd)} · ` : ""}
-        Updated <time datetime="${escapeHtml(project.edited_at)}">${escapeHtml(project.edited_at.slice(0, 10))}</time>
-      </p>
+      ${metaRow}
     </header>
     ${gallerySection(project.gallery_images)}
     ${teamSection(team)}
