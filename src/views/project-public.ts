@@ -33,11 +33,16 @@ function sortDateDisplay(sort_date: string | undefined): string {
   return y.length === 4 ? y : sort_date.trim();
 }
 
-export function projectPublicPage(project: ProjectData, team: TeamMember[], client: Client | undefined): string {
+export function projectPublicPage(
+  project: ProjectData,
+  team: TeamMember[],
+  client: Client | undefined,
+  parentClient: Client | undefined,
+): string {
   const clientLine = client
     ? client.url
-      ? `<p class="muted">${escapeHtml(client.name)} · <a href="${escapeHtml(client.url)}">${escapeHtml(client.url.replace(/^https?:\/\//, ""))}</a></p>`
-      : `<p class="muted">${escapeHtml(client.name)}</p>`
+      ? `<p class="muted">${escapeHtml(client.name)} · <a href="${escapeHtml(client.url)}">${escapeHtml(client.url.replace(/^https?:\/\//, ""))}</a>${parentClient ? ` <span class="client-via">· via ${escapeHtml(parentClient.name)}</span>` : ""}</p>`
+      : `<p class="muted">${escapeHtml(client.name)}${parentClient ? ` <span class="client-via">· via ${escapeHtml(parentClient.name)}</span>` : ""}</p>`
     : "";
 
   const tags =

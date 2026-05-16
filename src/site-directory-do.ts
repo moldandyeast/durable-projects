@@ -1,4 +1,5 @@
 import type { Client, Env, TeamMember } from "./types";
+import { isValidSlug } from "./slug";
 
 const MEMBER_PREFIX = "member:";
 const CLIENT_PREFIX = "client:";
@@ -96,13 +97,38 @@ export class SiteDirectoryDO {
     if (!c?.id || !c.name?.trim()) {
       return new Response("Bad request", { status: 400 });
     }
+    if (!isValidSlug(c.id)) return new Response("Bad request", { status: 400 });
+
+    let parentId: string | undefined;
+    const rawParent = c.parent_client_id?.trim();
+    if (rawParent) {
+      const err = await this.validateClientParent(c.id, rawParent);
+      if (err) return err;
+      parentId = rawParent;
+    }
+
     const row: Client = {
       id: c.id,
       name: c.name.trim(),
       ...(c.url?.trim() ? { url: c.url.trim() } : {}),
+      ...(parentId ? { parent_client_id: parentId } : {}),
     };
     await this.state.storage.put(clientKey(row.id), row);
     return Response.json(row);
+  }
+
+  /** Walk upward from parentId; reject if clientId appears (would create a cycle). */
+  private async validateClientParent(clientId: string, parentId: string): Promise<Response | null> {
+    if (!isValidSlug(parentId)) return new Response("Invalid parent id", { status: 400 });
+    if (parentId === clientId) return new Response("Parent cannot be self", { status: 400 });
+    let walk: string | undefined = parentId;
+    for (let depth = 0; depth < 32 && walk; depth++) {
+      if (walk === clientId) return new Response("Invalid parent (cycle)", { status: 400 });
+      const node: Client | undefined = await this.state.storage.get<Client>(clientKey(walk));
+      if (!node) return new Response("Parent client not found", { status: 400 });
+      walk = node.parent_client_id;
+    }
+    return null;
   }
 
   private async deleteMember(request: Request): Promise<Response> {

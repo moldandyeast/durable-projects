@@ -84,6 +84,7 @@ export function layoutPage(
       padding: 1.25rem clamp(1rem, 4vw, 2rem) 5rem;
     }
     .muted { color: var(--muted); font-size: 0.92rem; }
+    .client-via { color: var(--muted); font-weight: 400; white-space: nowrap; }
 
     /* Nav */
     .site-nav {
@@ -479,6 +480,142 @@ export function layoutPage(
       color: var(--adm-muted);
       margin: 0 0 1.75rem;
     }
+    body.admin-app.admin-overlay-open {
+      overflow: hidden;
+    }
+    body.admin-app .admin-view-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+      margin-bottom: 1.25rem;
+    }
+    body.admin-app .admin-view-head .admin-view-title {
+      margin-bottom: 0;
+    }
+    body.admin-app .admin-add-btn {
+      flex-shrink: 0;
+      width: 2.25rem;
+      height: 2.25rem;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 500;
+      line-height: 1;
+      background: transparent;
+      color: var(--adm-fg);
+      border: 1px solid var(--adm-line);
+      cursor: pointer;
+      border-radius: 0;
+      max-width: none;
+    }
+    body.admin-app .admin-add-btn:hover {
+      background: var(--adm-fg);
+      color: var(--adm-bg);
+      border-color: var(--adm-fg);
+    }
+    body.admin-app .admin-overlay[hidden] {
+      display: none !important;
+    }
+    body.admin-app .admin-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1rem, 4vw, 2rem);
+      box-sizing: border-box;
+    }
+    body.admin-app .admin-overlay__backdrop {
+      position: absolute;
+      inset: 0;
+      border: none;
+      padding: 0;
+      margin: 0;
+      background: rgba(10, 10, 10, 0.42);
+      cursor: pointer;
+    }
+    @media (prefers-color-scheme: dark) {
+      body.admin-app .admin-overlay__backdrop {
+        background: rgba(0, 0, 0, 0.72);
+      }
+    }
+    body.admin-app .admin-overlay__panel {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 26rem;
+      max-height: min(92dvh, 100%);
+      overflow-y: auto;
+      background: var(--adm-field-bg);
+      border: 1px solid var(--adm-line);
+      padding: 1.25rem 1.35rem 1.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+    @media (prefers-color-scheme: dark) {
+      body.admin-app .admin-overlay__panel {
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+      }
+    }
+    body.admin-app .admin-overlay__head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.15rem;
+    }
+    body.admin-app .admin-overlay__title {
+      margin: 0;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--adm-muted);
+    }
+    body.admin-app .admin-overlay__close {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      margin: -0.35rem -0.35rem 0 0;
+      border: none;
+      background: transparent;
+      color: var(--adm-muted);
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      border-radius: 0;
+      max-width: none;
+    }
+    body.admin-app .admin-overlay__close:hover {
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-overlay__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 0.35rem;
+    }
+    body.admin-app .admin-btn.admin-btn--ghost {
+      background: transparent;
+      color: var(--adm-fg);
+      border-color: var(--adm-line);
+    }
+    body.admin-app .admin-btn.admin-btn--ghost:hover {
+      opacity: 0.92;
+      background: rgba(10, 10, 10, 0.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      body.admin-app .admin-btn.admin-btn--ghost:hover {
+        background: rgba(245, 245, 245, 0.06);
+      }
+    }
     body.admin-app .admin-panel {
       margin: 0;
       padding: 0;
@@ -582,6 +719,60 @@ export function layoutPage(
       gap: 0.65rem;
       align-items: center;
       margin-top: 0.5rem;
+    }
+    body.admin-app .admin-collab-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    body.admin-app .admin-collab-picker {
+      max-height: 11rem;
+      overflow-y: auto;
+      border: 1px solid var(--adm-line);
+      padding: 0.35rem 0;
+      background: var(--adm-field-bg);
+    }
+    body.admin-app .admin-collab-picker__empty {
+      margin: 0;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--adm-muted);
+      line-height: 1.45;
+    }
+    body.admin-app .admin-collab-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: baseline;
+      gap: 0.5rem 0.65rem;
+      padding: 0.35rem 0.65rem;
+      cursor: pointer;
+      font-size: 0.8125rem;
+      line-height: 1.35;
+    }
+    body.admin-app .admin-collab-row:hover {
+      background: rgba(10, 10, 10, 0.03);
+    }
+    @media (prefers-color-scheme: dark) {
+      body.admin-app .admin-collab-row:hover {
+        background: rgba(245, 245, 245, 0.05);
+      }
+    }
+    body.admin-app .admin-collab-row input {
+      width: auto;
+      margin: 0;
+      accent-color: var(--adm-fg);
+    }
+    body.admin-app .admin-collab-row__text {
+      min-width: 0;
+      word-break: break-word;
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-collab-row__id {
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--adm-muted);
+      white-space: nowrap;
     }
     body.admin-app .admin-grid {
       display: grid;

@@ -20,6 +20,8 @@ export interface Client {
   id: string;
   name: string;
   url?: string;
+  /** Another client (e.g. studio) this engagement rolls up under — Mozilla → IDEO */
+  parent_client_id?: string;
 }
 
 export interface ProjectData {
@@ -67,6 +69,8 @@ export interface ProjectEnvelope {
   viewers: number;
   client_id?: string;
   client?: Client;
+  /** Present when `client` has `parent_client_id` (e.g. studio / parent org). */
+  parent_client?: Client;
   sort_date?: string;
   gallery_images: GalleryImage[];
   preview_image?: string;

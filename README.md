@@ -26,7 +26,7 @@ With `[env.dev.vars] DEV_BYPASS_AUTH = "true"`, `/admin` and `/admin/api/*` work
 - `/` — project grid (`?tag=`, `?client=<client id>`)
 - `/api/index`, `/api/projects/:id`, `/api/team`, `/api/clients`
 - `/:id` — HTML; `/:id.md` or `Accept: text/markdown` — markdown export
-- `/admin` — browser authoring (projects + team + clients CMS)
+Clients support an optional **parent client** (e.g. Mozilla with parent IDEO). Set **Parent client** in the add-client overlay; projects still use one **primary** `client_id` (often the end client).
 
 Production URL: [`https://work.moldandyeast.com`](https://work.moldandyeast.com) (configured in `wrangler.toml`). Authoring uses **Cloudflare Access** (not an app password). Keep `DEV_BYPASS_AUTH=false` in production `[vars]`.
 

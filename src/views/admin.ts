@@ -55,9 +55,10 @@ export function adminTemplate(): string {
                 <label class="admin-label" for="pf-preview">Preview image URL</label>
                 <input id="pf-preview" name="preview_image" placeholder="" />
               </div>
-              <div>
-                <label class="admin-label" for="pf-team-ids">Collaborator IDs</label>
-                <input id="pf-team-ids" name="team_member_ids" placeholder="Slug ids, comma-separated" />
+              <div class="admin-collab-wrap">
+                <span id="collab-picker-label" class="admin-label">Collaborators</span>
+                <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
+                <input type="hidden" name="team_member_ids" id="pf-team-ids" value="" />
               </div>
               <div>
                 <label class="admin-label" for="pf-gallery">Gallery JSON</label>
@@ -83,49 +84,83 @@ export function adminTemplate(): string {
     </section>
 
     <section id="view-collaborators" class="admin-view" aria-labelledby="collab-heading" hidden>
-      <h1 id="collab-heading" class="admin-view-title">Collaborators</h1>
+      <div class="admin-view-head">
+        <h1 id="collab-heading" class="admin-view-title">Collaborators</h1>
+        <button type="button" class="admin-add-btn" id="open-collab-overlay" aria-haspopup="dialog" aria-controls="overlay-collab" title="Add collaborator">+</button>
+      </div>
       <section class="admin-panel">
         <h2>Directory</h2>
         <ul id="team-list" class="admin-list"></ul>
-        <h2>Add collaborator</h2>
-        <form id="team-form" class="admin-grid">
-          <div>
-            <label class="admin-label" for="tf-name">Name</label>
-            <input id="tf-name" name="name" placeholder="" required />
-          </div>
-          <div>
-            <label class="admin-label" for="tf-role">Role</label>
-            <input id="tf-role" name="role" placeholder="Optional" />
-          </div>
-          <div>
-            <label class="admin-label" for="tf-url">URL</label>
-            <input id="tf-url" name="url" placeholder="Optional" />
-          </div>
-          <div><button type="submit">Add</button></div>
-        </form>
       </section>
     </section>
 
     <section id="view-clients" class="admin-view" aria-labelledby="clients-heading" hidden>
-      <h1 id="clients-heading" class="admin-view-title">Clients</h1>
+      <div class="admin-view-head">
+        <h1 id="clients-heading" class="admin-view-title">Clients</h1>
+        <button type="button" class="admin-add-btn" id="open-client-overlay" aria-haspopup="dialog" aria-controls="overlay-client" title="Add client">+</button>
+      </div>
       <section class="admin-panel">
         <h2>Directory</h2>
         <ul id="clients-list" class="admin-list"></ul>
-        <h2>Add client</h2>
-        <form id="client-form" class="admin-grid">
-          <div>
-            <label class="admin-label" for="cf-name">Name</label>
-            <input id="cf-name" name="name" placeholder="" required />
-          </div>
-          <div>
-            <label class="admin-label" for="cf-url">URL</label>
-            <input id="cf-url" name="url" placeholder="Optional" />
-          </div>
-          <div><button type="submit">Add</button></div>
-        </form>
       </section>
     </section>
   </main>
+
+  <div id="overlay-collab" class="admin-overlay" hidden aria-hidden="true">
+    <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
+    <div class="admin-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="overlay-collab-title">
+      <div class="admin-overlay__head">
+        <h2 id="overlay-collab-title" class="admin-overlay__title">Add collaborator</h2>
+        <button type="button" class="admin-overlay__close" data-overlay-close="overlay-collab" aria-label="Close">&times;</button>
+      </div>
+      <form id="team-form" class="admin-grid">
+        <div>
+          <label class="admin-label" for="tf-name">Name</label>
+          <input id="tf-name" name="name" placeholder="" required />
+        </div>
+        <div>
+          <label class="admin-label" for="tf-role">Role</label>
+          <input id="tf-role" name="role" placeholder="Optional" />
+        </div>
+        <div>
+          <label class="admin-label" for="tf-url">URL</label>
+          <input id="tf-url" name="url" placeholder="Optional" />
+        </div>
+        <div class="admin-overlay__actions">
+          <button type="button" class="admin-btn admin-btn--ghost" data-overlay-close="overlay-collab">Cancel</button>
+          <button type="submit">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="overlay-client" class="admin-overlay" hidden aria-hidden="true">
+    <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
+    <div class="admin-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="overlay-client-title">
+      <div class="admin-overlay__head">
+        <h2 id="overlay-client-title" class="admin-overlay__title">Add client</h2>
+        <button type="button" class="admin-overlay__close" data-overlay-close="overlay-client" aria-label="Close">&times;</button>
+      </div>
+      <form id="client-form" class="admin-grid">
+        <div>
+          <label class="admin-label" for="cf-name">Name</label>
+          <input id="cf-name" name="name" placeholder="" required />
+        </div>
+        <div>
+          <label class="admin-label" for="cf-parent">Parent client</label>
+          <select id="cf-parent" name="parent_client_id"><option value="">— None —</option></select>
+        </div>
+        <div>
+          <label class="admin-label" for="cf-url">URL</label>
+          <input id="cf-url" name="url" placeholder="Optional" />
+        </div>
+        <div class="admin-overlay__actions">
+          <button type="button" class="admin-btn admin-btn--ghost" data-overlay-close="overlay-client">Cancel</button>
+          <button type="submit">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
   <script>
@@ -211,6 +246,123 @@ export function adminTemplate(): string {
       showView(viewFromHash());
     }
 
+    var overlayFocusReturn = null;
+
+    function syncOverlayScrollLock() {
+      var oc = document.getElementById("overlay-collab");
+      var ol = document.getElementById("overlay-client");
+      if ((!oc || oc.hidden) && (!ol || ol.hidden)) {
+        document.body.classList.remove("admin-overlay-open");
+      }
+    }
+
+    function openOverlay(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      overlayFocusReturn = document.activeElement;
+      el.hidden = false;
+      el.setAttribute("aria-hidden", "false");
+      document.body.classList.add("admin-overlay-open");
+      var input = el.querySelector("input[name=name], input");
+      if (input) input.focus();
+    }
+
+    function closeOverlay(id) {
+      var el = typeof id === "string" ? document.getElementById(id) : id;
+      if (!el || el.hidden) return;
+      el.hidden = true;
+      el.setAttribute("aria-hidden", "true");
+      syncOverlayScrollLock();
+      if (overlayFocusReturn && typeof overlayFocusReturn.focus === "function") {
+        overlayFocusReturn.focus();
+        overlayFocusReturn = null;
+      }
+    }
+
+    function bindOverlays() {
+      document.getElementById("open-collab-overlay").addEventListener("click", function() {
+        openOverlay("overlay-collab");
+      });
+      document.getElementById("open-client-overlay").addEventListener("click", function() {
+        openOverlay("overlay-client");
+      });
+      document.querySelectorAll(".admin-overlay__backdrop").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          var overlay = btn.closest(".admin-overlay");
+          if (overlay) closeOverlay(overlay.id);
+        });
+      });
+      document.querySelectorAll("[data-overlay-close]").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          closeOverlay(btn.getAttribute("data-overlay-close"));
+        });
+      });
+      document.addEventListener("keydown", function(ev) {
+        if (ev.key !== "Escape") return;
+        var oc = document.getElementById("overlay-collab");
+        var ol = document.getElementById("overlay-client");
+        if (oc && !oc.hidden) closeOverlay("overlay-collab");
+        else if (ol && !ol.hidden) closeOverlay("overlay-client");
+      });
+    }
+
+    function getSelectedTeamIdsFromHidden() {
+      var hid = document.getElementById("pf-team-ids");
+      if (!hid.value.trim()) return [];
+      return hid.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+    }
+
+    function syncCollabHiddenFromCheckboxes() {
+      var ids = [];
+      document.querySelectorAll('#collab-picker input[type="checkbox"]').forEach(function(cb) {
+        if (cb.checked) ids.push(cb.value);
+      });
+      document.getElementById("pf-team-ids").value = ids.join(", ");
+    }
+
+    function applyTeamIdsToCheckboxes(ids) {
+      var set = {};
+      ids.forEach(function(id) {
+        set[id] = true;
+      });
+      document.querySelectorAll('#collab-picker input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = !!set[cb.value];
+      });
+      syncCollabHiddenFromCheckboxes();
+    }
+
+    function renderCollaboratorPicker(members) {
+      var preserved = getSelectedTeamIdsFromHidden();
+      var wrap = document.getElementById("collab-picker");
+      wrap.textContent = "";
+      if (!members.length) {
+        var empty = document.createElement("p");
+        empty.className = "admin-collab-picker__empty";
+        empty.textContent = "No collaborators yet — add some under Collaborators.";
+        wrap.appendChild(empty);
+        document.getElementById("pf-team-ids").value = "";
+        return;
+      }
+      members.forEach(function(m) {
+        var row = document.createElement("label");
+        row.className = "admin-collab-row";
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = m.id;
+        var span = document.createElement("span");
+        span.className = "admin-collab-row__text";
+        span.textContent = m.name + (m.role ? " — " + m.role : "");
+        var sid = document.createElement("span");
+        sid.className = "admin-collab-row__id";
+        sid.textContent = m.id;
+        row.appendChild(cb);
+        row.appendChild(span);
+        row.appendChild(sid);
+        wrap.appendChild(row);
+      });
+      applyTeamIdsToCheckboxes(preserved);
+    }
+
     function fillTeamList(members) {
       var ul = document.getElementById("team-list");
       ul.textContent = "";
@@ -237,6 +389,10 @@ export function adminTemplate(): string {
     function fillClientsList(clients) {
       var ul = document.getElementById("clients-list");
       ul.textContent = "";
+      var byId = {};
+      clients.forEach(function(c) {
+        byId[c.id] = c;
+      });
       if (!clients.length) {
         var empty = document.createElement("li");
         empty.className = "admin-list__empty";
@@ -250,7 +406,12 @@ export function adminTemplate(): string {
         line.textContent = c.name;
         var meta = document.createElement("span");
         meta.className = "admin-list__meta";
-        meta.textContent = c.id;
+        var parts = [];
+        if (c.parent_client_id && byId[c.parent_client_id]) {
+          parts.push("via " + byId[c.parent_client_id].name);
+        }
+        parts.push(c.id);
+        meta.textContent = parts.join(" · ");
         li.appendChild(line);
         li.appendChild(meta);
         ul.appendChild(li);
@@ -269,6 +430,7 @@ export function adminTemplate(): string {
 
       fillTeamList(team.members || []);
       fillClientsList(clients.clients || []);
+      renderCollaboratorPicker(team.members || []);
 
       var sel = document.getElementById("proj-select");
       while (sel.options.length > 1) sel.remove(1);
@@ -281,11 +443,17 @@ export function adminTemplate(): string {
 
       var csel = document.getElementById("pf-client");
       while (csel.options.length > 1) csel.remove(1);
+      var cfParent = document.getElementById("cf-parent");
+      while (cfParent.options.length > 1) cfParent.remove(1);
       (clients.clients || []).forEach(function(c) {
         var o = document.createElement("option");
         o.value = c.id;
         o.textContent = c.name + " · " + c.id;
         csel.appendChild(o);
+        var po = document.createElement("option");
+        po.value = c.id;
+        po.textContent = c.name + " · " + c.id;
+        cfParent.appendChild(po);
       });
     }
 
@@ -302,6 +470,7 @@ export function adminTemplate(): string {
       if (!id) {
         document.getElementById("proj-form").reset();
         document.getElementById("pf-client").value = "";
+        applyTeamIdsToCheckboxes([]);
         previewPlaceholder();
         return;
       }
@@ -315,37 +484,54 @@ export function adminTemplate(): string {
       f.sort_date.value = p.sort_date || "";
       f.preview_image.value = p.preview_image || "";
       f.team_member_ids.value = (p.team_member_ids || []).join(", ");
+      applyTeamIdsToCheckboxes(p.team_member_ids || []);
       f.gallery_json.value = JSON.stringify(p.gallery_images || [], null, 2);
       f.body.value = p.body || "";
       schedulePreview();
     }
 
     bindNav();
+    bindOverlays();
 
     document.getElementById("proj-select").addEventListener("change", function() {
       loadProject(this.value);
     });
 
+    document.getElementById("proj-form").addEventListener("change", function(ev) {
+      var t = ev.target;
+      if (t && t.closest && t.closest("#collab-picker") && t.type === "checkbox") {
+        syncCollabHiddenFromCheckboxes();
+      }
+    });
+
     document.getElementById("team-form").addEventListener("submit", async function(ev) {
       ev.preventDefault();
       var f = ev.target;
-      await j("/admin/api/team/members", {
+      var r = await j("/admin/api/team/members", {
         method: "POST",
         body: JSON.stringify({ name: f.name.value, role: f.role.value || undefined, url: f.url.value || undefined }),
       });
+      if (!r.ok) return;
       f.reset();
       await loadLists();
+      closeOverlay("overlay-collab");
     });
 
     document.getElementById("client-form").addEventListener("submit", async function(ev) {
       ev.preventDefault();
       var f = ev.target;
-      await j("/admin/api/clients", {
+      var r = await j("/admin/api/clients", {
         method: "POST",
-        body: JSON.stringify({ name: f.name.value, url: f.url.value || undefined }),
+        body: JSON.stringify({
+          name: f.name.value,
+          url: f.url.value || undefined,
+          parent_client_id: f.parent_client_id.value || undefined,
+        }),
       });
+      if (!r.ok) return;
       f.reset();
       await loadLists();
+      closeOverlay("overlay-client");
     });
 
     document.getElementById("proj-form").addEventListener("submit", async function(ev) {
@@ -353,6 +539,7 @@ export function adminTemplate(): string {
       var f = ev.target;
       var id = document.getElementById("proj-select").value;
       var tags = f.tags.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      syncCollabHiddenFromCheckboxes();
       var teamIds = f.team_member_ids.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
       var payload = {
         title: f.title.value,

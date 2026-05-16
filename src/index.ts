@@ -140,6 +140,17 @@ async function resolveClient(env: Env, id: string | undefined): Promise<Client |
   return clients[0];
 }
 
+async function resolveClientLineage(
+  env: Env,
+  clientId: string | undefined,
+): Promise<{ client?: Client; parent?: Client }> {
+  const client = await resolveClient(env, clientId);
+  if (!client) return {};
+  if (!client.parent_client_id) return { client };
+  const parent = await resolveClient(env, client.parent_client_id);
+  return { client, ...(parent ? { parent } : {}) };
+}
+
 function indexRowFromProject(p: ProjectData): IndexEntry {
   return {
     id: p.id,
@@ -156,7 +167,8 @@ function indexRowFromProject(p: ProjectData): IndexEntry {
   };
 }
 
-function toEnvelope(data: ProjectData, team: TeamMember[], client: Client | undefined): ProjectEnvelope {
+async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Promise<ProjectEnvelope> {
+  const { client, parent } = await resolveClientLineage(env, data.client_id);
   return {
     id: data.id,
     title: data.title,
@@ -169,6 +181,7 @@ function toEnvelope(data: ProjectData, team: TeamMember[], client: Client | unde
     viewers: 0,
     client_id: data.client_id,
     ...(client ? { client } : {}),
+    ...(parent ? { parent_client: parent } : {}),
     sort_date: data.sort_date,
     gallery_images: data.gallery_images,
     preview_image: data.preview_image,
@@ -405,9 +418,8 @@ async function apiGetProject(id: string, env: Env): Promise<Response> {
   const data = await fetchProjectGet(env, id);
   if (!data) return new Response("Gone", { status: 410 });
   const team = await resolveTeam(env, data.team_member_ids);
-  const client = await resolveClient(env, data.client_id);
   const etag = `"${data.edited_at}"`;
-  return Response.json(toEnvelope(data, team, client), {
+  return Response.json(await toEnvelope(data, team, env), {
     headers: {
       "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
       ETag: etag,
@@ -453,13 +465,12 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
 
   if (accept.includes("application/json")) {
     const team = await resolveTeam(env, project.team_member_ids);
-    const client = await resolveClient(env, project.client_id);
-    return Response.json(toEnvelope(project, team, client), { headers: baseHeaders });
+    return Response.json(await toEnvelope(project, team, env), { headers: baseHeaders });
   }
 
   const team = await resolveTeam(env, project.team_member_ids);
-  const client = await resolveClient(env, project.client_id);
-  const html = projectPublicPage(project, team, client);
+  const { client, parent } = await resolveClientLineage(env, project.client_id);
+  const html = projectPublicPage(project, team, client, parent);
   return new Response(html, {
     headers: { ...baseHeaders, "Content-Type": "text/html; charset=utf-8" },
   });
@@ -697,7 +708,7 @@ async function adminCreateClient(request: Request, env: Env): Promise<Response> 
   const rej = requireJsonContentType(request);
   if (rej) return rej;
 
-  let body: { name?: string; url?: string };
+  let body: { name?: string; url?: string; parent_client_id?: string };
   try {
     body = (await readJsonBody(request, MAX_ADMIN_ENTITY_JSON)) as typeof body;
   } catch (e) {
@@ -718,12 +729,15 @@ async function adminCreateClient(request: Request, env: Env): Promise<Response> 
   }
   if (!id) return new Response("Could not allocate id", { status: 500 });
 
+  const parentRaw = body.parent_client_id?.trim();
+
   return siteStub(env).fetch("https://site/internal/clients/put", {
     method: "POST",
     body: JSON.stringify({
       id,
       name: body.name.trim(),
       ...(body.url?.trim() ? { url: body.url.trim() } : {}),
+      ...(parentRaw ? { parent_client_id: parentRaw } : {}),
     }),
   });
 }
@@ -732,7 +746,7 @@ async function adminPutClient(id: string, request: Request, env: Env): Promise<R
   const rej = requireJsonContentType(request);
   if (rej) return rej;
 
-  let body: { name?: string; url?: string };
+  let body: { name?: string; url?: string; parent_client_id?: string };
   try {
     body = (await readJsonBody(request, MAX_ADMIN_ENTITY_JSON)) as typeof body;
   } catch (e) {
@@ -751,6 +765,12 @@ async function adminPutClient(id: string, request: Request, env: Env): Promise<R
 
   const name = body.name?.trim() ?? existing.name;
   const url = body.url !== undefined ? body.url.trim() || undefined : existing.url;
+  let parent_client_id: string | undefined;
+  if (body.parent_client_id !== undefined) {
+    parent_client_id = body.parent_client_id.trim() || undefined;
+  } else {
+    parent_client_id = existing.parent_client_id;
+  }
 
   return siteStub(env).fetch("https://site/internal/clients/put", {
     method: "POST",
@@ -758,6 +778,7 @@ async function adminPutClient(id: string, request: Request, env: Env): Promise<R
       id,
       name,
       ...(url ? { url } : {}),
+      ...(parent_client_id ? { parent_client_id } : {}),
     }),
   });
 }

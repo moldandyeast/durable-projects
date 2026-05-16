@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SiteDirectoryDO } from "./site-directory-do";
-import type { Env } from "./types";
+import type { Client, Env } from "./types";
 
 class MemoryStorage {
   private values = new Map<string, unknown>();
@@ -83,5 +83,49 @@ describe("SiteDirectoryDO", () => {
     const mList = await doInst.fetch(new Request("https://t/internal/members/list"));
     const { members } = await mList.json<{ members: unknown[] }>();
     expect(members.length).toBe(0);
+  });
+
+  it("clients may reference a parent client (studio / rollup)", async () => {
+    const doInst = makeSiteDO();
+    await doInst.fetch(
+      new Request("https://t/internal/clients/put", {
+        method: "POST",
+        body: JSON.stringify({ id: "aaaaaaaa", name: "IDEO" }),
+      }),
+    );
+    const child = await doInst.fetch(
+      new Request("https://t/internal/clients/put", {
+        method: "POST",
+        body: JSON.stringify({ id: "bbbbbbbb", name: "Mozilla", parent_client_id: "aaaaaaaa" }),
+      }),
+    );
+    expect(child.ok).toBe(true);
+    const listRes = await doInst.fetch(new Request("https://t/internal/clients/list"));
+    const { clients } = await listRes.json<{ clients: Client[] }>();
+    const moz = clients.find((c) => c.id === "bbbbbbbb");
+    expect(moz?.parent_client_id).toBe("aaaaaaaa");
+  });
+
+  it("rejects parent cycles for clients", async () => {
+    const doInst = makeSiteDO();
+    await doInst.fetch(
+      new Request("https://t/internal/clients/put", {
+        method: "POST",
+        body: JSON.stringify({ id: "aaaaaaaa", name: "A" }),
+      }),
+    );
+    await doInst.fetch(
+      new Request("https://t/internal/clients/put", {
+        method: "POST",
+        body: JSON.stringify({ id: "bbbbbbbb", name: "B", parent_client_id: "aaaaaaaa" }),
+      }),
+    );
+    const cycle = await doInst.fetch(
+      new Request("https://t/internal/clients/put", {
+        method: "POST",
+        body: JSON.stringify({ id: "aaaaaaaa", name: "A", parent_client_id: "bbbbbbbb" }),
+      }),
+    );
+    expect(cycle.status).toBe(400);
   });
 });
