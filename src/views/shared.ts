@@ -370,6 +370,8 @@ export function layoutPage(
       letter-spacing: -0.02em;
       font-size: 1rem;
       line-height: 1.5;
+      margin: 0;
+      overflow-x: hidden;
     }
     @media (prefers-color-scheme: dark) {
       body.admin-app {
@@ -381,15 +383,20 @@ export function layoutPage(
       }
     }
     body.admin-app .admin-shell {
-      max-width: 52rem;
-      margin: 0 auto;
-      padding: 2rem clamp(1.25rem, 4vw, 2.5rem) 4rem;
-      min-height: 100vh;
+      max-width: none;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
     }
     body.admin-app .admin-header {
+      flex-shrink: 0;
+      padding: 1rem clamp(1rem, 2vw, 1.5rem);
+      margin-bottom: 0;
       border-bottom: 1px solid var(--adm-line);
-      padding-bottom: 1.25rem;
-      margin-bottom: 2.5rem;
     }
     body.admin-app .admin-header__row {
       display: flex;
@@ -397,7 +404,7 @@ export function layoutPage(
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
     body.admin-app .admin-wordmark {
       font-size: 0.6875rem;
@@ -444,6 +451,26 @@ export function layoutPage(
       color: var(--adm-fg);
       border-bottom-color: var(--adm-fg);
     }
+    body.admin-app .admin-main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 0 clamp(1rem, 2vw, 1.5rem) 1rem;
+    }
+    body.admin-app .admin-main > .admin-view:not([hidden]) {
+      flex: 1;
+      min-height: 0;
+    }
+    body.admin-app #view-editor:not([hidden]) {
+      display: flex;
+      flex-direction: column;
+    }
+    body.admin-app #view-collaborators:not([hidden]),
+    body.admin-app #view-clients:not([hidden]) {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     body.admin-app .admin-view-title {
       font-size: 0.6875rem;
       font-weight: 600;
@@ -459,6 +486,18 @@ export function layoutPage(
       border-radius: 0;
       background: transparent;
       box-shadow: none;
+    }
+    body.admin-app #view-editor .admin-panel {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    body.admin-app #view-editor #proj-form {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
     }
     body.admin-app .admin-panel + .admin-panel { margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--adm-line); }
     body.admin-app .admin-panel h2 {
@@ -581,20 +620,26 @@ export function layoutPage(
       padding: 1rem 0;
     }
     body.admin-app #view-editor .admin-view-title {
-      margin-bottom: 0.35rem;
+      flex-shrink: 0;
+      margin: 0;
+      padding: 0.65rem 0 0.35rem;
     }
     body.admin-app .admin-editor-layout {
       display: grid;
-      grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(16rem, 26rem);
+      grid-template-columns: minmax(14rem, 22vw) minmax(0, 1fr) minmax(14rem, 32vw);
+      grid-template-rows: minmax(0, 1fr);
       gap: 0;
       align-items: stretch;
-      min-height: calc(100vh - 11rem);
-      margin-top: 1.25rem;
+      flex: 1;
+      min-height: 0;
+      margin-top: 0;
       border-top: 1px solid var(--adm-line);
     }
     @media (max-width: 72rem) {
       body.admin-app .admin-editor-layout {
         grid-template-columns: 1fr;
+        grid-template-rows: none;
+        flex: none;
         min-height: auto;
       }
       body.admin-app .admin-editor-meta {
@@ -634,7 +679,7 @@ export function layoutPage(
     }
     body.admin-app .admin-editor-md textarea[name="body"] {
       flex: 1;
-      min-height: min(70vh, 28rem);
+      min-height: 0;
       resize: vertical;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
       font-size: 0.875rem;
@@ -653,7 +698,7 @@ export function layoutPage(
     body.admin-app .admin-preview-pane {
       flex: 1;
       overflow-y: auto;
-      min-height: min(70vh, 28rem);
+      min-height: 0;
       padding-right: 0.35rem;
     }
     body.admin-app .admin-preview-placeholder {
