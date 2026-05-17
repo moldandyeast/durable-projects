@@ -22,11 +22,15 @@ export function adminTemplate(): string {
         <form id="proj-form">
           <header class="admin-editor-toolbar">
             <div class="admin-editor-toolbar__left">
-              <label class="admin-label admin-editor-toolbar__label" for="proj-select">Project</label>
-              <select id="proj-select" class="admin-editor-toolbar__select" aria-describedby="editor-toolbar-hint">
-                <option value="">— New —</option>
-              </select>
-              <span id="editor-toolbar-hint" class="admin-editor-toolbar__hint">Compose below · metadata lives in settings</span>
+              <div class="admin-editor-toolbar__project">
+                <label class="admin-label admin-editor-toolbar__label" for="proj-select">Project</label>
+                <div class="admin-editor-toolbar__field">
+                  <select id="proj-select" class="admin-editor-toolbar__select" aria-describedby="editor-toolbar-hint">
+                    <option value="">New draft</option>
+                  </select>
+                  <span id="editor-toolbar-hint" class="admin-editor-toolbar__hint">Compose below · metadata lives in settings</span>
+                </div>
+              </div>
             </div>
             <div class="admin-editor-toolbar__right">
               <button

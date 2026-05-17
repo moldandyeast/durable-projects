@@ -1557,28 +1557,78 @@ export function layoutPage(
     body.admin-app .admin-editor-toolbar__left {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
+      align-items: flex-end;
       gap: 0.55rem 0.85rem;
       min-width: min(100%, 14rem);
     }
+    body.admin-app .admin-editor-toolbar__project {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 0.35rem 0.65rem;
+      min-width: min(100%, 14rem);
+      flex: 1 1 auto;
+    }
     body.admin-app .admin-editor-toolbar__label {
       margin: 0;
+      padding-bottom: 0.36rem;
+      flex-shrink: 0;
     }
-    body.admin-app .admin-editor-toolbar__select {
+    body.admin-app .admin-editor-toolbar__field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
       min-width: min(100%, 14rem);
       max-width: min(100%, 22rem);
-      padding-top: 0.4rem;
-      padding-bottom: 0.4rem;
+      flex: 1 1 14rem;
+    }
+    body.admin-app .admin-editor-toolbar__select {
+      display: block;
+      width: 100%;
+      margin: 0;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      font-family: var(--adm-mono);
+      font-size: 0.8125rem;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.35;
+      color: var(--adm-fg-soft);
+      background-color: transparent;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='none' stroke='%235d5c5c' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round' d='M2.5 3.5 L5 6 L7.5 3.5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.55rem center;
+      background-size: 0.55rem;
+      padding: 0.38rem 1.85rem 0.38rem 0.55rem;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
+      box-shadow: none;
+    }
+    body.admin-app .admin-editor-toolbar__select:hover {
+      border-color: var(--adm-line-strong);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-editor-toolbar__select:focus {
+      outline: none;
+      border-color: var(--adm-fg);
+      color: var(--adm-fg);
+      background-color: var(--adm-bg-soft);
+    }
+    body.admin-app .admin-editor-toolbar__select:focus-visible {
+      outline: none;
     }
     body.admin-app .admin-editor-toolbar__hint {
-      flex: 1 1 12rem;
       margin: 0;
+      max-width: 22rem;
       font-family: var(--adm-mono);
       font-size: 0.6875rem;
       font-weight: 400;
       letter-spacing: 0;
       color: var(--adm-muted);
       line-height: 1.4;
+      opacity: 0.92;
     }
     body.admin-app .admin-editor-toolbar__right {
       display: flex;
