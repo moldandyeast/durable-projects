@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { normalizeGalleryImages, normalizeTeamMemberIds, normalizeViaClientIds, ProjectDO } from "./project-do";
+import {
+  normalizeClientIds,
+  normalizeGalleryImages,
+  normalizeTeamMemberIds,
+  normalizeViaClientIds,
+  ProjectDO,
+} from "./project-do";
 import type { Env } from "./types";
 
 vi.mock("./markdown", () => ({
@@ -43,13 +49,20 @@ describe("normalizeTeamMemberIds", () => {
   });
 });
 
+describe("normalizeClientIds", () => {
+  it("preserves pick order and drops duplicates", () => {
+    expect(normalizeClientIds(["  aa ", "", "bb", "aa"])).toEqual(["aa", "bb"]);
+  });
+});
+
 describe("normalizeViaClientIds", () => {
   it("preserves order and drops duplicates", () => {
-    expect(normalizeViaClientIds(["aa", "bb", "aa"], undefined)).toEqual(["aa", "bb"]);
+    expect(normalizeViaClientIds(["aa", "bb", "aa"], [])).toEqual(["aa", "bb"]);
   });
 
-  it("drops primary client if repeated in via list", () => {
-    expect(normalizeViaClientIds(["bb", "aa", "cc"], "aa")).toEqual(["bb", "cc"]);
+  it("drops primary clients if repeated in via list", () => {
+    expect(normalizeViaClientIds(["bb", "aa", "cc"], ["aa"])).toEqual(["bb", "cc"]);
+    expect(normalizeViaClientIds(["aa", "bb", "cc"], ["aa", "bb"])).toEqual(["cc"]);
   });
 });
 
@@ -65,7 +78,7 @@ describe("ProjectDO", () => {
           summary: "S",
           tags: ["x"],
           body: "Hello",
-          client_id: "cccccccc",
+          client_ids: ["cccccccc"],
           sort_date: "2024-03-15",
           gallery_images: [{ url: "https://example.com/a.jpg", caption: "A" }],
           team_member_ids: ["aaaaaaaa"],
@@ -73,8 +86,8 @@ describe("ProjectDO", () => {
       }),
     );
     expect(res.ok).toBe(true);
-    const data = await res.json<{ rendered_html: string; client_id?: string }>();
-    expect(data.client_id).toBe("cccccccc");
+    const data = await res.json<{ rendered_html: string; client_ids?: string[] }>();
+    expect(data.client_ids).toEqual(["cccccccc"]);
     expect(data.rendered_html).toContain("Hello");
   });
 
@@ -89,15 +102,15 @@ describe("ProjectDO", () => {
           summary: "",
           tags: [],
           body: "x",
-          client_id: "aaaaaaaa",
+          client_ids: ["aaaaaaaa"],
           via_client_ids: ["bbbbbbbb", "aaaaaaaa", "cccccccc"],
           team_member_ids: [],
         }),
       }),
     );
     expect(res.ok).toBe(true);
-    const data = await res.json<{ client_id?: string; via_client_ids?: string[] }>();
-    expect(data.client_id).toBe("aaaaaaaa");
+    const data = await res.json<{ client_ids?: string[]; via_client_ids?: string[] }>();
+    expect(data.client_ids).toEqual(["aaaaaaaa"]);
     expect(data.via_client_ids).toEqual(["bbbbbbbb", "cccccccc"]);
   });
 });

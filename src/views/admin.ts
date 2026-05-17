@@ -39,13 +39,14 @@ export function adminTemplate(): string {
                 <label class="admin-label" for="pf-tags">Tags</label>
                 <input id="pf-tags" name="tags" placeholder="Comma-separated" />
               </div>
-              <div>
-                <label class="admin-label" for="pf-client">Client</label>
-                <select id="pf-client" name="client_id"><option value="">— None —</option></select>
+              <div class="admin-collab-wrap">
+                <span id="client-picker-label" class="admin-label">Clients</span>
+                <div id="client-picker" class="admin-collab-picker" role="group" aria-labelledby="client-picker-label"></div>
+                <input type="hidden" id="pf-client-ids" name="client_ids" value="" />
               </div>
               <div class="admin-via-wrap">
                 <span class="admin-label">Via clients</span>
-                <p class="admin-field-hint">Optional intermediaries in order — closest first (e.g. WE3, then IDEO Colab Ventures when Client is Karma3Labs).</p>
+                <p class="admin-field-hint">Optional intermediaries in order — closest first (e.g. WE3.co when Clients include Ethereum Foundation, Espresso, Optimism).</p>
                 <div id="via-client-rows" class="admin-via-rows"></div>
                 <button type="button" class="admin-btn admin-btn--ghost" id="btn-via-add">Add via client</button>
                 <input type="hidden" name="via_client_ids" id="pf-via-ids" value="" />
@@ -179,6 +180,8 @@ export function adminTemplate(): string {
     var previewTimer;
     var previewAbort;
     var projSaveStatusTimer;
+    var cachedClients = [];
+    var clientPickOrder = [];
 
     function clearProjSaveStatusSoon() {
       clearTimeout(projSaveStatusTimer);
@@ -370,6 +373,67 @@ export function adminTemplate(): string {
       syncCollabHiddenFromCheckboxes();
     }
 
+    function syncClientPickHidden() {
+      var h = document.getElementById("pf-client-ids");
+      if (h) h.value = clientPickOrder.join(",");
+    }
+
+    function renderClientPicker(clients) {
+      var wrap = document.getElementById("client-picker");
+      if (!wrap) return;
+      var hid = document.getElementById("pf-client-ids");
+      var preserved = (hid && hid.value ? hid.value : "").split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      if (preserved.length) clientPickOrder = preserved.slice();
+      wrap.textContent = "";
+      if (!clients.length) {
+        var empty = document.createElement("p");
+        empty.className = "admin-collab-picker__empty";
+        empty.textContent = "No clients yet — add some under Clients.";
+        wrap.appendChild(empty);
+        clientPickOrder = [];
+        syncClientPickHidden();
+        return;
+      }
+      clients.forEach(function(c) {
+        var row = document.createElement("label");
+        row.className = "admin-collab-row";
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = c.id;
+        var span = document.createElement("span");
+        span.className = "admin-collab-row__text";
+        span.textContent = c.name;
+        var sid = document.createElement("span");
+        sid.className = "admin-collab-row__id";
+        sid.textContent = c.id;
+        row.appendChild(cb);
+        row.appendChild(span);
+        row.appendChild(sid);
+        cb.checked = clientPickOrder.indexOf(c.id) !== -1;
+        cb.addEventListener("change", function() {
+          var id = cb.value;
+          if (cb.checked) {
+            if (clientPickOrder.indexOf(id) === -1) clientPickOrder.push(id);
+          } else {
+            clientPickOrder = clientPickOrder.filter(function(x) { return x !== id; });
+          }
+          syncClientPickHidden();
+          computeViaIds();
+        });
+        wrap.appendChild(row);
+      });
+      syncClientPickHidden();
+    }
+
+    function applyClientIdsToCheckboxes(ids) {
+      clientPickOrder = (ids || []).slice();
+      syncClientPickHidden();
+      document.querySelectorAll('#client-picker input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = clientPickOrder.indexOf(cb.value) !== -1;
+      });
+      computeViaIds();
+    }
+
     function renderCollaboratorPicker(members) {
       var preserved = getSelectedTeamIdsFromHidden();
       var wrap = document.getElementById("collab-picker");
@@ -469,6 +533,8 @@ export function adminTemplate(): string {
 
       fillTeamList(team.members || []);
       fillClientsList(clients.clients || []);
+      cachedClients = clients.clients || [];
+      renderClientPicker(cachedClients);
       renderCollaboratorPicker(team.members || []);
 
       var sel = document.getElementById("proj-select");
@@ -480,41 +546,51 @@ export function adminTemplate(): string {
         sel.appendChild(o);
       });
 
-      var csel = document.getElementById("pf-client");
-      while (csel.options.length > 1) csel.remove(1);
       var cfParent = document.getElementById("cf-parent");
       while (cfParent.options.length > 1) cfParent.remove(1);
-      (clients.clients || []).forEach(function(c) {
-        var o = document.createElement("option");
-        o.value = c.id;
-        o.textContent = c.name + " · " + c.id;
-        csel.appendChild(o);
+      cachedClients.forEach(function(c) {
         var po = document.createElement("option");
         po.value = c.id;
         po.textContent = c.name + " · " + c.id;
         cfParent.appendChild(po);
       });
-      refreshViaRowSelectOptions();
+      refreshViaRowSelectOptionsFromCache();
     }
 
-    function refreshViaRowSelectOptions() {
-      var template = document.getElementById("pf-client");
-      if (!template) return;
+    function populateViaSelect(sel) {
+      var cur = sel.value;
+      sel.textContent = "";
+      var o0 = document.createElement("option");
+      o0.value = "";
+      o0.textContent = "— Select —";
+      sel.appendChild(o0);
+      cachedClients.forEach(function(c) {
+        var o = document.createElement("option");
+        o.value = c.id;
+        o.textContent = c.name + " · " + c.id;
+        sel.appendChild(o);
+      });
+      sel.value = cur;
+      if (cur && !sel.value) sel.selectedIndex = 0;
+    }
+
+    function refreshViaRowSelectOptionsFromCache() {
       document.querySelectorAll("#via-client-rows .via-row-select").forEach(function(sel) {
-        var cur = sel.value;
-        sel.innerHTML = template.innerHTML;
-        sel.value = cur;
-        if (cur && !sel.value) sel.selectedIndex = 0;
+        populateViaSelect(sel);
       });
     }
 
     function computeViaIds() {
-      var primary = (document.getElementById("pf-client").value || "").trim();
+      var primarySet = {};
+      (document.getElementById("pf-client-ids").value || "").split(",").forEach(function(s) {
+        var t = s.trim();
+        if (t) primarySet[t] = true;
+      });
       var ids = [];
       var seen = {};
       document.querySelectorAll("#via-client-rows .via-row-select").forEach(function(sel) {
         var v = (sel.value || "").trim();
-        if (!v || v === primary || seen[v]) return;
+        if (!v || primarySet[v] || seen[v]) return;
         seen[v] = true;
         ids.push(v);
       });
@@ -531,15 +607,14 @@ export function adminTemplate(): string {
     }
 
     function addViaRow(prefill) {
-      var template = document.getElementById("pf-client");
       var wrap = document.getElementById("via-client-rows");
-      if (!template || !wrap) return;
+      if (!wrap) return;
       var row = document.createElement("div");
       row.className = "admin-via-row";
       var sel = document.createElement("select");
       sel.className = "via-row-select";
       sel.setAttribute("aria-label", "Via client");
-      sel.innerHTML = template.innerHTML;
+      populateViaSelect(sel);
       if (prefill) sel.value = prefill;
       var rm = document.createElement("button");
       rm.type = "button";
@@ -574,7 +649,7 @@ export function adminTemplate(): string {
     async function loadProject(id) {
       if (!id) {
         document.getElementById("proj-form").reset();
-        document.getElementById("pf-client").value = "";
+        applyClientIdsToCheckboxes([]);
         clearViaRows();
         applyTeamIdsToCheckboxes([]);
         previewPlaceholder();
@@ -586,7 +661,8 @@ export function adminTemplate(): string {
       f.title.value = p.title || "";
       f.summary.value = p.summary || "";
       f.tags.value = (p.tags || []).join(", ");
-      f.client_id.value = p.client_id || "";
+      var cids = (p.client_ids && p.client_ids.length) ? p.client_ids.slice() : (p.client_id ? [p.client_id] : []);
+      applyClientIdsToCheckboxes(cids);
       setViaRowsFromIds(p.via_client_ids || []);
       f.sort_date.value = p.sort_date || "";
       f.preview_image.value = p.preview_image || "";
@@ -614,7 +690,7 @@ export function adminTemplate(): string {
       if (t && t.closest && t.closest("#collab-picker") && t.type === "checkbox") {
         syncCollabHiddenFromCheckboxes();
       }
-      if (t && (t.id === "pf-client" || (t.classList && t.classList.contains("via-row-select")))) {
+      if (t && (t.classList && t.classList.contains("via-row-select"))) {
         computeViaIds();
       }
     });
@@ -657,12 +733,14 @@ export function adminTemplate(): string {
       var tags = f.tags.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
       syncCollabHiddenFromCheckboxes();
       var teamIds = f.team_member_ids.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      syncClientPickHidden();
+      var clientIds = clientPickOrder.slice();
       var viaIds = computeViaIds();
       var payload = {
         title: f.title.value,
         summary: f.summary.value,
         tags: tags,
-        client_id: f.client_id.value || undefined,
+        client_ids: clientIds,
         via_client_ids: viaIds,
         sort_date: f.sort_date.value || undefined,
         preview_image: f.preview_image.value || undefined,

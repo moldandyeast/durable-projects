@@ -1,4 +1,12 @@
-import type { Client, Env, IndexEntry, ProjectData, ProjectEnvelope, TeamMember } from "./types";
+import type {
+  Client,
+  Env,
+  IndexEntry,
+  ProjectClientRef,
+  ProjectData,
+  ProjectEnvelope,
+  TeamMember,
+} from "./types";
 import { canAuthor, forbidden } from "./auth";
 import { generateSlug, isValidSlug } from "./slug";
 import { BodyTooLargeError, readBoundedText, readJsonBody } from "./request-body";
@@ -7,7 +15,7 @@ import { adminTemplate } from "./views/admin";
 import { homePage, sortEntries } from "./views/home";
 import { projectPublicPage } from "./views/project-public";
 import { renderMarkdown } from "./markdown";
-import { normalizeViaClientIds } from "./project-do";
+import { normalizeClientIds, normalizeViaClientIds } from "./project-do";
 
 export { ProjectDO } from "./project-do";
 export { IndexDO } from "./index-do";
@@ -169,6 +177,27 @@ async function resolveClientsInOrder(env: Env, ids: string[]): Promise<Client[]>
   return out;
 }
 
+function effectiveProjectClientIds(p: ProjectData): string[] {
+  if (p.client_ids?.length) return normalizeClientIds(p.client_ids);
+  if (p.client_id) return [p.client_id];
+  return [];
+}
+
+function effectiveEntryClientIds(e: IndexEntry): string[] {
+  if (e.client_ids?.length) return e.client_ids;
+  if (e.client_id) return [e.client_id];
+  return [];
+}
+
+async function resolveProjectPrimaryRefs(env: Env, ids: string[]): Promise<ProjectClientRef[]> {
+  const out: ProjectClientRef[] = [];
+  for (const id of ids) {
+    const { client, parent } = await resolveClientLineage(env, id);
+    if (client) out.push({ client, ...(parent ? { parent_client: parent } : {}) });
+  }
+  return out;
+}
+
 function trimPrimaryClient(raw: unknown): string | undefined {
   if (raw === undefined || raw === null) return undefined;
   const s = String(raw).trim();
@@ -185,7 +214,7 @@ function indexRowFromProject(p: ProjectData): IndexEntry {
     edited_at: p.edited_at,
     total_views: p.total_views,
     hidden: p.hidden,
-    client_id: p.client_id,
+    client_ids: effectiveProjectClientIds(p),
     via_client_ids: p.via_client_ids ?? [],
     sort_date: p.sort_date,
     preview_image: p.preview_image,
@@ -193,9 +222,11 @@ function indexRowFromProject(p: ProjectData): IndexEntry {
 }
 
 async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Promise<ProjectEnvelope> {
-  const { client, parent } = await resolveClientLineage(env, data.client_id);
+  const primaryIds = effectiveProjectClientIds(data);
+  const refs = await resolveProjectPrimaryRefs(env, primaryIds);
   const viaIds = data.via_client_ids ?? [];
   const viaClients = await resolveClientsInOrder(env, viaIds);
+  const first = refs[0];
   return {
     id: data.id,
     title: data.title,
@@ -206,9 +237,10 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
     edited_at: data.edited_at,
     views: data.total_views,
     viewers: 0,
-    client_id: data.client_id,
-    ...(client ? { client } : {}),
-    ...(parent ? { parent_client: parent } : {}),
+    ...(primaryIds.length ? { client_ids: primaryIds } : {}),
+    ...(first ? { client_id: first.client.id, client: first.client } : {}),
+    ...(first?.parent_client ? { parent_client: first.parent_client } : {}),
+    ...(refs.length ? { project_clients: refs } : {}),
     ...(viaIds.length ? { via_client_ids: viaIds } : {}),
     ...(viaClients.length ? { via_clients: viaClients } : {}),
     sort_date: data.sort_date,
@@ -225,9 +257,8 @@ function tagMatches(entry: IndexEntry, tag: string): boolean {
 }
 
 function entryMatchesClient(entry: IndexEntry, clientFilter: string): boolean {
-  if (entry.client_id === clientFilter) return true;
-  const via = entry.via_client_ids;
-  return !!(via && via.includes(clientFilter));
+  if (effectiveEntryClientIds(entry).includes(clientFilter)) return true;
+  return (entry.via_client_ids ?? []).includes(clientFilter);
 }
 
 function methodNotAllowed(allow: string): Response {
@@ -425,7 +456,11 @@ async function home(env: Env, url: URL): Promise<Response> {
   if (clientFilter) filtered = filtered.filter((p) => entryMatchesClient(p, clientFilter));
 
   const sorted = sortEntries(filtered);
-  const ids = [...new Set(sorted.map((p) => p.client_id).filter(Boolean))] as string[];
+  const ids = [
+    ...new Set(
+      sorted.flatMap((p) => [...effectiveEntryClientIds(p), ...(p.via_client_ids ?? [])]),
+    ),
+  ] as string[];
   const labels = new Map<string, string>();
   if (ids.length) {
     const cr = await siteStub(env).fetch("https://site/internal/clients/get-batch", {
@@ -484,7 +519,9 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
       `created_at: ${project.created_at}`,
       `edited_at: ${project.edited_at}`,
       `tags: ${JSON.stringify(project.tags)}`,
-      ...(project.client_id ? [`client_id: ${JSON.stringify(project.client_id)}`] : []),
+      ...(effectiveProjectClientIds(project).length ?
+        [`client_ids: ${JSON.stringify(effectiveProjectClientIds(project))}`]
+      : []),
       ...(project.via_client_ids?.length ?
         [`via_client_ids: ${JSON.stringify(project.via_client_ids)}`]
       : []),
@@ -507,9 +544,9 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
   }
 
   const team = await resolveTeam(env, project.team_member_ids);
-  const { client, parent } = await resolveClientLineage(env, project.client_id);
+  const primaryRefs = await resolveProjectPrimaryRefs(env, effectiveProjectClientIds(project));
   const viaClients = await resolveClientsInOrder(env, project.via_client_ids ?? []);
-  const html = projectPublicPage(project, team, client, parent, viaClients);
+  const html = projectPublicPage(project, team, primaryRefs, viaClients);
   return new Response(html, {
     headers: { ...baseHeaders, "Content-Type": "text/html; charset=utf-8" },
   });
@@ -542,9 +579,13 @@ async function createProject(request: Request, env: Env): Promise<Response> {
   }
   if (!id) return new Response("Could not allocate id", { status: 500 });
 
-  const primary = trimPrimaryClient(input.client_id);
-  const viaNorm = normalizeViaClientIds(input.via_client_ids, primary);
-  const badClients = await validateProjectClients(env, primary, viaNorm);
+  const primaryIds = normalizeClientIds(
+    Array.isArray(input.client_ids) && input.client_ids.length ?
+      input.client_ids
+    : input.client_id ? [input.client_id] : [],
+  );
+  const viaNorm = normalizeViaClientIds(input.via_client_ids, primaryIds);
+  const badClients = await validateProjectClients(env, primaryIds, viaNorm);
   if (badClients) return badClients;
 
   const createRes = await projectStub(env, id).fetch("https://p/internal/create", {
@@ -556,6 +597,7 @@ async function createProject(request: Request, env: Env): Promise<Response> {
       tags: input.tags,
       body: input.body,
       created_at: input.created_at,
+      client_ids: input.client_ids,
       client_id: input.client_id,
       via_client_ids: input.via_client_ids,
       sort_date: input.sort_date,
@@ -644,14 +686,17 @@ async function updateProject(id: string, request: Request, env: Env): Promise<Re
   const peek = await peekProject(env, id);
   if (!peek) return new Response("Not found", { status: 404 });
 
-  let nextPrimary = peek.client_id;
-  if ("client_id" in parsed) {
-    nextPrimary = trimPrimaryClient(parsed.client_id);
+  let nextPrimaries = effectiveProjectClientIds(peek);
+  if ("client_ids" in parsed) {
+    nextPrimaries = normalizeClientIds(parsed.client_ids);
+  } else if ("client_id" in parsed) {
+    const c = trimPrimaryClient(parsed.client_id);
+    nextPrimaries = c ? [c] : [];
   }
   let viaRaw: unknown = peek.via_client_ids;
   if ("via_client_ids" in parsed) viaRaw = parsed.via_client_ids;
-  const viaNorm = normalizeViaClientIds(viaRaw, nextPrimary);
-  const badClients = await validateProjectClients(env, nextPrimary, viaNorm);
+  const viaNorm = normalizeViaClientIds(viaRaw, nextPrimaries);
+  const badClients = await validateProjectClients(env, nextPrimaries, viaNorm);
   if (badClients) return badClients;
 
   const upd = await projectStub(env, id).fetch("https://p/internal/update", {
@@ -699,12 +744,14 @@ async function collectUsedClientIds(env: Env): Promise<Set<string>> {
 
 async function validateProjectClients(
   env: Env,
-  primary: string | undefined,
+  primaryIds: string[],
   viaNormalized: string[],
 ): Promise<Response | null> {
   const allowed = await collectUsedClientIds(env);
-  if (primary && !allowed.has(primary)) {
-    return new Response("Unknown client_id", { status: 400 });
+  for (const pid of primaryIds) {
+    if (!allowed.has(pid)) {
+      return new Response(`Unknown client_ids entry: ${pid}`, { status: 400 });
+    }
   }
   for (const v of viaNormalized) {
     if (!allowed.has(v)) {

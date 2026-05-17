@@ -1,6 +1,13 @@
 import type { IndexEntry } from "../types";
 import { escapeHtml, layoutPage } from "./shared";
 
+/** Supports legacy index rows with only `client_id`. */
+function effectiveEntryClientIds(e: IndexEntry): string[] {
+  if (e.client_ids?.length) return e.client_ids;
+  if (e.client_id) return [e.client_id];
+  return [];
+}
+
 export function sortEntries(entries: IndexEntry[]): IndexEntry[] {
   return [...entries].sort((a, b) => {
     const as = a.sort_date ?? "";
@@ -19,10 +26,10 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
       const media = e.preview_image
         ? `<div class="card-media"><img src="${escapeHtml(e.preview_image)}" alt="" loading="lazy"/></div>`
         : `<div class="card-media" aria-hidden="true"></div>`;
-      const client =
-        e.client_id && clientLabels.has(e.client_id)
-          ? `<span class="client-pill">${escapeHtml(clientLabels.get(e.client_id)!)}</span>`
-          : "";
+      const ids = effectiveEntryClientIds(e).filter((cid) => clientLabels.has(cid));
+      const client = ids.length ?
+        ids.map((cid) => `<span class="client-pill">${escapeHtml(clientLabels.get(cid)!)}</span>`).join(" ")
+      : "";
       const summary =
         e.summary.length > 160 ? `${escapeHtml(e.summary.slice(0, 160))}…` : escapeHtml(e.summary);
       return `

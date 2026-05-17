@@ -36,16 +36,29 @@ export function normalizeTeamMemberIds(raw: unknown): string[] {
   return raw.map((x) => String(x).trim()).filter(Boolean);
 }
 
-/** Ordered intermediary client ids; drops duplicates and the primary client id. */
-export function normalizeViaClientIds(raw: unknown, primaryClientId: string | undefined): string[] {
+/** Ordered unique client ids (primaries). */
+export function normalizeClientIds(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
-  const primary = primaryClientId?.trim();
   const seen = new Set<string>();
   const out: string[] = [];
   for (const x of raw) {
     const id = String(x).trim();
     if (!id || seen.has(id)) continue;
-    if (primary && id === primary) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
+/** Ordered intermediaries; drops duplicates and any id in `primaryClientIds`. */
+export function normalizeViaClientIds(raw: unknown, primaryClientIds: string[]): string[] {
+  const exclude = new Set(primaryClientIds.map((x) => String(x).trim()).filter(Boolean));
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const x of raw) {
+    const id = String(x).trim();
+    if (!id || seen.has(id) || exclude.has(id)) continue;
     seen.add(id);
     out.push(id);
   }
@@ -87,6 +100,18 @@ export class ProjectDO {
     return (await this.state.storage.get<ProjectData>("data")) ?? null;
   }
 
+  /** Migrate legacy `client_id` → `client_ids`; strip duplicate primaries from via. */
+  private prepareStoredClients(data: ProjectData): void {
+    if (!data.client_ids?.length && data.client_id) {
+      data.client_ids = [data.client_id];
+    }
+    delete data.client_id;
+    if (data.client_ids?.length && data.via_client_ids?.length) {
+      data.via_client_ids = normalizeViaClientIds(data.via_client_ids, data.client_ids);
+      if (!data.via_client_ids.length) delete data.via_client_ids;
+    }
+  }
+
   private async save(data: ProjectData): Promise<void> {
     await this.state.storage.put("data", data);
   }
@@ -101,9 +126,13 @@ export class ProjectDO {
     const body = input.body ?? "";
 
     const preview = normalizePreviewUrl(input.preview_image);
-    const client_id = normalizeOptionalTrimmed(input.client_id);
     const sort_date = normalizeOptionalTrimmed(input.sort_date);
-    const via_client_ids = normalizeViaClientIds(input.via_client_ids, client_id);
+    const client_ids = normalizeClientIds(
+      Array.isArray(input.client_ids) && input.client_ids.length ?
+        input.client_ids
+      : input.client_id ? [input.client_id] : [],
+    );
+    const via_client_ids = normalizeViaClientIds(input.via_client_ids, client_ids);
 
     const data: ProjectData = {
       id: input.id!,
@@ -116,7 +145,7 @@ export class ProjectDO {
       edited_at: now,
       total_views: 0,
       hidden: false,
-      ...(client_id ? { client_id } : {}),
+      ...(client_ids.length ? { client_ids } : {}),
       ...(via_client_ids.length ? { via_client_ids } : {}),
       ...(sort_date ? { sort_date } : {}),
       gallery_images: normalizeGalleryImages(input.gallery_images),
@@ -133,6 +162,8 @@ export class ProjectDO {
     if (!data) return new Response("Not found", { status: 404 });
     if (data.hidden) return new Response("Gone", { status: 410 });
 
+    this.prepareStoredClients(data);
+
     data.total_views++;
     await this.save(data);
     return Response.json(data);
@@ -142,6 +173,8 @@ export class ProjectDO {
     const data = await this.load();
     if (!data) return new Response("Not found", { status: 404 });
     if (data.hidden) return new Response("Gone", { status: 410 });
+    this.prepareStoredClients(data);
+    await this.save(data);
     return Response.json(data);
   }
 
@@ -152,17 +185,26 @@ export class ProjectDO {
     const input = await request.json<Partial<ProjectData> & Record<string, unknown>>();
     const now = new Date().toISOString();
 
+    this.prepareStoredClients(data);
+
     if (input.title !== undefined) data.title = input.title;
     if (input.summary !== undefined) data.summary = input.summary;
     if (input.tags !== undefined) data.tags = Array.isArray(input.tags) ? input.tags.map(String) : [];
     if (input.created_at !== undefined) data.created_at = input.created_at;
 
-    if ("client_id" in input) {
-      const cid = normalizeOptionalTrimmed(input.client_id);
-      if (cid === undefined) delete data.client_id;
-      else data.client_id = cid;
+    if ("client_ids" in input || "client_id" in input) {
+      let next: string[];
+      if ("client_ids" in input) {
+        next = normalizeClientIds(input.client_ids);
+      } else {
+        const cid = normalizeOptionalTrimmed(input.client_id);
+        next = cid ? [cid] : [];
+      }
+      if (next.length) data.client_ids = next;
+      else delete data.client_ids;
+      delete data.client_id;
       if (!("via_client_ids" in input) && data.via_client_ids?.length) {
-        const via = normalizeViaClientIds(data.via_client_ids, data.client_id);
+        const via = normalizeViaClientIds(data.via_client_ids, data.client_ids ?? []);
         if (via.length) data.via_client_ids = via;
         else delete data.via_client_ids;
       }
@@ -189,7 +231,7 @@ export class ProjectDO {
     }
 
     if ("via_client_ids" in input) {
-      const via = normalizeViaClientIds(input.via_client_ids, data.client_id);
+      const via = normalizeViaClientIds(input.via_client_ids, data.client_ids ?? []);
       if (via.length) data.via_client_ids = via;
       else delete data.via_client_ids;
     }
@@ -200,6 +242,7 @@ export class ProjectDO {
     }
 
     data.edited_at = now;
+    this.prepareStoredClients(data);
     await this.save(data);
 
     this.broadcast({ type: "edit", body: data.body, edited_at: data.edited_at });

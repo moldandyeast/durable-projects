@@ -1,4 +1,4 @@
-import type { Client, GalleryImage, ProjectData, TeamMember } from "../types";
+import type { Client, GalleryImage, ProjectClientRef, ProjectData, TeamMember } from "../types";
 import { escapeHtml, layoutPage } from "./shared";
 
 function gallerySection(images: GalleryImage[]): string {
@@ -33,29 +33,38 @@ function sortDateDisplay(sort_date: string | undefined): string {
   return y.length === 4 ? y : sort_date.trim();
 }
 
-function clientViaSuffix(parentClient: Client | undefined, viaClients: Client[]): string {
+function projectViaSuffix(viaClients: Client[]): string {
   let s = "";
-  if (parentClient) {
-    s += ` <span class="client-via">· via ${escapeHtml(parentClient.name)}</span>`;
-  }
   for (const vc of viaClients) {
     s += ` <span class="client-via">· via ${escapeHtml(vc.name)}</span>`;
   }
   return s;
 }
 
+function primaryClientSegments(refs: ProjectClientRef[]): string {
+  return refs
+    .map((ref) => {
+      const c = ref.client;
+      const dirVia = ref.parent_client ?
+        ` <span class="client-via">· via ${escapeHtml(ref.parent_client.name)}</span>`
+      : "";
+      if (c.url) {
+        return `${escapeHtml(c.name)} · <a href="${escapeHtml(c.url)}">${escapeHtml(c.url.replace(/^https?:\/\//, ""))}</a>${dirVia}`;
+      }
+      return `${escapeHtml(c.name)}${dirVia}`;
+    })
+    .join(" · ");
+}
+
 export function projectPublicPage(
   project: ProjectData,
   team: TeamMember[],
-  client: Client | undefined,
-  parentClient: Client | undefined,
+  primaryRefs: ProjectClientRef[],
   viaClients: Client[],
 ): string {
-  const viaSeg = clientViaSuffix(parentClient, viaClients);
-  const clientLine = client
-    ? client.url
-      ? `<p class="muted">${escapeHtml(client.name)} · <a href="${escapeHtml(client.url)}">${escapeHtml(client.url.replace(/^https?:\/\//, ""))}</a>${viaSeg}</p>`
-      : `<p class="muted">${escapeHtml(client.name)}${viaSeg}</p>`
+  const clientLine =
+    primaryRefs.length ?
+      `<p class="muted">${primaryClientSegments(primaryRefs)}${projectViaSuffix(viaClients)}</p>`
     : "";
 
   const tags =
