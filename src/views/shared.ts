@@ -601,6 +601,9 @@ export function layoutPage(
         transform: none;
       }
     }
+    body.admin-app .admin-overlay__panel--sheet .admin-grid {
+      margin-top: 0;
+    }
     body.admin-app .admin-overlay__panel {
       position: relative;
       z-index: 1;
@@ -661,6 +664,11 @@ export function layoutPage(
       line-height: 1.5;
       color: var(--adm-muted);
       max-width: 28rem;
+    }
+    body.admin-app .admin-overlay__lede--compact {
+      font-size: 0.78rem;
+      line-height: 1.45;
+      max-width: 22rem;
     }
     body.admin-app .admin-overlay__head--rich {
       align-items: flex-start;
@@ -833,6 +841,54 @@ export function layoutPage(
       color: var(--adm-muted);
       line-height: 1.45;
     }
+    body.admin-app .admin-field-more {
+      margin: -0.2rem 0 0.45rem;
+      padding: 0;
+      border: none;
+    }
+    body.admin-app .admin-field-more summary {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--adm-accent) 48%, var(--adm-muted));
+      list-style: none;
+      transition: color 0.15s ease;
+    }
+    body.admin-app .admin-field-more summary::-webkit-details-marker {
+      display: none;
+    }
+    body.admin-app .admin-field-more summary::after {
+      content: "";
+      width: 0.35em;
+      height: 0.35em;
+      border-right: 1px solid currentColor;
+      border-bottom: 1px solid currentColor;
+      transform: rotate(-45deg);
+      opacity: 0.65;
+      transition: transform 0.2s var(--ease-out-expo);
+    }
+    body.admin-app .admin-field-more[open] summary::after {
+      transform: rotate(45deg);
+    }
+    body.admin-app .admin-field-more summary:hover {
+      color: color-mix(in srgb, var(--adm-accent) 72%, var(--adm-fg));
+    }
+    body.admin-app .admin-field-more__body {
+      margin: 0.45rem 0 0;
+      padding: 0;
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      color: var(--adm-muted);
+      line-height: 1.45;
+      max-width: 26rem;
+    }
     body.admin-app input,
     body.admin-app textarea,
     body.admin-app select {
@@ -883,26 +939,57 @@ export function layoutPage(
       transform: translateY(-1px);
       box-shadow: 0 4px 14px color-mix(in srgb, var(--adm-accent) 35%, transparent);
     }
-    body.admin-app button#btn-new {
+    body.admin-app .admin-btn.admin-btn--toolbar-primary {
+      padding: 0.58rem 1.15rem;
+      box-shadow:
+        0 1px 0 color-mix(in srgb, var(--adm-fg) 12%, transparent),
+        0 6px 22px color-mix(in srgb, var(--adm-accent) 24%, transparent);
+    }
+    body.admin-app .admin-btn.admin-btn--toolbar-primary:hover {
+      opacity: 1;
+      box-shadow:
+        0 3px 0 color-mix(in srgb, var(--adm-fg) 10%, transparent),
+        0 12px 28px color-mix(in srgb, var(--adm-accent) 34%, transparent);
+    }
+    body.admin-app .admin-btn.admin-btn--toolbar-secondary {
       background: transparent;
       color: var(--adm-fg);
       border-color: var(--adm-line);
       box-shadow: none;
+      font-weight: 600;
     }
-    body.admin-app button#btn-new:hover {
-      background: color-mix(in srgb, var(--adm-fg) 6%, transparent);
-      transform: translateY(-1px);
+    body.admin-app .admin-btn.admin-btn--toolbar-secondary:hover {
+      opacity: 1;
+      background: color-mix(in srgb, var(--adm-fg) 7%, transparent);
+      border-color: color-mix(in srgb, var(--adm-accent) 32%, var(--adm-line));
+      box-shadow: 0 2px 12px color-mix(in srgb, var(--adm-fg) 6%, transparent);
     }
-    body.admin-app button#btn-del {
+    body.admin-app .admin-btn.admin-btn--toolbar-archive {
       background: transparent;
       color: var(--adm-muted);
-      border-color: var(--adm-line);
+      border: none;
+      box-shadow: none;
       font-weight: 500;
+      letter-spacing: 0.07em;
+      padding: 0.55rem 0.45rem;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-underline-offset: 0.22em;
+      transition:
+        color 0.18s ease,
+        text-decoration-color 0.18s ease,
+        opacity 0.18s ease,
+        transform 0.18s var(--ease-out-expo),
+        box-shadow 0.18s ease;
     }
-    body.admin-app button#btn-del:hover {
+    body.admin-app .admin-btn.admin-btn--toolbar-archive:hover {
+      opacity: 1;
       color: var(--red);
-      border-color: color-mix(in srgb, var(--red) 45%, var(--adm-line));
-      background: color-mix(in srgb, var(--red) 8%, transparent);
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      transform: none;
+      text-decoration-color: color-mix(in srgb, var(--red) 65%, transparent);
     }
     body.admin-app .admin-actions {
       display: flex;
@@ -1442,8 +1529,16 @@ export function layoutPage(
     body.admin-app .admin-editor-toolbar__actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.55rem;
+      gap: 0.45rem;
       align-items: center;
+    }
+    body.admin-app .admin-toolbar-actions__sep {
+      width: 1px;
+      align-self: stretch;
+      min-height: 1.35rem;
+      margin: 0 0.2rem;
+      background: color-mix(in srgb, var(--adm-line) 88%, transparent);
+      flex-shrink: 0;
     }
     body.admin-app .admin-editor-toolbar__status {
       flex: 1 1 100%;
@@ -1492,6 +1587,7 @@ export function layoutPage(
       min-height: 0;
       min-width: 0;
       border-right: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
+      background: color-mix(in srgb, var(--adm-bg) 93%, var(--adm-accent));
     }
     body.admin-app .admin-md-head {
       display: flex;
@@ -1511,8 +1607,11 @@ export function layoutPage(
     }
     body.admin-app .admin-md-tool {
       margin: 0;
-      padding: 0.3rem 0.5rem;
-      min-width: 1.85rem;
+      padding: 0.28rem 0.45rem;
+      min-width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
       font-family: inherit;
       font-size: 0.6875rem;
       font-weight: 700;
@@ -1524,7 +1623,7 @@ export function layoutPage(
       border: 1px solid var(--adm-line);
       border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
       box-shadow: none;
       max-width: none;
       width: auto;
@@ -1536,13 +1635,14 @@ export function layoutPage(
       opacity: 1;
     }
     body.admin-app .admin-md-tool:focus-visible {
-      outline: 2px solid var(--adm-accent);
-      outline-offset: 2px;
+      outline: none;
+      border-color: color-mix(in srgb, var(--adm-accent) 55%, var(--adm-line));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--adm-accent) 22%, transparent);
     }
-    body.admin-app .admin-md-tool__b {
+    body.admin-app .admin-md-tool__glyph.admin-md-tool__b {
       font-weight: 800;
     }
-    body.admin-app .admin-md-tool__i {
+    body.admin-app .admin-md-tool__glyph.admin-md-tool__i {
       font-weight: 600;
       font-style: italic;
       letter-spacing: 0.04em;
@@ -1554,6 +1654,26 @@ export function layoutPage(
       padding-right: 0.55rem;
       min-width: auto;
       font-weight: 600;
+    }
+    body.admin-app .admin-md-tool--wide .admin-md-tool__glyph {
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    body.admin-app .admin-kbd.admin-kbd--tool {
+      display: inline-block;
+      margin: 0;
+      padding: 0.14rem 0.32rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 0.5625rem;
+      font-weight: 500;
+      font-style: normal;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      line-height: 1;
+      color: color-mix(in srgb, var(--adm-muted) 88%, var(--adm-fg));
+      background: color-mix(in srgb, var(--adm-field-bg) 90%, transparent);
+      border: 1px solid color-mix(in srgb, var(--adm-line) 92%, transparent);
+      border-radius: var(--radius-sm);
     }
     body.admin-app .admin-editor-md textarea[name="body"] {
       flex: 1;
@@ -1574,6 +1694,7 @@ export function layoutPage(
       gap: 0.5rem;
       min-height: 0;
       min-width: 0;
+      background: color-mix(in srgb, var(--adm-field-bg) 38%, var(--adm-bg));
     }
     body.admin-app .admin-preview-pane {
       flex: 1;
@@ -1611,6 +1732,14 @@ export function layoutPage(
     @media (prefers-reduced-motion: reduce) {
       body.admin-app .admin-overlay:not([hidden]) .admin-overlay__panel {
         animation: none;
+      }
+      body.admin-app button[type="submit"]:hover,
+      body.admin-app .admin-btn:hover,
+      body.admin-app .admin-add-btn:hover {
+        transform: none;
+      }
+      body.admin-app .admin-field-more summary::after {
+        transition: none;
       }
     }
   </style>

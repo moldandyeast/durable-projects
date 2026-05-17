@@ -40,9 +40,10 @@ export function adminTemplate(): string {
               </button>
               <span class="admin-toolbar-rule" aria-hidden="true"></span>
               <div class="admin-editor-toolbar__actions">
-                <button type="submit" id="btn-save">Save</button>
-                <button type="button" id="btn-new">New</button>
-                <button type="button" id="btn-del">Archive</button>
+                <button type="submit" id="btn-save" class="admin-btn admin-btn--toolbar-primary">Save</button>
+                <button type="button" id="btn-new" class="admin-btn admin-btn--toolbar-secondary">New</button>
+                <span class="admin-toolbar-actions__sep" aria-hidden="true"></span>
+                <button type="button" id="btn-del" class="admin-btn admin-btn--toolbar-archive">Archive</button>
               </div>
               <p id="proj-save-status" class="admin-save-status admin-editor-toolbar__status" role="status" aria-live="polite" aria-atomic="true"></p>
             </div>
@@ -53,13 +54,16 @@ export function adminTemplate(): string {
                 <label class="admin-label" for="pf-body">Markdown</label>
                 <div class="admin-md-tools" role="toolbar" aria-label="Insert markdown">
                   <button type="button" class="admin-md-tool" id="md-tool-bold" aria-label="Bold" title="Bold (⌘B / Ctrl+B)">
-                    <span class="admin-md-tool__b" aria-hidden="true">B</span>
+                    <span class="admin-md-tool__glyph admin-md-tool__b" aria-hidden="true">B</span>
+                    <kbd class="admin-kbd admin-kbd--tool">⌘B</kbd>
                   </button>
                   <button type="button" class="admin-md-tool" id="md-tool-italic" aria-label="Italic" title="Italic (⌘I / Ctrl+I)">
-                    <span class="admin-md-tool__i" aria-hidden="true">I</span>
+                    <span class="admin-md-tool__glyph admin-md-tool__i" aria-hidden="true">I</span>
+                    <kbd class="admin-kbd admin-kbd--tool">⌘I</kbd>
                   </button>
                   <button type="button" class="admin-md-tool admin-md-tool--wide" id="md-tool-link" aria-label="Link" title="Link (⌘K / Ctrl+K)">
-                    Link
+                    <span class="admin-md-tool__glyph">Link</span>
+                    <kbd class="admin-kbd admin-kbd--tool">⌘K</kbd>
                   </button>
                 </div>
               </div>
@@ -99,9 +103,13 @@ export function adminTemplate(): string {
 
   <div id="overlay-collab" class="admin-overlay" hidden aria-hidden="true">
     <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
-    <div class="admin-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="overlay-collab-title">
-      <div class="admin-overlay__head">
-        <h2 id="overlay-collab-title" class="admin-overlay__title">Add collaborator</h2>
+    <div class="admin-overlay__panel admin-overlay__panel--sheet" role="dialog" aria-modal="true" aria-labelledby="overlay-collab-title">
+      <div class="admin-overlay__head admin-overlay__head--rich">
+        <div class="admin-overlay__title-stack">
+          <p class="admin-overlay__eyebrow">Directory</p>
+          <h2 id="overlay-collab-title" class="admin-overlay__heading">Add collaborator</h2>
+          <p class="admin-overlay__lede admin-overlay__lede--compact">Creates a profile you can attach to projects.</p>
+        </div>
         <button type="button" class="admin-overlay__close" data-overlay-close="overlay-collab" aria-label="Close">&times;</button>
       </div>
       <form id="team-form" class="admin-grid">
@@ -127,9 +135,13 @@ export function adminTemplate(): string {
 
   <div id="overlay-client" class="admin-overlay" hidden aria-hidden="true">
     <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
-    <div class="admin-overlay__panel" role="dialog" aria-modal="true" aria-labelledby="overlay-client-title">
-      <div class="admin-overlay__head">
-        <h2 id="overlay-client-title" class="admin-overlay__title">Add client</h2>
+    <div class="admin-overlay__panel admin-overlay__panel--sheet" role="dialog" aria-modal="true" aria-labelledby="overlay-client-title">
+      <div class="admin-overlay__head admin-overlay__head--rich">
+        <div class="admin-overlay__title-stack">
+          <p class="admin-overlay__eyebrow">Directory</p>
+          <h2 id="overlay-client-title" class="admin-overlay__heading">Add client</h2>
+          <p class="admin-overlay__lede admin-overlay__lede--compact">Optional parent keeps agency hierarchies tidy.</p>
+        </div>
         <button type="button" class="admin-overlay__close" data-overlay-close="overlay-client" aria-label="Close">&times;</button>
       </div>
       <form id="client-form" class="admin-grid">
@@ -196,19 +208,31 @@ export function adminTemplate(): string {
           <div class="admin-settings-section__fields admin-settings-section__fields--dense">
             <div class="admin-collab-wrap">
               <span id="client-picker-label" class="admin-label">Clients</span>
-              <p class="admin-field-hint">Check to include; order follows when you select (first checked first).</p>
+              <p class="admin-field-hint">Checked names appear on the site; order follows selection.</p>
+              <details class="admin-field-more">
+                <summary>About ordering</summary>
+                <p class="admin-field-more__body">First checked appears first in listings.</p>
+              </details>
               <div id="client-picker" class="admin-collab-picker" role="group" aria-labelledby="client-picker-label"></div>
               <input form="proj-form" type="hidden" id="pf-client-ids" name="client_ids" value="" />
             </div>
             <div class="admin-collab-wrap">
               <span id="via-picker-label" class="admin-label">Via clients</span>
-              <p class="admin-field-hint">Optional intermediaries — same picker as above; order follows selection (e.g. WE3.co closest to the work first). Primary clients are omitted here.</p>
+              <p class="admin-field-hint">Optional chain between client and work; order follows selection.</p>
+              <details class="admin-field-more">
+                <summary>Examples</summary>
+                <p class="admin-field-more__body">Put the intermediary closest to the work first (e.g. WE3.co before the brand). Primary clients are omitted here.</p>
+              </details>
               <div id="via-picker" class="admin-collab-picker" role="group" aria-labelledby="via-picker-label"></div>
               <input form="proj-form" type="hidden" name="via_client_ids" id="pf-via-ids" value="" />
             </div>
             <div class="admin-collab-wrap">
               <span id="collab-picker-label" class="admin-label">Collaborators</span>
-              <p class="admin-field-hint">Check to include; order follows when you select.</p>
+              <p class="admin-field-hint">Same pattern as clients — checked names show; order follows selection.</p>
+              <details class="admin-field-more">
+                <summary>About ordering</summary>
+                <p class="admin-field-more__body">First checked appears first alongside the project.</p>
+              </details>
               <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
               <input form="proj-form" type="hidden" name="team_member_ids" id="pf-team-ids" value="" />
             </div>
