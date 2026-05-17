@@ -435,6 +435,9 @@ export function layoutPage(
       margin: 0;
       padding: 0;
       min-height: 100dvh;
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
@@ -524,6 +527,9 @@ export function layoutPage(
       display: flex;
       flex-direction: column;
       padding: 0 clamp(1rem, 2vw, 1.5rem) 1rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     body.admin-app .admin-main > .admin-view:not([hidden]) {
       flex: 1;
@@ -532,11 +538,6 @@ export function layoutPage(
     body.admin-app #view-editor:not([hidden]) {
       display: flex;
       flex-direction: column;
-    }
-    body.admin-app #view-collaborators:not([hidden]),
-    body.admin-app #view-clients:not([hidden]) {
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
     }
     body.admin-app .admin-view-title {
       font-family: var(--adm-mono);
@@ -599,7 +600,7 @@ export function layoutPage(
     body.admin-app .admin-overlay {
       position: fixed;
       inset: 0;
-      z-index: 1000;
+      z-index: 10000;
       display: flex;
       align-items: center;
       justify-content: center;

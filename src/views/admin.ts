@@ -124,6 +124,7 @@ export function adminTemplate(): string {
       </section>
     </section>
   </main>
+</div>
 
   <div id="overlay-collab" class="admin-overlay" hidden aria-hidden="true">
     <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
@@ -309,7 +310,6 @@ export function adminTemplate(): string {
       </footer>
     </div>
   </div>
-</div>
 
   <script>
     async function j(url, opt) {
@@ -587,6 +587,11 @@ export function adminTemplate(): string {
       try {
         history.replaceState(null, "", "#" + name);
       } catch (e) {}
+      var mainEl = document.querySelector(".admin-main");
+      if (mainEl) mainEl.scrollTop = 0;
+      try {
+        window.scrollTo(0, 0);
+      } catch (e2) {}
       if (name === "editor") schedulePreview();
     }
 
@@ -646,15 +651,16 @@ export function adminTemplate(): string {
     }
 
     function bindOverlays() {
-      document.getElementById("open-collab-overlay").addEventListener("click", function() {
-        openOverlay("overlay-collab");
-      });
-      document.getElementById("open-client-overlay").addEventListener("click", function() {
-        openOverlay("overlay-client");
-      });
-      document.getElementById("open-project-settings").addEventListener("click", function() {
-        openOverlay("overlay-project-settings");
-      });
+      function wireOpen(btnId, overlayId) {
+        var btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.addEventListener("click", function() {
+          openOverlay(overlayId);
+        });
+      }
+      wireOpen("open-collab-overlay", "overlay-collab");
+      wireOpen("open-client-overlay", "overlay-client");
+      wireOpen("open-project-settings", "overlay-project-settings");
       document.querySelectorAll(".admin-overlay__backdrop").forEach(function(btn) {
         btn.addEventListener("click", function() {
           var overlay = btn.closest(".admin-overlay");
@@ -892,6 +898,7 @@ export function adminTemplate(): string {
 
     function fillTeamList(members) {
       var ul = document.getElementById("team-list");
+      if (!ul) return;
       ul.textContent = "";
       if (!members.length) {
         var empty = document.createElement("li");
@@ -915,6 +922,7 @@ export function adminTemplate(): string {
 
     function fillClientsList(clients) {
       var ul = document.getElementById("clients-list");
+      if (!ul) return;
       ul.textContent = "";
       var byId = {};
       clients.forEach(function(c) {
@@ -962,22 +970,26 @@ export function adminTemplate(): string {
       renderCollaboratorPicker(team.members || []);
 
       var sel = document.getElementById("proj-select");
-      while (sel.options.length > 1) sel.remove(1);
-      (projects.projects || []).forEach(function(p) {
-        var o = document.createElement("option");
-        o.value = p.id;
-        o.textContent = p.title + " · " + p.id;
-        sel.appendChild(o);
-      });
+      if (sel) {
+        while (sel.options.length > 1) sel.remove(1);
+        (projects.projects || []).forEach(function(p) {
+          var o = document.createElement("option");
+          o.value = p.id;
+          o.textContent = p.title + " · " + p.id;
+          sel.appendChild(o);
+        });
+      }
 
       var cfParent = document.getElementById("cf-parent");
-      while (cfParent.options.length > 1) cfParent.remove(1);
-      cachedClients.forEach(function(c) {
-        var po = document.createElement("option");
-        po.value = c.id;
-        po.textContent = c.name + " · " + c.id;
-        cfParent.appendChild(po);
-      });
+      if (cfParent) {
+        while (cfParent.options.length > 1) cfParent.remove(1);
+        cachedClients.forEach(function(c) {
+          var po = document.createElement("option");
+          po.value = c.id;
+          po.textContent = c.name + " · " + c.id;
+          cfParent.appendChild(po);
+        });
+      }
     }
 
     function collectGalleryFromEditor() {
