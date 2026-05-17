@@ -698,26 +698,6 @@ export function layoutPage(
       color: var(--adm-muted);
       line-height: 1.45;
     }
-    body.admin-app .admin-via-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-    }
-    body.admin-app .admin-via-row {
-      display: flex;
-      align-items: stretch;
-      gap: 0.5rem;
-    }
-    body.admin-app .admin-via-row .via-row-select {
-      flex: 1;
-      min-width: 0;
-    }
-    body.admin-app .admin-via-row__rm {
-      flex-shrink: 0;
-      padding-left: 0.65rem;
-      padding-right: 0.65rem;
-      font-size: 0.6875rem;
-    }
     body.admin-app input,
     body.admin-app textarea,
     body.admin-app select {

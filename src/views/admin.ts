@@ -41,18 +41,19 @@ export function adminTemplate(): string {
               </div>
               <div class="admin-collab-wrap">
                 <span id="client-picker-label" class="admin-label">Clients</span>
+                <p class="admin-field-hint">Check to include; order follows when you select (first checked first).</p>
                 <div id="client-picker" class="admin-collab-picker" role="group" aria-labelledby="client-picker-label"></div>
                 <input type="hidden" id="pf-client-ids" name="client_ids" value="" />
               </div>
-              <div class="admin-via-wrap">
-                <span class="admin-label">Via clients</span>
-                <p class="admin-field-hint">Optional intermediaries in order — closest first (e.g. WE3.co when Clients include Ethereum Foundation, Espresso, Optimism).</p>
-                <div id="via-client-rows" class="admin-via-rows"></div>
-                <button type="button" class="admin-btn admin-btn--ghost" id="btn-via-add">Add via client</button>
+              <div class="admin-collab-wrap">
+                <span id="via-picker-label" class="admin-label">Via clients</span>
+                <p class="admin-field-hint">Optional intermediaries — same picker as above; order follows selection (e.g. WE3.co closest to the work first). Primary clients are omitted here.</p>
+                <div id="via-picker" class="admin-collab-picker" role="group" aria-labelledby="via-picker-label"></div>
                 <input type="hidden" name="via_client_ids" id="pf-via-ids" value="" />
               </div>
               <div class="admin-collab-wrap">
                 <span id="collab-picker-label" class="admin-label">Collaborators</span>
+                <p class="admin-field-hint">Check to include; order follows when you select.</p>
                 <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
                 <input type="hidden" name="team_member_ids" id="pf-team-ids" value="" />
               </div>
@@ -182,6 +183,8 @@ export function adminTemplate(): string {
     var projSaveStatusTimer;
     var cachedClients = [];
     var clientPickOrder = [];
+    var viaPickOrder = [];
+    var teamPickOrder = [];
 
     function clearProjSaveStatusSoon() {
       clearTimeout(projSaveStatusTimer);
@@ -348,29 +351,43 @@ export function adminTemplate(): string {
       });
     }
 
+    function appendCollabStyleRow(wrap, value, textLine, idLine, checked, onChange) {
+      var row = document.createElement("label");
+      row.className = "admin-collab-row";
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = value;
+      cb.checked = checked;
+      cb.addEventListener("change", onChange);
+      var span = document.createElement("span");
+      span.className = "admin-collab-row__text";
+      span.textContent = textLine;
+      var sid = document.createElement("span");
+      sid.className = "admin-collab-row__id";
+      sid.textContent = idLine;
+      row.appendChild(cb);
+      row.appendChild(span);
+      row.appendChild(sid);
+      wrap.appendChild(row);
+    }
+
     function getSelectedTeamIdsFromHidden() {
       var hid = document.getElementById("pf-team-ids");
       if (!hid.value.trim()) return [];
       return hid.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
     }
 
-    function syncCollabHiddenFromCheckboxes() {
-      var ids = [];
-      document.querySelectorAll('#collab-picker input[type="checkbox"]').forEach(function(cb) {
-        if (cb.checked) ids.push(cb.value);
-      });
-      document.getElementById("pf-team-ids").value = ids.join(", ");
+    function syncTeamPickHidden() {
+      var h = document.getElementById("pf-team-ids");
+      if (h) h.value = teamPickOrder.join(",");
     }
 
     function applyTeamIdsToCheckboxes(ids) {
-      var set = {};
-      ids.forEach(function(id) {
-        set[id] = true;
-      });
+      teamPickOrder = (ids || []).slice();
+      syncTeamPickHidden();
       document.querySelectorAll('#collab-picker input[type="checkbox"]').forEach(function(cb) {
-        cb.checked = !!set[cb.value];
+        cb.checked = teamPickOrder.indexOf(cb.value) !== -1;
       });
-      syncCollabHiddenFromCheckboxes();
     }
 
     function syncClientPickHidden() {
@@ -384,6 +401,13 @@ export function adminTemplate(): string {
       var hid = document.getElementById("pf-client-ids");
       var preserved = (hid && hid.value ? hid.value : "").split(",").map(function(s) { return s.trim(); }).filter(Boolean);
       if (preserved.length) clientPickOrder = preserved.slice();
+      var allow = {};
+      clients.forEach(function(c) {
+        allow[c.id] = true;
+      });
+      clientPickOrder = clientPickOrder.filter(function(id) {
+        return allow[id];
+      });
       wrap.textContent = "";
       if (!clients.length) {
         var empty = document.createElement("p");
@@ -392,37 +416,26 @@ export function adminTemplate(): string {
         wrap.appendChild(empty);
         clientPickOrder = [];
         syncClientPickHidden();
+        renderViaPicker(clients);
         return;
       }
       clients.forEach(function(c) {
-        var row = document.createElement("label");
-        row.className = "admin-collab-row";
-        var cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.value = c.id;
-        var span = document.createElement("span");
-        span.className = "admin-collab-row__text";
-        span.textContent = c.name;
-        var sid = document.createElement("span");
-        sid.className = "admin-collab-row__id";
-        sid.textContent = c.id;
-        row.appendChild(cb);
-        row.appendChild(span);
-        row.appendChild(sid);
-        cb.checked = clientPickOrder.indexOf(c.id) !== -1;
-        cb.addEventListener("change", function() {
+        appendCollabStyleRow(wrap, c.id, c.name, c.id, clientPickOrder.indexOf(c.id) !== -1, function(ev) {
+          var cb = ev.target;
           var id = cb.value;
           if (cb.checked) {
             if (clientPickOrder.indexOf(id) === -1) clientPickOrder.push(id);
           } else {
-            clientPickOrder = clientPickOrder.filter(function(x) { return x !== id; });
+            clientPickOrder = clientPickOrder.filter(function(x) {
+              return x !== id;
+            });
           }
           syncClientPickHidden();
-          computeViaIds();
+          renderViaPicker(clients);
         });
-        wrap.appendChild(row);
       });
       syncClientPickHidden();
+      renderViaPicker(clients);
     }
 
     function applyClientIdsToCheckboxes(ids) {
@@ -431,11 +444,81 @@ export function adminTemplate(): string {
       document.querySelectorAll('#client-picker input[type="checkbox"]').forEach(function(cb) {
         cb.checked = clientPickOrder.indexOf(cb.value) !== -1;
       });
-      computeViaIds();
+      renderViaPicker(cachedClients);
+    }
+
+    function syncViaPickHidden() {
+      var h = document.getElementById("pf-via-ids");
+      if (h) h.value = viaPickOrder.join(",");
+    }
+
+    function pruneViaPickAgainstPrimaries() {
+      var primarySet = {};
+      clientPickOrder.forEach(function(id) {
+        primarySet[id] = true;
+      });
+      viaPickOrder = viaPickOrder.filter(function(id) {
+        return !primarySet[id];
+      });
+    }
+
+    function renderViaPicker(clients) {
+      pruneViaPickAgainstPrimaries();
+      var wrap = document.getElementById("via-picker");
+      if (!wrap) return;
+      var candidates = clients.filter(function(c) {
+        return clientPickOrder.indexOf(c.id) === -1;
+      });
+      var allowVia = {};
+      candidates.forEach(function(c) {
+        allowVia[c.id] = true;
+      });
+      viaPickOrder = viaPickOrder.filter(function(id) {
+        return allowVia[id];
+      });
+      wrap.textContent = "";
+      if (!candidates.length) {
+        var empty = document.createElement("p");
+        empty.className = "admin-collab-picker__empty";
+        empty.textContent = clientPickOrder.length ?
+          "No other clients to list — all directory entries are primary, or add more under Clients."
+        : "Select primary clients first, or add clients under Clients.";
+        wrap.appendChild(empty);
+        syncViaPickHidden();
+        return;
+      }
+      candidates.forEach(function(c) {
+        appendCollabStyleRow(wrap, c.id, c.name, c.id, viaPickOrder.indexOf(c.id) !== -1, function(ev) {
+          var cb = ev.target;
+          var id = cb.value;
+          if (cb.checked) {
+            if (viaPickOrder.indexOf(id) === -1) viaPickOrder.push(id);
+          } else {
+            viaPickOrder = viaPickOrder.filter(function(x) {
+              return x !== id;
+            });
+          }
+          syncViaPickHidden();
+        });
+      });
+      syncViaPickHidden();
+    }
+
+    function computeViaIds() {
+      syncViaPickHidden();
+      return viaPickOrder.slice();
     }
 
     function renderCollaboratorPicker(members) {
       var preserved = getSelectedTeamIdsFromHidden();
+      if (preserved.length) teamPickOrder = preserved.slice();
+      var memberAllow = {};
+      members.forEach(function(m) {
+        memberAllow[m.id] = true;
+      });
+      teamPickOrder = teamPickOrder.filter(function(id) {
+        return memberAllow[id];
+      });
       var wrap = document.getElementById("collab-picker");
       wrap.textContent = "";
       if (!members.length) {
@@ -443,27 +526,32 @@ export function adminTemplate(): string {
         empty.className = "admin-collab-picker__empty";
         empty.textContent = "No collaborators yet — add some under Collaborators.";
         wrap.appendChild(empty);
-        document.getElementById("pf-team-ids").value = "";
+        teamPickOrder = [];
+        syncTeamPickHidden();
         return;
       }
       members.forEach(function(m) {
-        var row = document.createElement("label");
-        row.className = "admin-collab-row";
-        var cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.value = m.id;
-        var span = document.createElement("span");
-        span.className = "admin-collab-row__text";
-        span.textContent = m.name + (m.role ? " — " + m.role : "");
-        var sid = document.createElement("span");
-        sid.className = "admin-collab-row__id";
-        sid.textContent = m.id;
-        row.appendChild(cb);
-        row.appendChild(span);
-        row.appendChild(sid);
-        wrap.appendChild(row);
+        appendCollabStyleRow(
+          wrap,
+          m.id,
+          m.name + (m.role ? " — " + m.role : ""),
+          m.id,
+          teamPickOrder.indexOf(m.id) !== -1,
+          function(ev) {
+            var cb = ev.target;
+            var id = cb.value;
+            if (cb.checked) {
+              if (teamPickOrder.indexOf(id) === -1) teamPickOrder.push(id);
+            } else {
+              teamPickOrder = teamPickOrder.filter(function(x) {
+                return x !== id;
+              });
+            }
+            syncTeamPickHidden();
+          },
+        );
       });
-      applyTeamIdsToCheckboxes(preserved);
+      syncTeamPickHidden();
     }
 
     function fillTeamList(members) {
@@ -554,87 +642,6 @@ export function adminTemplate(): string {
         po.textContent = c.name + " · " + c.id;
         cfParent.appendChild(po);
       });
-      refreshViaRowSelectOptionsFromCache();
-    }
-
-    function populateViaSelect(sel) {
-      var cur = sel.value;
-      sel.textContent = "";
-      var o0 = document.createElement("option");
-      o0.value = "";
-      o0.textContent = "— Select —";
-      sel.appendChild(o0);
-      cachedClients.forEach(function(c) {
-        var o = document.createElement("option");
-        o.value = c.id;
-        o.textContent = c.name + " · " + c.id;
-        sel.appendChild(o);
-      });
-      sel.value = cur;
-      if (cur && !sel.value) sel.selectedIndex = 0;
-    }
-
-    function refreshViaRowSelectOptionsFromCache() {
-      document.querySelectorAll("#via-client-rows .via-row-select").forEach(function(sel) {
-        populateViaSelect(sel);
-      });
-    }
-
-    function computeViaIds() {
-      var primarySet = {};
-      (document.getElementById("pf-client-ids").value || "").split(",").forEach(function(s) {
-        var t = s.trim();
-        if (t) primarySet[t] = true;
-      });
-      var ids = [];
-      var seen = {};
-      document.querySelectorAll("#via-client-rows .via-row-select").forEach(function(sel) {
-        var v = (sel.value || "").trim();
-        if (!v || primarySet[v] || seen[v]) return;
-        seen[v] = true;
-        ids.push(v);
-      });
-      var h = document.getElementById("pf-via-ids");
-      if (h) h.value = ids.join(",");
-      return ids;
-    }
-
-    function clearViaRows() {
-      var wrap = document.getElementById("via-client-rows");
-      if (wrap) wrap.textContent = "";
-      var h = document.getElementById("pf-via-ids");
-      if (h) h.value = "";
-    }
-
-    function addViaRow(prefill) {
-      var wrap = document.getElementById("via-client-rows");
-      if (!wrap) return;
-      var row = document.createElement("div");
-      row.className = "admin-via-row";
-      var sel = document.createElement("select");
-      sel.className = "via-row-select";
-      sel.setAttribute("aria-label", "Via client");
-      populateViaSelect(sel);
-      if (prefill) sel.value = prefill;
-      var rm = document.createElement("button");
-      rm.type = "button";
-      rm.className = "admin-btn admin-btn--ghost admin-via-row__rm";
-      rm.textContent = "Remove";
-      rm.addEventListener("click", function() {
-        row.remove();
-        computeViaIds();
-      });
-      row.appendChild(sel);
-      row.appendChild(rm);
-      wrap.appendChild(row);
-      computeViaIds();
-    }
-
-    function setViaRowsFromIds(ids) {
-      clearViaRows();
-      (ids || []).forEach(function(id) {
-        addViaRow(id);
-      });
     }
 
     function parseGallery(txt) {
@@ -649,8 +656,13 @@ export function adminTemplate(): string {
     async function loadProject(id) {
       if (!id) {
         document.getElementById("proj-form").reset();
-        applyClientIdsToCheckboxes([]);
-        clearViaRows();
+        clientPickOrder = [];
+        viaPickOrder = [];
+        teamPickOrder = [];
+        syncClientPickHidden();
+        syncViaPickHidden();
+        syncTeamPickHidden();
+        renderClientPicker(cachedClients);
         applyTeamIdsToCheckboxes([]);
         previewPlaceholder();
         return;
@@ -662,12 +674,15 @@ export function adminTemplate(): string {
       f.summary.value = p.summary || "";
       f.tags.value = (p.tags || []).join(", ");
       var cids = (p.client_ids && p.client_ids.length) ? p.client_ids.slice() : (p.client_id ? [p.client_id] : []);
-      applyClientIdsToCheckboxes(cids);
-      setViaRowsFromIds(p.via_client_ids || []);
+      clientPickOrder = cids.slice();
+      syncClientPickHidden();
+      viaPickOrder = (p.via_client_ids || []).slice();
+      pruneViaPickAgainstPrimaries();
+      syncViaPickHidden();
+      renderClientPicker(cachedClients);
+      applyTeamIdsToCheckboxes(p.team_member_ids || []);
       f.sort_date.value = p.sort_date || "";
       f.preview_image.value = p.preview_image || "";
-      f.team_member_ids.value = (p.team_member_ids || []).join(", ");
-      applyTeamIdsToCheckboxes(p.team_member_ids || []);
       f.gallery_json.value = JSON.stringify(p.gallery_images || [], null, 2);
       f.body.value = p.body || "";
       schedulePreview();
@@ -676,23 +691,9 @@ export function adminTemplate(): string {
     bindNav();
     bindOverlays();
 
-    document.getElementById("btn-via-add").addEventListener("click", function() {
-      addViaRow("");
-    });
-
     document.getElementById("proj-select").addEventListener("change", function() {
       clearProjSaveStatus();
       loadProject(this.value);
-    });
-
-    document.getElementById("proj-form").addEventListener("change", function(ev) {
-      var t = ev.target;
-      if (t && t.closest && t.closest("#collab-picker") && t.type === "checkbox") {
-        syncCollabHiddenFromCheckboxes();
-      }
-      if (t && (t.classList && t.classList.contains("via-row-select"))) {
-        computeViaIds();
-      }
     });
 
     document.getElementById("team-form").addEventListener("submit", async function(ev) {
@@ -731,8 +732,8 @@ export function adminTemplate(): string {
       var btn = document.getElementById("btn-save");
       var id = document.getElementById("proj-select").value;
       var tags = f.tags.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
-      syncCollabHiddenFromCheckboxes();
-      var teamIds = f.team_member_ids.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      syncTeamPickHidden();
+      var teamIds = teamPickOrder.slice();
       syncClientPickHidden();
       var clientIds = clientPickOrder.slice();
       var viaIds = computeViaIds();
