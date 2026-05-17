@@ -38,11 +38,12 @@ export function adminTemplate(): string {
               >
                 Settings
               </button>
-              <span class="admin-toolbar-rule" aria-hidden="true"></span>
               <div class="admin-editor-toolbar__actions">
-                <button type="submit" id="btn-save" class="admin-btn admin-btn--toolbar-primary">Save</button>
+                <button type="submit" id="btn-save" class="admin-btn admin-btn--toolbar-primary">
+                  <span class="admin-btn__label">Save</span>
+                  <kbd class="admin-kbd admin-kbd--inline">⌘S</kbd>
+                </button>
                 <button type="button" id="btn-new" class="admin-btn admin-btn--toolbar-secondary">New</button>
-                <span class="admin-toolbar-actions__sep" aria-hidden="true"></span>
                 <button type="button" id="btn-del" class="admin-btn admin-btn--toolbar-archive">Archive</button>
               </div>
               <p id="proj-save-status" class="admin-save-status admin-editor-toolbar__status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -269,8 +270,8 @@ export function adminTemplate(): string {
               </div>
               <div class="admin-gallery-preview-block">
                 <div class="admin-gallery-preview-head">
-                  <span class="admin-gallery-preview-kicker">Live</span>
-                  <span class="admin-gallery-preview-title">Site grid</span>
+                  <span class="admin-gallery-preview-dot" aria-hidden="true"></span>
+                  <span class="admin-gallery-preview-title">Site grid · live</span>
                 </div>
                 <div id="gallery-live-preview" class="gallery-grid admin-gallery-live" aria-live="polite"></div>
                 <p id="gallery-live-empty" class="admin-gallery-live-empty">Preview fills in when URLs resolve.</p>
@@ -531,13 +532,23 @@ export function adminTemplate(): string {
         });
       });
       document.addEventListener("keydown", function(ev) {
-        if (ev.key !== "Escape") return;
-        var os = document.getElementById("overlay-project-settings");
-        var oc = document.getElementById("overlay-collab");
-        var ol = document.getElementById("overlay-client");
-        if (os && !os.hidden) closeOverlay("overlay-project-settings");
-        else if (oc && !oc.hidden) closeOverlay("overlay-collab");
-        else if (ol && !ol.hidden) closeOverlay("overlay-client");
+        if (ev.key === "Escape") {
+          var os = document.getElementById("overlay-project-settings");
+          var oc = document.getElementById("overlay-collab");
+          var ol = document.getElementById("overlay-client");
+          if (os && !os.hidden) closeOverlay("overlay-project-settings");
+          else if (oc && !oc.hidden) closeOverlay("overlay-collab");
+          else if (ol && !ol.hidden) closeOverlay("overlay-client");
+          return;
+        }
+        if ((ev.metaKey || ev.ctrlKey) && (ev.key === "s" || ev.key === "S")) {
+          var form = document.getElementById("proj-form");
+          if (form) {
+            ev.preventDefault();
+            if (typeof form.requestSubmit === "function") form.requestSubmit();
+            else form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+          }
+        }
       });
     }
 

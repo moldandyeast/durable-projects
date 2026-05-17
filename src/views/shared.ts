@@ -30,20 +30,27 @@ export function layoutPage(
   ${FONT_HEAD_ONEST}
   ${extraHead}
   <style>
+    /*
+      Canonical palette (reference):
+      BG #1B1B1B · CARD #161616 · FG #F3F3F3 · FG-MUTED #5D5C5C
+      Rose #D175AC · Orange #F2B151 · Green #90E9A2 · Blue #82C7F5 · Purple #A27FED · Red #EC9494
+      CARD maps to --bg-elevated; FG-MUTED maps to --muted.
+    */
     :root {
-      /* Brand accents (both modes) */
+      /* Palette — shared across color schemes */
       --rose: #d175ac;
       --orange: #f2b151;
       --green: #90e9a2;
       --blue: #82c7f5;
       --purple: #a27fed;
       --red: #ec9494;
-      /* Light */
+      /* Light theme semantics */
       --bg: #efeeee;
       --bg-elevated: #fafafa;
       --fg: #1b1b1b;
       --fg-soft: #353535;
       --muted: #5d5c5c;
+      --bg-card: var(--bg-elevated);
       --border: rgba(27, 27, 27, 0.085);
       --line: rgba(27, 27, 27, 0.11);
       --accent: #3d87c4;
@@ -60,6 +67,7 @@ export function layoutPage(
     }
     @media (prefers-color-scheme: dark) {
       :root {
+        /* Dark theme semantics — BG / CARD / FG / FG-MUTED */
         --bg: #1b1b1b;
         --bg-elevated: #161616;
         --fg: #f3f3f3;
@@ -401,11 +409,17 @@ export function layoutPage(
     /* Admin — shares root palette + Onest */
     body.admin-app {
       --adm-fg: var(--fg);
+      --adm-fg-soft: var(--fg-soft);
       --adm-bg: var(--bg);
+      --adm-bg-soft: color-mix(in srgb, var(--adm-fg) 3%, var(--adm-bg));
       --adm-muted: var(--muted);
       --adm-line: var(--line);
+      --adm-line-strong: color-mix(in srgb, var(--adm-fg) 14%, transparent);
       --adm-field-bg: var(--bg-elevated);
       --adm-accent: var(--accent);
+      --adm-ring: color-mix(in srgb, var(--adm-accent) 70%, transparent);
+      --adm-scrim: color-mix(in srgb, var(--adm-fg) 5%, transparent);
+      --adm-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "JetBrains Mono", monospace;
       font-family: var(--font-sans);
       background: var(--adm-bg);
       color: var(--adm-fg);
@@ -427,12 +441,12 @@ export function layoutPage(
     }
     body.admin-app .admin-header {
       flex-shrink: 0;
-      padding: 1rem clamp(1rem, 2vw, 1.5rem);
+      padding: 0.85rem clamp(1rem, 2vw, 1.5rem) 0;
       margin-bottom: 0;
       border-bottom: 1px solid var(--adm-line);
-      background: color-mix(in srgb, var(--adm-bg) 88%, transparent);
-      backdrop-filter: blur(16px) saturate(1.15);
-      -webkit-backdrop-filter: blur(16px) saturate(1.15);
+      background: color-mix(in srgb, var(--adm-bg) 86%, transparent);
+      backdrop-filter: blur(18px) saturate(1.1);
+      -webkit-backdrop-filter: blur(18px) saturate(1.1);
     }
     body.admin-app .admin-header__row {
       display: flex;
@@ -440,25 +454,36 @@ export function layoutPage(
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
-      margin-bottom: 1rem;
+      margin-bottom: 0.65rem;
     }
     body.admin-app .admin-wordmark {
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--adm-muted);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-wordmark::before {
+      content: "■  ";
+      color: var(--adm-accent);
+      letter-spacing: 0;
     }
     body.admin-app .admin-header__exit {
-      font-size: 0.8125rem;
+      font-size: 0.78rem;
       font-weight: 500;
       color: var(--adm-muted);
       text-decoration: none;
-      border-bottom: 1px solid transparent;
+      letter-spacing: -0.005em;
+      transition: color 0.18s var(--ease-out-expo);
     }
     body.admin-app .admin-header__exit:hover {
       color: var(--adm-fg);
-      border-bottom-color: color-mix(in srgb, var(--adm-accent) 45%, var(--adm-line));
+    }
+    body.admin-app .admin-header__exit::after {
+      content: " ↗";
+      font-size: 0.85em;
+      color: var(--adm-muted);
     }
     body.admin-app .admin-nav {
       display: flex;
@@ -469,29 +494,29 @@ export function layoutPage(
       font-family: inherit;
       font-size: 0.8125rem;
       font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 0.65rem 0;
-      margin-right: 1.75rem;
+      letter-spacing: -0.005em;
+      text-transform: none;
+      padding: 0.55rem 0 0.7rem;
+      margin-right: 1.5rem;
       background: none;
       border: none;
-      border-bottom: 2px solid transparent;
+      border-bottom: 1px solid transparent;
       color: var(--adm-muted);
       cursor: pointer;
       border-radius: 0;
       width: auto;
       max-width: none;
-      transition: color 0.2s var(--ease-out-expo), border-color 0.2s var(--ease-out-expo);
+      transition: color 0.18s var(--ease-out-expo), border-color 0.18s var(--ease-out-expo);
     }
     body.admin-app .admin-nav__btn:hover { color: var(--adm-fg); }
     body.admin-app .admin-nav__btn.is-active {
       color: var(--adm-fg);
-      border-bottom-color: var(--adm-accent);
+      border-bottom-color: var(--adm-fg);
     }
     body.admin-app .admin-nav__btn:focus-visible {
-      outline: 2px solid var(--adm-accent);
-      outline-offset: 6px;
-      border-radius: var(--radius-sm);
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 4px;
+      border-radius: 0;
     }
     body.admin-app .admin-main {
       flex: 1;
@@ -514,12 +539,17 @@ export function layoutPage(
       -webkit-overflow-scrolling: touch;
     }
     body.admin-app .admin-view-title {
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
       color: var(--adm-muted);
-      margin: 0 0 1.75rem;
+      margin: 0 0 1.5rem;
+    }
+    body.admin-app .admin-view-title::before {
+      content: "/ ";
+      color: var(--adm-line-strong);
     }
     body.admin-app.admin-overlay-open {
       overflow: hidden;
@@ -537,28 +567,31 @@ export function layoutPage(
     }
     body.admin-app .admin-add-btn {
       flex-shrink: 0;
-      width: 2.25rem;
-      height: 2.25rem;
+      width: 2rem;
+      height: 2rem;
       padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
-      font-weight: 500;
+      font-size: 1.05rem;
+      font-weight: 400;
       line-height: 1;
-      background: var(--adm-field-bg);
-      color: var(--adm-fg);
+      background: transparent;
+      color: var(--adm-muted);
       border: 1px solid var(--adm-line);
       cursor: pointer;
       border-radius: var(--radius-sm);
       max-width: none;
-      transition: background 0.2s var(--ease-out-expo), border-color 0.2s ease, color 0.2s ease, transform 0.2s var(--ease-out-expo);
+      transition: background 0.18s var(--ease-out-expo), border-color 0.18s ease, color 0.18s ease;
     }
     body.admin-app .admin-add-btn:hover {
-      background: color-mix(in srgb, var(--adm-accent) 14%, var(--adm-field-bg));
-      border-color: color-mix(in srgb, var(--adm-accent) 35%, var(--adm-line));
+      background: var(--adm-scrim);
+      border-color: var(--adm-line-strong);
       color: var(--adm-fg);
-      transform: scale(1.04);
+    }
+    body.admin-app .admin-add-btn:focus-visible {
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 2px;
     }
     body.admin-app .admin-overlay[hidden] {
       display: none !important;
@@ -579,14 +612,10 @@ export function layoutPage(
       border: none;
       padding: 0;
       margin: 0;
-      background: color-mix(in srgb, #0a0c10 58%, transparent);
-      backdrop-filter: blur(14px) saturate(1.15);
-      -webkit-backdrop-filter: blur(14px) saturate(1.15);
+      background: color-mix(in srgb, var(--adm-bg) 78%, transparent);
+      backdrop-filter: blur(20px) saturate(1.05);
+      -webkit-backdrop-filter: blur(20px) saturate(1.05);
       cursor: pointer;
-      transition: background 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    body.admin-app .admin-overlay__backdrop:hover {
-      background: color-mix(in srgb, #0a0c10 64%, transparent);
     }
     body.admin-app .admin-overlay:not([hidden]) .admin-overlay__panel {
       animation: admin-overlay-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -612,13 +641,10 @@ export function layoutPage(
       max-height: min(92dvh, 100%);
       overflow-y: auto;
       background: var(--adm-field-bg);
-      border: 1px solid color-mix(in srgb, var(--adm-line) 85%, var(--adm-fg));
+      border: 1px solid var(--adm-line-strong);
       border-radius: var(--radius-sm);
       padding: 1.25rem 1.35rem 1.5rem;
-      box-shadow:
-        0 0 0 1px color-mix(in srgb, var(--adm-fg) 5%, transparent),
-        0 24px 48px -16px color-mix(in srgb, #000000 55%, transparent),
-        0 12px 24px -12px color-mix(in srgb, var(--adm-accent) 12%, transparent);
+      box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.5);
     }
     body.admin-app .admin-overlay__head {
       display: flex;
@@ -629,10 +655,11 @@ export function layoutPage(
     }
     body.admin-app .admin-overlay__title {
       margin: 0;
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
       color: var(--adm-muted);
     }
     body.admin-app .admin-overlay__title-stack {
@@ -640,18 +667,23 @@ export function layoutPage(
       padding-right: 0.5rem;
     }
     body.admin-app .admin-overlay__eyebrow {
-      margin: 0 0 0.35rem;
+      margin: 0 0 0.4rem;
+      font-family: var(--adm-mono);
       font-size: 0.625rem;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: color-mix(in srgb, var(--adm-muted) 92%, var(--adm-accent));
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      color: var(--adm-muted);
+    }
+    body.admin-app .admin-overlay__eyebrow::before {
+      content: "/ ";
+      color: var(--adm-line-strong);
     }
     body.admin-app .admin-overlay__heading {
-      margin: 0 0 0.45rem;
-      font-size: 1.35rem;
-      font-weight: 600;
-      letter-spacing: -0.035em;
+      margin: 0 0 0.5rem;
+      font-size: 1.3rem;
+      font-weight: 500;
+      letter-spacing: -0.025em;
       line-height: 1.15;
       color: var(--adm-fg);
       text-transform: none;
@@ -660,7 +692,7 @@ export function layoutPage(
       margin: 0;
       font-size: 0.8125rem;
       font-weight: 400;
-      letter-spacing: 0.01em;
+      letter-spacing: -0.005em;
       line-height: 1.5;
       color: var(--adm-muted);
       max-width: 28rem;
@@ -710,12 +742,17 @@ export function layoutPage(
       padding-bottom: 0;
     }
     body.admin-app .admin-settings-section__label {
-      margin: 0 0 1rem;
-      font-size: 0.625rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: color-mix(in srgb, var(--adm-muted) 85%, var(--adm-fg));
+      margin: 0 0 0.9rem;
+      font-family: var(--adm-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      color: var(--adm-muted);
+    }
+    body.admin-app .admin-settings-section__label::before {
+      content: "§ ";
+      color: var(--adm-line-strong);
     }
     body.admin-app .admin-settings-section__fields {
       display: flex;
@@ -817,18 +854,19 @@ export function layoutPage(
     body.admin-app .admin-panel h2 {
       margin: 0 0 1rem;
       font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: -0.03em;
+      font-weight: 500;
+      letter-spacing: -0.02em;
       text-transform: none;
       color: var(--adm-fg);
     }
     body.admin-app label,
     body.admin-app .admin-label {
       display: block;
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
       color: var(--adm-muted);
       margin-bottom: 0.4rem;
     }
@@ -836,7 +874,7 @@ export function layoutPage(
       margin: -0.15rem 0 0.4rem;
       font-size: 0.75rem;
       font-weight: 400;
-      letter-spacing: 0.02em;
+      letter-spacing: -0.005em;
       text-transform: none;
       color: var(--adm-muted);
       line-height: 1.45;
@@ -851,11 +889,12 @@ export function layoutPage(
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: color-mix(in srgb, var(--adm-accent) 48%, var(--adm-muted));
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      text-transform: lowercase;
+      color: var(--adm-muted);
       list-style: none;
       transition: color 0.15s ease;
     }
@@ -896,100 +935,113 @@ export function layoutPage(
       letter-spacing: -0.01em;
       border-radius: var(--radius-sm);
       border: 1px solid var(--adm-line);
-      padding: 0.55rem 0.65rem;
+      padding: 0.55rem 0.7rem;
       background: var(--adm-field-bg);
       color: var(--adm-fg);
       width: 100%;
       max-width: 100%;
-      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+      transition: border-color 0.16s ease, background 0.16s ease;
+    }
+    body.admin-app input::placeholder,
+    body.admin-app textarea::placeholder {
+      color: color-mix(in srgb, var(--adm-muted) 70%, transparent);
+    }
+    body.admin-app input:hover,
+    body.admin-app textarea:hover,
+    body.admin-app select:hover {
+      border-color: var(--adm-line-strong);
     }
     body.admin-app input:focus,
     body.admin-app textarea:focus,
     body.admin-app select:focus {
       outline: none;
-      border-color: color-mix(in srgb, var(--adm-accent) 55%, var(--adm-line));
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--adm-accent) 22%, transparent);
+      border-color: var(--adm-fg);
+      background: var(--adm-bg-soft);
     }
     body.admin-app input:focus-visible,
     body.admin-app textarea:focus-visible,
     body.admin-app select:focus-visible {
       outline: none;
     }
+    body.admin-app input[name="sort_date"],
+    body.admin-app input[name="tags"] {
+      font-variant-numeric: tabular-nums;
+    }
     body.admin-app button[type="submit"],
     body.admin-app .admin-btn {
       width: auto;
       cursor: pointer;
       font-family: inherit;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      text-transform: none;
       background: var(--adm-accent);
       color: var(--on-accent);
-      border: 1px solid color-mix(in srgb, var(--adm-accent) 72%, #000000);
-      padding: 0.55rem 1rem;
+      border: 1px solid var(--adm-accent);
+      padding: 0.5rem 0.9rem;
       border-radius: var(--radius-sm);
       max-width: none;
-      transition: transform 0.18s var(--ease-out-expo), opacity 0.18s ease, box-shadow 0.18s ease;
-      box-shadow: 0 1px 0 color-mix(in srgb, var(--adm-fg) 12%, transparent);
+      box-shadow: none;
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, opacity 0.16s ease;
     }
     body.admin-app button[type="submit"]:hover,
     body.admin-app .admin-btn:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px color-mix(in srgb, var(--adm-accent) 35%, transparent);
+      background: color-mix(in srgb, var(--adm-accent) 88%, var(--adm-fg));
+      border-color: color-mix(in srgb, var(--adm-accent) 88%, var(--adm-fg));
+    }
+    body.admin-app button[type="submit"]:focus-visible,
+    body.admin-app .admin-btn:focus-visible {
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 2px;
     }
     body.admin-app .admin-btn.admin-btn--toolbar-primary {
-      padding: 0.58rem 1.15rem;
-      box-shadow:
-        0 1px 0 color-mix(in srgb, var(--adm-fg) 12%, transparent),
-        0 6px 22px color-mix(in srgb, var(--adm-accent) 24%, transparent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.5rem 0.85rem 0.5rem 0.9rem;
     }
-    body.admin-app .admin-btn.admin-btn--toolbar-primary:hover {
-      opacity: 1;
-      box-shadow:
-        0 3px 0 color-mix(in srgb, var(--adm-fg) 10%, transparent),
-        0 12px 28px color-mix(in srgb, var(--adm-accent) 34%, transparent);
+    body.admin-app .admin-btn__label {
+      letter-spacing: -0.005em;
     }
     body.admin-app .admin-btn.admin-btn--toolbar-secondary {
       background: transparent;
       color: var(--adm-fg);
-      border-color: var(--adm-line);
-      box-shadow: none;
-      font-weight: 600;
+      border-color: var(--adm-line-strong);
     }
     body.admin-app .admin-btn.admin-btn--toolbar-secondary:hover {
-      opacity: 1;
-      background: color-mix(in srgb, var(--adm-fg) 7%, transparent);
-      border-color: color-mix(in srgb, var(--adm-accent) 32%, var(--adm-line));
-      box-shadow: 0 2px 12px color-mix(in srgb, var(--adm-fg) 6%, transparent);
+      background: var(--adm-scrim);
+      border-color: var(--adm-fg);
+      color: var(--adm-fg);
     }
     body.admin-app .admin-btn.admin-btn--toolbar-archive {
       background: transparent;
       color: var(--adm-muted);
       border: none;
-      box-shadow: none;
-      font-weight: 500;
-      letter-spacing: 0.07em;
-      padding: 0.55rem 0.45rem;
-      text-decoration: underline;
-      text-decoration-color: transparent;
-      text-underline-offset: 0.22em;
-      transition:
-        color 0.18s ease,
-        text-decoration-color 0.18s ease,
-        opacity 0.18s ease,
-        transform 0.18s var(--ease-out-expo),
-        box-shadow 0.18s ease;
+      padding: 0.5rem 0.35rem;
+      font-weight: 400;
+      letter-spacing: -0.005em;
+      transition: color 0.16s ease;
     }
     body.admin-app .admin-btn.admin-btn--toolbar-archive:hover {
-      opacity: 1;
       color: var(--red);
-      border: none;
       background: transparent;
-      box-shadow: none;
-      transform: none;
-      text-decoration-color: color-mix(in srgb, var(--red) 65%, transparent);
+      border: none;
+    }
+    body.admin-app .admin-kbd.admin-kbd--inline {
+      display: inline-block;
+      padding: 0.12rem 0.32rem 0.14rem;
+      font-family: var(--adm-mono);
+      font-size: 0.625rem;
+      font-weight: 500;
+      font-style: normal;
+      letter-spacing: 0;
+      text-transform: none;
+      line-height: 1;
+      color: color-mix(in srgb, var(--on-accent) 80%, transparent);
+      background: color-mix(in srgb, #000000 18%, transparent);
+      border: 1px solid color-mix(in srgb, #000000 14%, transparent);
+      border-radius: var(--radius-sm);
     }
     body.admin-app .admin-actions {
       display: flex;
@@ -1006,15 +1058,21 @@ export function layoutPage(
     }
     body.admin-app .admin-save-status {
       margin: 0;
-      min-height: 1.35rem;
-      font-size: 0.8125rem;
+      min-height: 1.25rem;
+      font-family: var(--adm-mono);
+      font-size: 0.6875rem;
       font-weight: 500;
-      letter-spacing: 0.02em;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
       color: var(--adm-muted);
       transition: color 0.2s ease;
     }
+    body.admin-app .admin-save-status:not(:empty)::before {
+      content: "→ ";
+      color: var(--adm-line-strong);
+    }
     body.admin-app .admin-save-status.is-success {
-      color: color-mix(in srgb, var(--green) 88%, var(--adm-fg));
+      color: color-mix(in srgb, var(--green) 65%, var(--adm-fg));
     }
     body.admin-app .admin-save-status.is-error {
       color: var(--red);
@@ -1051,18 +1109,19 @@ export function layoutPage(
       grid-template-columns: auto 1fr auto;
       align-items: baseline;
       gap: 0.5rem 0.65rem;
-      padding: 0.35rem 0.65rem;
+      padding: 0.4rem 0.75rem;
       cursor: pointer;
       font-size: 0.8125rem;
       line-height: 1.35;
+      transition: background 0.12s ease;
     }
     body.admin-app .admin-collab-row:hover {
-      background: color-mix(in srgb, var(--adm-accent) 9%, transparent);
+      background: var(--adm-scrim);
     }
     body.admin-app .admin-collab-row input {
       width: auto;
       margin: 0;
-      accent-color: var(--adm-accent);
+      accent-color: var(--adm-fg);
     }
     body.admin-app .admin-collab-row__text {
       min-width: 0;
@@ -1070,9 +1129,11 @@ export function layoutPage(
       color: var(--adm-fg);
     }
     body.admin-app .admin-collab-row__id {
+      font-family: var(--adm-mono);
       font-size: 0.65rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      letter-spacing: 0;
+      text-transform: lowercase;
+      font-variant-numeric: tabular-nums;
       color: var(--adm-muted);
       white-space: nowrap;
     }
@@ -1095,41 +1156,43 @@ export function layoutPage(
     }
     body.admin-app .admin-gallery-title {
       margin: 0;
-      font-size: 0.625rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: color-mix(in srgb, var(--adm-muted) 88%, var(--adm-fg));
+      font-family: var(--adm-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      color: var(--adm-muted);
+    }
+    body.admin-app .admin-gallery-title::before {
+      content: "§ ";
+      color: var(--adm-line-strong);
     }
     body.admin-app .admin-gallery-count {
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      font-weight: 600;
+      font-weight: 500;
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.06em;
+      letter-spacing: 0;
       color: var(--adm-muted);
       min-height: 1.2em;
     }
-    body.admin-app .admin-gallery-count:not(:empty) {
-      padding: 0.12rem 0.45rem;
-      border: 1px solid var(--adm-line);
-      border-radius: var(--radius-sm);
-      background: color-mix(in srgb, var(--adm-field-bg) 85%, transparent);
-      color: var(--adm-fg);
+    body.admin-app .admin-gallery-count:not(:empty)::before {
+      content: "→ ";
+      color: var(--adm-line-strong);
     }
     body.admin-app .admin-gallery-composer {
       display: flex;
       gap: 0;
       align-items: stretch;
-      border: 1px dashed color-mix(in srgb, var(--adm-line) 88%, var(--adm-accent));
+      border: 1px solid var(--adm-line-strong);
       border-radius: var(--radius-sm);
-      background: color-mix(in srgb, var(--adm-field-bg) 97%, var(--adm-accent));
+      background: var(--adm-bg-soft);
       overflow: hidden;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: border-color 0.16s ease, background 0.16s ease;
     }
     body.admin-app .admin-gallery-composer:focus-within {
-      border-style: solid;
-      border-color: color-mix(in srgb, var(--adm-accent) 42%, var(--adm-line));
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--adm-accent) 14%, transparent);
+      border-color: var(--adm-fg);
+      background: var(--adm-field-bg);
     }
     body.admin-app .admin-gallery-composer-input {
       flex: 1;
@@ -1138,56 +1201,59 @@ export function layoutPage(
       border: none !important;
       border-radius: 0 !important;
       box-shadow: none !important;
-      padding: 0.65rem 0.75rem !important;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      padding: 0.55rem 0.7rem !important;
+      font-family: var(--adm-mono);
       font-size: 0.8125rem;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
       background: transparent !important;
     }
     body.admin-app .admin-gallery-composer-input:focus {
       outline: none !important;
       box-shadow: none !important;
+      background: transparent !important;
     }
     body.admin-app .admin-gallery-composer-add {
       flex-shrink: 0;
       margin: 0;
-      padding: 0 1rem;
+      padding: 0 0.95rem;
       font-family: inherit;
-      font-size: 0.625rem;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--on-accent);
-      background: var(--adm-accent);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      text-transform: none;
+      color: var(--adm-fg);
+      background: transparent;
       border: none;
-      border-left: 1px solid color-mix(in srgb, var(--adm-fg) 12%, transparent);
+      border-left: 1px solid var(--adm-line);
       cursor: pointer;
-      transition: filter 0.15s ease;
+      transition: background 0.14s ease, color 0.14s ease;
       max-width: none;
       width: auto;
       border-radius: 0;
       box-shadow: none;
     }
     body.admin-app .admin-gallery-composer-add:hover {
-      filter: brightness(1.06);
+      background: var(--adm-scrim);
+      filter: none;
       transform: none;
       opacity: 1;
     }
     body.admin-app .admin-gallery-composer-hint {
-      margin: 0.45rem 0 0.85rem;
-      font-size: 0.72rem;
+      margin: 0.5rem 0 0.85rem;
+      font-family: var(--adm-mono);
+      font-size: 0.6875rem;
       font-weight: 400;
-      letter-spacing: 0.03em;
-      line-height: 1.45;
+      letter-spacing: 0;
+      line-height: 1.5;
       color: var(--adm-muted);
     }
     body.admin-app .admin-gallery-composer-hint kbd {
-      font-family: ui-monospace, monospace;
-      font-size: 0.68em;
-      padding: 0.08rem 0.28rem;
+      font-family: var(--adm-mono);
+      font-size: 0.85em;
+      padding: 0.04rem 0.28rem;
       border: 1px solid var(--adm-line);
       border-radius: var(--radius-sm);
-      background: color-mix(in srgb, var(--adm-field-bg) 92%, transparent);
+      background: transparent;
       color: var(--adm-fg);
     }
     body.admin-app .admin-gallery-list-shell {
@@ -1393,22 +1459,32 @@ export function layoutPage(
     }
     body.admin-app .admin-gallery-preview-head {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 0.5rem;
-      margin-bottom: 0.65rem;
+      margin-bottom: 0.7rem;
+    }
+    body.admin-app .admin-gallery-preview-dot {
+      display: inline-block;
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--green) 25%, transparent);
+      animation: admin-pulse-dot 2.4s ease-in-out infinite;
+    }
+    @keyframes admin-pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
     }
     body.admin-app .admin-gallery-preview-kicker {
-      font-size: 0.5625rem;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: color-mix(in srgb, var(--adm-accent) 65%, var(--adm-muted));
+      display: none;
     }
     body.admin-app .admin-gallery-preview-title {
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
       color: var(--adm-muted);
     }
     body.admin-app .admin-gallery-live.gallery-grid {
@@ -1442,18 +1518,21 @@ export function layoutPage(
       border-top: 1px solid var(--adm-line);
     }
     body.admin-app .admin-list li {
-      padding: 0.65rem 0;
+      padding: 0.75rem 0;
       border-bottom: 1px solid var(--adm-line);
       font-size: 0.9375rem;
       font-weight: 400;
+      letter-spacing: -0.01em;
     }
     body.admin-app .admin-list__meta {
       display: block;
+      font-family: var(--adm-mono);
       font-size: 0.6875rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: 0;
+      text-transform: lowercase;
+      font-variant-numeric: tabular-nums;
       color: var(--adm-muted);
-      margin-top: 0.2rem;
+      margin-top: 0.25rem;
     }
     body.admin-app .admin-list__empty {
       color: var(--adm-muted);
@@ -1463,93 +1542,79 @@ export function layoutPage(
     body.admin-app #view-editor .admin-view-title {
       flex-shrink: 0;
       margin: 0;
-      padding: 0.65rem 0 0.35rem;
+      padding: 0.55rem 0 0.25rem;
     }
     body.admin-app .admin-editor-toolbar {
       display: flex;
       flex-wrap: wrap;
-      align-items: flex-end;
+      align-items: center;
       justify-content: space-between;
-      gap: 1rem 1.5rem;
-      padding: 1rem 0 1.05rem;
-      border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
+      gap: 0.85rem 1.5rem;
+      padding: 0.85rem 0 0.95rem;
+      border-bottom: 1px solid var(--adm-line);
       flex-shrink: 0;
     }
     body.admin-app .admin-editor-toolbar__left {
       display: flex;
       flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 0.55rem 1rem;
+      align-items: center;
+      gap: 0.55rem 0.85rem;
       min-width: min(100%, 14rem);
     }
     body.admin-app .admin-editor-toolbar__label {
-      margin-bottom: 0.38rem;
-      flex: 0 0 100%;
-      width: 100%;
-    }
-    @media (min-width: 40rem) {
-      body.admin-app .admin-editor-toolbar__label {
-        flex: 0 0 auto;
-        width: auto;
-        margin-bottom: 0;
-        padding-bottom: 0.52rem;
-      }
+      margin: 0;
     }
     body.admin-app .admin-editor-toolbar__select {
       min-width: min(100%, 14rem);
       max-width: min(100%, 22rem);
+      padding-top: 0.4rem;
+      padding-bottom: 0.4rem;
     }
     body.admin-app .admin-editor-toolbar__hint {
       flex: 1 1 12rem;
       margin: 0;
-      padding-bottom: 0.15rem;
-      font-size: 0.75rem;
+      font-family: var(--adm-mono);
+      font-size: 0.6875rem;
       font-weight: 400;
-      letter-spacing: 0.03em;
-      color: color-mix(in srgb, var(--adm-muted) 94%, var(--adm-fg));
-      line-height: 1.35;
+      letter-spacing: 0;
+      color: var(--adm-muted);
+      line-height: 1.4;
     }
     body.admin-app .admin-editor-toolbar__right {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.65rem 0.85rem;
+      gap: 0.5rem 0.6rem;
       justify-content: flex-end;
     }
     body.admin-app .admin-editor-toolbar__settings {
       border-radius: var(--radius-sm);
-      letter-spacing: 0.1em;
     }
     body.admin-app .admin-toolbar-rule {
-      width: 1px;
-      height: 1.6rem;
-      background: color-mix(in srgb, var(--adm-line) 92%, transparent);
-      flex-shrink: 0;
+      display: none;
     }
     body.admin-app .admin-editor-toolbar__actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.45rem;
+      gap: 0.4rem;
       align-items: center;
     }
     body.admin-app .admin-toolbar-actions__sep {
-      width: 1px;
-      align-self: stretch;
-      min-height: 1.35rem;
-      margin: 0 0.2rem;
-      background: color-mix(in srgb, var(--adm-line) 88%, transparent);
-      flex-shrink: 0;
+      display: none;
     }
     body.admin-app .admin-editor-toolbar__status {
       flex: 1 1 100%;
       margin: 0;
       text-align: right;
-      min-height: 1.25rem;
+      min-height: 1.1rem;
+      font-size: 0.6875rem;
     }
     @media (min-width: 52rem) {
       body.admin-app .admin-editor-toolbar__status {
         flex: 0 1 auto;
         text-align: left;
+        order: -1;
+        margin-right: 0.25rem;
       }
     }
     body.admin-app .admin-editor-layout {
@@ -1580,14 +1645,14 @@ export function layoutPage(
       }
     }
     body.admin-app .admin-editor-md {
-      padding: 1.15rem 1.5rem 1.35rem 0;
+      padding: 1.25rem 1.75rem 1.5rem 0;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.75rem;
       min-height: 0;
       min-width: 0;
-      border-right: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
-      background: color-mix(in srgb, var(--adm-bg) 93%, var(--adm-accent));
+      border-right: 1px solid var(--adm-line);
+      background: transparent;
     }
     body.admin-app .admin-md-head {
       display: flex;
@@ -1607,37 +1672,34 @@ export function layoutPage(
     }
     body.admin-app .admin-md-tool {
       margin: 0;
-      padding: 0.28rem 0.45rem;
+      padding: 0.3rem 0.5rem;
       min-width: auto;
       display: inline-flex;
       align-items: center;
-      gap: 0.38rem;
+      gap: 0.4rem;
       font-family: inherit;
-      font-size: 0.6875rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      line-height: 1.15;
-      color: var(--adm-fg);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      text-transform: none;
+      line-height: 1.1;
+      color: var(--adm-muted);
       background: transparent;
-      border: 1px solid var(--adm-line);
+      border: 1px solid transparent;
       border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+      transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
       box-shadow: none;
       max-width: none;
       width: auto;
     }
     body.admin-app .admin-md-tool:hover {
-      background: color-mix(in srgb, var(--adm-fg) 6%, transparent);
-      border-color: color-mix(in srgb, var(--adm-accent) 38%, var(--adm-line));
-      transform: none;
-      opacity: 1;
+      background: var(--adm-scrim);
+      color: var(--adm-fg);
     }
     body.admin-app .admin-md-tool:focus-visible {
-      outline: none;
-      border-color: color-mix(in srgb, var(--adm-accent) 55%, var(--adm-line));
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--adm-accent) 22%, transparent);
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 2px;
     }
     body.admin-app .admin-md-tool__glyph.admin-md-tool__b {
       font-weight: 800;
@@ -1663,47 +1725,55 @@ export function layoutPage(
       display: inline-block;
       margin: 0;
       padding: 0.14rem 0.32rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-      font-size: 0.5625rem;
+      font-family: var(--adm-mono);
+      font-size: 0.625rem;
       font-weight: 500;
       font-style: normal;
-      letter-spacing: 0.04em;
+      letter-spacing: 0;
       text-transform: none;
       line-height: 1;
-      color: color-mix(in srgb, var(--adm-muted) 88%, var(--adm-fg));
-      background: color-mix(in srgb, var(--adm-field-bg) 90%, transparent);
-      border: 1px solid color-mix(in srgb, var(--adm-line) 92%, transparent);
+      color: var(--adm-muted);
+      background: transparent;
+      border: 1px solid var(--adm-line);
       border-radius: var(--radius-sm);
     }
     body.admin-app .admin-editor-md textarea[name="body"] {
       flex: 1;
       min-height: 0;
-      resize: vertical;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-      font-size: 0.875rem;
-      line-height: 1.55;
+      resize: none;
+      font-family: var(--adm-mono);
+      font-size: 0.9rem;
+      line-height: 1.65;
       max-width: none;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--adm-line);
       border-radius: var(--radius-sm);
-      box-shadow: inset 0 1px 2px color-mix(in srgb, var(--adm-fg) 4%, transparent);
+      box-shadow: none;
+      background: var(--adm-bg-soft);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-editor-md textarea[name="body"]:focus {
+      border-color: var(--adm-fg);
+      background: var(--adm-field-bg);
     }
     body.admin-app .admin-editor-preview {
-      padding: 1.15rem 0 1.35rem 1.5rem;
+      padding: 1.25rem 0 1.5rem 1.75rem;
       border-left: none;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.75rem;
       min-height: 0;
       min-width: 0;
-      background: color-mix(in srgb, var(--adm-field-bg) 38%, var(--adm-bg));
+      background: transparent;
     }
     body.admin-app .admin-preview-pane {
       flex: 1;
       overflow-y: auto;
       min-height: 0;
-      padding: 0.85rem 1rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--adm-line);
-      background: color-mix(in srgb, var(--adm-field-bg) 94%, var(--adm-accent));
+      padding: 0.25rem 0;
+      border-radius: 0;
+      border: none;
+      background: transparent;
       scrollbar-width: thin;
       scrollbar-color: color-mix(in srgb, var(--adm-muted) 45%, transparent) transparent;
     }
@@ -1713,14 +1783,14 @@ export function layoutPage(
       font-size: 0.875rem;
     }
     body.admin-app .admin-preview-pane.article-body {
-      color: var(--fg-soft);
+      color: var(--adm-fg-soft);
       font-size: 0.9375rem;
-      line-height: 1.65;
+      line-height: 1.7;
     }
     body.admin-app .admin-preview-pane.article-body h1,
     body.admin-app .admin-preview-pane.article-body h2,
     body.admin-app .admin-preview-pane.article-body h3 {
-      color: var(--fg);
+      color: var(--adm-fg);
     }
 
     body.admin-app .admin-overlay__panel--settings .admin-collab-picker {
@@ -1740,6 +1810,9 @@ export function layoutPage(
       }
       body.admin-app .admin-field-more summary::after {
         transition: none;
+      }
+      body.admin-app .admin-gallery-preview-dot {
+        animation: none;
       }
     }
   </style>
