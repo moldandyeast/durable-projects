@@ -43,6 +43,13 @@ export function adminTemplate(): string {
                 <label class="admin-label" for="pf-client">Client</label>
                 <select id="pf-client" name="client_id"><option value="">— None —</option></select>
               </div>
+              <div class="admin-via-wrap">
+                <span class="admin-label">Via clients</span>
+                <p class="admin-field-hint">Optional intermediaries in order — closest first (e.g. WE3, then IDEO Colab Ventures when Client is Karma3Labs).</p>
+                <div id="via-client-rows" class="admin-via-rows"></div>
+                <button type="button" class="admin-btn admin-btn--ghost" id="btn-via-add">Add via client</button>
+                <input type="hidden" name="via_client_ids" id="pf-via-ids" value="" />
+              </div>
               <div class="admin-collab-wrap">
                 <span id="collab-picker-label" class="admin-label">Collaborators</span>
                 <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
@@ -60,10 +67,13 @@ export function adminTemplate(): string {
                 <label class="admin-label" for="pf-gallery">Gallery JSON</label>
                 <textarea id="pf-gallery" name="gallery_json" rows="4" placeholder='[{"url":"","caption":"","alt":""}]'></textarea>
               </div>
-              <div class="admin-actions">
-                <button type="submit" id="btn-save">Save</button>
-                <button type="button" id="btn-new">New</button>
-                <button type="button" id="btn-del">Archive</button>
+              <div class="admin-actions-wrap">
+                <div class="admin-actions">
+                  <button type="submit" id="btn-save">Save</button>
+                  <button type="button" id="btn-new">New</button>
+                  <button type="button" id="btn-del">Archive</button>
+                </div>
+                <p id="proj-save-status" class="admin-save-status" role="status" aria-live="polite" aria-atomic="true"></p>
               </div>
             </aside>
             <div class="admin-editor-md">
@@ -168,6 +178,39 @@ export function adminTemplate(): string {
 
     var previewTimer;
     var previewAbort;
+    var projSaveStatusTimer;
+
+    function clearProjSaveStatusSoon() {
+      clearTimeout(projSaveStatusTimer);
+      projSaveStatusTimer = setTimeout(function() {
+        var el = document.getElementById("proj-save-status");
+        if (!el) return;
+        el.textContent = "";
+        el.classList.remove("is-success", "is-error");
+      }, 4800);
+    }
+
+    function setProjSaveStatus(kind, text) {
+      var el = document.getElementById("proj-save-status");
+      if (!el) return;
+      clearTimeout(projSaveStatusTimer);
+      el.classList.remove("is-success", "is-error");
+      el.textContent = text || "";
+      if (kind === "success") {
+        el.classList.add("is-success");
+        clearProjSaveStatusSoon();
+      } else if (kind === "error") {
+        el.classList.add("is-error");
+      }
+    }
+
+    function clearProjSaveStatus() {
+      clearTimeout(projSaveStatusTimer);
+      var el = document.getElementById("proj-save-status");
+      if (!el) return;
+      el.textContent = "";
+      el.classList.remove("is-success", "is-error");
+    }
 
     function previewPlaceholder() {
       var pane = document.getElementById("md-preview");
@@ -451,6 +494,72 @@ export function adminTemplate(): string {
         po.textContent = c.name + " · " + c.id;
         cfParent.appendChild(po);
       });
+      refreshViaRowSelectOptions();
+    }
+
+    function refreshViaRowSelectOptions() {
+      var template = document.getElementById("pf-client");
+      if (!template) return;
+      document.querySelectorAll("#via-client-rows .via-row-select").forEach(function(sel) {
+        var cur = sel.value;
+        sel.innerHTML = template.innerHTML;
+        sel.value = cur;
+        if (cur && !sel.value) sel.selectedIndex = 0;
+      });
+    }
+
+    function computeViaIds() {
+      var primary = (document.getElementById("pf-client").value || "").trim();
+      var ids = [];
+      var seen = {};
+      document.querySelectorAll("#via-client-rows .via-row-select").forEach(function(sel) {
+        var v = (sel.value || "").trim();
+        if (!v || v === primary || seen[v]) return;
+        seen[v] = true;
+        ids.push(v);
+      });
+      var h = document.getElementById("pf-via-ids");
+      if (h) h.value = ids.join(",");
+      return ids;
+    }
+
+    function clearViaRows() {
+      var wrap = document.getElementById("via-client-rows");
+      if (wrap) wrap.textContent = "";
+      var h = document.getElementById("pf-via-ids");
+      if (h) h.value = "";
+    }
+
+    function addViaRow(prefill) {
+      var template = document.getElementById("pf-client");
+      var wrap = document.getElementById("via-client-rows");
+      if (!template || !wrap) return;
+      var row = document.createElement("div");
+      row.className = "admin-via-row";
+      var sel = document.createElement("select");
+      sel.className = "via-row-select";
+      sel.setAttribute("aria-label", "Via client");
+      sel.innerHTML = template.innerHTML;
+      if (prefill) sel.value = prefill;
+      var rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "admin-btn admin-btn--ghost admin-via-row__rm";
+      rm.textContent = "Remove";
+      rm.addEventListener("click", function() {
+        row.remove();
+        computeViaIds();
+      });
+      row.appendChild(sel);
+      row.appendChild(rm);
+      wrap.appendChild(row);
+      computeViaIds();
+    }
+
+    function setViaRowsFromIds(ids) {
+      clearViaRows();
+      (ids || []).forEach(function(id) {
+        addViaRow(id);
+      });
     }
 
     function parseGallery(txt) {
@@ -466,6 +575,7 @@ export function adminTemplate(): string {
       if (!id) {
         document.getElementById("proj-form").reset();
         document.getElementById("pf-client").value = "";
+        clearViaRows();
         applyTeamIdsToCheckboxes([]);
         previewPlaceholder();
         return;
@@ -477,6 +587,7 @@ export function adminTemplate(): string {
       f.summary.value = p.summary || "";
       f.tags.value = (p.tags || []).join(", ");
       f.client_id.value = p.client_id || "";
+      setViaRowsFromIds(p.via_client_ids || []);
       f.sort_date.value = p.sort_date || "";
       f.preview_image.value = p.preview_image || "";
       f.team_member_ids.value = (p.team_member_ids || []).join(", ");
@@ -489,7 +600,12 @@ export function adminTemplate(): string {
     bindNav();
     bindOverlays();
 
+    document.getElementById("btn-via-add").addEventListener("click", function() {
+      addViaRow("");
+    });
+
     document.getElementById("proj-select").addEventListener("change", function() {
+      clearProjSaveStatus();
       loadProject(this.value);
     });
 
@@ -497,6 +613,9 @@ export function adminTemplate(): string {
       var t = ev.target;
       if (t && t.closest && t.closest("#collab-picker") && t.type === "checkbox") {
         syncCollabHiddenFromCheckboxes();
+      }
+      if (t && (t.id === "pf-client" || (t.classList && t.classList.contains("via-row-select")))) {
+        computeViaIds();
       }
     });
 
@@ -533,30 +652,79 @@ export function adminTemplate(): string {
     document.getElementById("proj-form").addEventListener("submit", async function(ev) {
       ev.preventDefault();
       var f = ev.target;
+      var btn = document.getElementById("btn-save");
       var id = document.getElementById("proj-select").value;
       var tags = f.tags.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
       syncCollabHiddenFromCheckboxes();
       var teamIds = f.team_member_ids.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      var viaIds = computeViaIds();
       var payload = {
         title: f.title.value,
         summary: f.summary.value,
         tags: tags,
         client_id: f.client_id.value || undefined,
+        via_client_ids: viaIds,
         sort_date: f.sort_date.value || undefined,
         preview_image: f.preview_image.value || undefined,
         team_member_ids: teamIds,
         gallery_images: parseGallery(f.gallery_json.value),
         body: f.body.value,
       };
-      if (id) {
-        await j("/admin/api/projects/" + id, { method: "PUT", body: JSON.stringify(payload) });
-      } else {
-        await j("/admin/api/projects", { method: "POST", body: JSON.stringify(payload) });
+
+      var st = document.getElementById("proj-save-status");
+      clearTimeout(projSaveStatusTimer);
+      if (st) {
+        st.classList.remove("is-success", "is-error");
+        st.textContent = "Saving…";
       }
-      await loadLists();
+      btn.disabled = true;
+
+      try {
+        var r = id
+          ? await j("/admin/api/projects/" + id, { method: "PUT", body: JSON.stringify(payload) })
+          : await j("/admin/api/projects", { method: "POST", body: JSON.stringify(payload) });
+
+        if (!r.ok) {
+          var errMsg = "Could not save.";
+          var ct = (r.headers.get("content-type") || "").toLowerCase();
+          if (ct.indexOf("json") !== -1) {
+            try {
+              var ej = await r.json();
+              if (ej && typeof ej.error === "string") errMsg = ej.error;
+              else if (ej && typeof ej.message === "string") errMsg = ej.message;
+            } catch (e1) {}
+          } else {
+            try {
+              var tx = await r.text();
+              if (tx) errMsg = tx.length > 160 ? tx.slice(0, 160) + "…" : tx;
+            } catch (e2) {}
+          }
+          setProjSaveStatus("error", errMsg);
+          return;
+        }
+
+        var saved = null;
+        try {
+          saved = await r.json();
+        } catch (e3) {}
+
+        await loadLists();
+        var sel = document.getElementById("proj-select");
+        var nextId = id || (saved && saved.id ? saved.id : "");
+        if (nextId) sel.value = nextId;
+        await loadProject(sel.value || "");
+
+        var timeStr = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" });
+        setProjSaveStatus("success", "Saved · " + timeStr);
+      } catch (err) {
+        setProjSaveStatus("error", "Network error — try again.");
+      } finally {
+        btn.disabled = false;
+      }
     });
 
     document.getElementById("btn-new").addEventListener("click", function() {
+      clearProjSaveStatus();
       document.getElementById("proj-select").value = "";
       loadProject("");
     });

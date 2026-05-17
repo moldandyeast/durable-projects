@@ -33,16 +33,29 @@ function sortDateDisplay(sort_date: string | undefined): string {
   return y.length === 4 ? y : sort_date.trim();
 }
 
+function clientViaSuffix(parentClient: Client | undefined, viaClients: Client[]): string {
+  let s = "";
+  if (parentClient) {
+    s += ` <span class="client-via">· via ${escapeHtml(parentClient.name)}</span>`;
+  }
+  for (const vc of viaClients) {
+    s += ` <span class="client-via">· via ${escapeHtml(vc.name)}</span>`;
+  }
+  return s;
+}
+
 export function projectPublicPage(
   project: ProjectData,
   team: TeamMember[],
   client: Client | undefined,
   parentClient: Client | undefined,
+  viaClients: Client[],
 ): string {
+  const viaSeg = clientViaSuffix(parentClient, viaClients);
   const clientLine = client
     ? client.url
-      ? `<p class="muted">${escapeHtml(client.name)} · <a href="${escapeHtml(client.url)}">${escapeHtml(client.url.replace(/^https?:\/\//, ""))}</a>${parentClient ? ` <span class="client-via">· via ${escapeHtml(parentClient.name)}</span>` : ""}</p>`
-      : `<p class="muted">${escapeHtml(client.name)}${parentClient ? ` <span class="client-via">· via ${escapeHtml(parentClient.name)}</span>` : ""}</p>`
+      ? `<p class="muted">${escapeHtml(client.name)} · <a href="${escapeHtml(client.url)}">${escapeHtml(client.url.replace(/^https?:\/\//, ""))}</a>${viaSeg}</p>`
+      : `<p class="muted">${escapeHtml(client.name)}${viaSeg}</p>`
     : "";
 
   const tags =

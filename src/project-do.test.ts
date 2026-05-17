@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { normalizeGalleryImages, normalizeTeamMemberIds, ProjectDO } from "./project-do";
+import { normalizeGalleryImages, normalizeTeamMemberIds, normalizeViaClientIds, ProjectDO } from "./project-do";
 import type { Env } from "./types";
 
 vi.mock("./markdown", () => ({
@@ -43,6 +43,16 @@ describe("normalizeTeamMemberIds", () => {
   });
 });
 
+describe("normalizeViaClientIds", () => {
+  it("preserves order and drops duplicates", () => {
+    expect(normalizeViaClientIds(["aa", "bb", "aa"], undefined)).toEqual(["aa", "bb"]);
+  });
+
+  it("drops primary client if repeated in via list", () => {
+    expect(normalizeViaClientIds(["bb", "aa", "cc"], "aa")).toEqual(["bb", "cc"]);
+  });
+});
+
 describe("ProjectDO", () => {
   it("create stores extended metadata", async () => {
     const project = makeProjectDO();
@@ -66,5 +76,28 @@ describe("ProjectDO", () => {
     const data = await res.json<{ rendered_html: string; client_id?: string }>();
     expect(data.client_id).toBe("cccccccc");
     expect(data.rendered_html).toContain("Hello");
+  });
+
+  it("create stores via_client_ids", async () => {
+    const project = makeProjectDO();
+    const res = await project.fetch(
+      new Request("https://p/internal/create", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "abcdabcd",
+          title: "T",
+          summary: "",
+          tags: [],
+          body: "x",
+          client_id: "aaaaaaaa",
+          via_client_ids: ["bbbbbbbb", "aaaaaaaa", "cccccccc"],
+          team_member_ids: [],
+        }),
+      }),
+    );
+    expect(res.ok).toBe(true);
+    const data = await res.json<{ client_id?: string; via_client_ids?: string[] }>();
+    expect(data.client_id).toBe("aaaaaaaa");
+    expect(data.via_client_ids).toEqual(["bbbbbbbb", "cccccccc"]);
   });
 });

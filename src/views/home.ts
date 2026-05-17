@@ -46,7 +46,7 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
 <main class="page">
   <header class="hero">
     <h1>Projects</h1>
-    <p class="lede">Portfolio work · filter with <code>?tag=</code> and <code>?client=&lt;client id&gt;</code></p>
+    <p class="lede">Portfolio work · filter with <code>?tag=</code> and <code>?client=&lt;client id&gt;</code> (matches primary or any via client).</p>
   </header>
   ${grid}
 </main>`;

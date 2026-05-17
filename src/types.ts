@@ -35,7 +35,15 @@ export interface ProjectData {
   edited_at: string;
   total_views: number;
   hidden: boolean;
+  /** Primary subject of the work (e.g. Karma3Labs). */
   client_id?: string;
+  /**
+   * Project-specific intermediary chain in display order (closest-to-work first).
+   * Example: Client = Karma3Labs, via_client_ids = [WE3, IDEO Colab Ventures] reads as
+   * “… · via WE3 · via IDEO Colab Ventures” after the primary line (and after any
+   * directory `parent_client_id` rollup on the primary client record).
+   */
+  via_client_ids?: string[];
   sort_date?: string;
   gallery_images: GalleryImage[];
   preview_image?: string;
@@ -52,6 +60,8 @@ export interface IndexEntry {
   total_views: number;
   hidden: boolean;
   client_id?: string;
+  /** Matches `ProjectData.via_client_ids` — used for client filters. */
+  via_client_ids?: string[];
   sort_date?: string;
   preview_image?: string;
 }
@@ -71,6 +81,8 @@ export interface ProjectEnvelope {
   client?: Client;
   /** Present when `client` has `parent_client_id` (e.g. studio / parent org). */
   parent_client?: Client;
+  /** Resolved `via_client_ids` in order (project intermediaries). */
+  via_clients?: Client[];
   sort_date?: string;
   gallery_images: GalleryImage[];
   preview_image?: string;

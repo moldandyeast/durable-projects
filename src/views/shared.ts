@@ -689,6 +689,35 @@ export function layoutPage(
       color: var(--adm-muted);
       margin-bottom: 0.4rem;
     }
+    body.admin-app .admin-field-hint {
+      margin: -0.15rem 0 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      color: var(--adm-muted);
+      line-height: 1.45;
+    }
+    body.admin-app .admin-via-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    body.admin-app .admin-via-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+    body.admin-app .admin-via-row .via-row-select {
+      flex: 1;
+      min-width: 0;
+    }
+    body.admin-app .admin-via-row__rm {
+      flex-shrink: 0;
+      padding-left: 0.65rem;
+      padding-right: 0.65rem;
+      font-size: 0.6875rem;
+    }
     body.admin-app input,
     body.admin-app textarea,
     body.admin-app select {
@@ -766,6 +795,31 @@ export function layoutPage(
       gap: 0.65rem;
       align-items: center;
       margin-top: 0.5rem;
+    }
+    body.admin-app .admin-actions-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.55rem;
+    }
+    body.admin-app .admin-save-status {
+      margin: 0;
+      min-height: 1.35rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--adm-muted);
+      transition: color 0.2s ease;
+    }
+    body.admin-app .admin-save-status.is-success {
+      color: color-mix(in srgb, var(--green) 88%, var(--adm-fg));
+    }
+    body.admin-app .admin-save-status.is-error {
+      color: var(--red);
+    }
+    body.admin-app button:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
     }
     body.admin-app .admin-collab-wrap {
       display: flex;
@@ -902,7 +956,10 @@ export function layoutPage(
       min-height: 0;
       overflow-y: auto;
     }
-    body.admin-app .admin-editor-meta .admin-actions {
+    body.admin-app .admin-actions-wrap .admin-actions {
+      margin-top: 0;
+    }
+    body.admin-app .admin-editor-meta .admin-actions-wrap {
       margin-top: 1.25rem;
       padding-top: 0.75rem;
       border-top: 1px solid var(--adm-line);
