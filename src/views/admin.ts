@@ -47,6 +47,11 @@ export function adminTemplate(): string {
                 <label class="admin-label" for="pf-client">Client</label>
                 <select id="pf-client" name="client_id"><option value="">— None —</option></select>
               </div>
+              <div class="admin-collab-wrap">
+                <span id="collab-picker-label" class="admin-label">Collaborators</span>
+                <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
+                <input type="hidden" name="team_member_ids" id="pf-team-ids" value="" />
+              </div>
               <div>
                 <label class="admin-label" for="pf-sort">Sort date</label>
                 <input id="pf-sort" name="sort_date" placeholder="YYYY-MM-DD" />
@@ -54,11 +59,6 @@ export function adminTemplate(): string {
               <div>
                 <label class="admin-label" for="pf-preview">Preview image URL</label>
                 <input id="pf-preview" name="preview_image" placeholder="" />
-              </div>
-              <div class="admin-collab-wrap">
-                <span id="collab-picker-label" class="admin-label">Collaborators</span>
-                <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
-                <input type="hidden" name="team_member_ids" id="pf-team-ids" value="" />
               </div>
               <div>
                 <label class="admin-label" for="pf-gallery">Gallery JSON</label>

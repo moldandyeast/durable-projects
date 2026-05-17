@@ -726,7 +726,8 @@ export function layoutPage(
       gap: 0.4rem;
     }
     body.admin-app .admin-collab-picker {
-      max-height: 11rem;
+      min-height: 3rem;
+      max-height: 14rem;
       overflow-y: auto;
       border: 1px solid var(--adm-line);
       padding: 0.35rem 0;
@@ -857,8 +858,10 @@ export function layoutPage(
       overflow-y: auto;
     }
     body.admin-app .admin-editor-meta .admin-actions {
-      margin-top: auto;
+      margin-top: 1.25rem;
       padding-top: 0.75rem;
+      border-top: 1px solid var(--adm-line);
+      flex-shrink: 0;
     }
     body.admin-app .admin-editor-md {
       padding: 1.25rem 1.5rem;
