@@ -1,9 +1,5 @@
 import { layoutPage } from "./shared";
 
-const ADMIN_FONT_HEAD = `<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet"/>`;
-
 /** Authoring shell — `/admin/api/*`. Swiss minimal UI; Editor / Collaborators / Clients as separate views. */
 export function adminTemplate(): string {
   const inner = `
@@ -580,5 +576,5 @@ export function adminTemplate(): string {
     previewPlaceholder();
   </script>`;
 
-  return layoutPage("Admin", inner, { bodyClass: "admin-app", extraHead: ADMIN_FONT_HEAD });
+  return layoutPage("Admin", inner, { bodyClass: "admin-app" });
 }

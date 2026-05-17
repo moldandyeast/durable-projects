@@ -6,6 +6,11 @@ export function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/** Onest — loaded on every page using layoutPage (public + admin). */
+const FONT_HEAD_ONEST = `<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>`;
+
 /** Global layout + design tokens (public site). */
 export function layoutPage(
   title: string,
@@ -22,61 +27,86 @@ export function layoutPage(
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <title>${escapeHtml(title)}</title>
+  ${FONT_HEAD_ONEST}
   ${extraHead}
   <style>
     :root {
-      --fg: #0d0d0c;
-      --fg-soft: #2e2e2b;
-      --muted: #6e6e69;
-      --bg: #f4f3ef;
-      --bg-elevated: #fffcf7;
-      --border: rgba(13, 13, 12, 0.09);
-      --accent: #1e4fd6;
-      --accent-soft: rgba(30, 79, 214, 0.12);
-      --radius: 14px;
-      --radius-sm: 10px;
-      --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --font-display: var(--font-sans);
-      --shadow: 0 1px 2px rgba(13, 13, 12, 0.04), 0 6px 28px rgba(13, 13, 12, 0.07);
-      --shadow-hover: 0 10px 40px rgba(13, 13, 12, 0.11);
+      /* Brand accents (both modes) */
+      --rose: #d175ac;
+      --orange: #f2b151;
+      --green: #90e9a2;
+      --blue: #82c7f5;
+      --purple: #a27fed;
+      --red: #ec9494;
+      /* Light */
+      --bg: #efeeee;
+      --bg-elevated: #fafafa;
+      --fg: #1b1b1b;
+      --fg-soft: #353535;
+      --muted: #5d5c5c;
+      --border: rgba(27, 27, 27, 0.085);
+      --line: rgba(27, 27, 27, 0.11);
+      --accent: #3d87c4;
+      --accent-soft: color-mix(in srgb, var(--accent) 17%, transparent);
+      --on-accent: #fafafa;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --font-sans: "Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-display: "Onest", ui-sans-serif, system-ui, sans-serif;
+      --shadow: 0 1px 0 rgba(27, 27, 27, 0.04), 0 12px 40px rgba(27, 27, 27, 0.06);
+      --shadow-hover: 0 1px 0 rgba(27, 27, 27, 0.06), 0 20px 48px rgba(27, 27, 27, 0.1);
       --max: 68rem;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --fg: #eceae6;
-        --fg-soft: #c9c6bf;
-        --muted: #9c9890;
-        --bg: #141413;
-        --bg-elevated: #1c1c1a;
-        --border: rgba(236, 234, 230, 0.1);
-        --accent: #6e9fff;
-        --accent-soft: rgba(110, 159, 255, 0.15);
-        --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 32px rgba(0, 0, 0, 0.45);
-        --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.55);
+        --bg: #1b1b1b;
+        --bg-elevated: #161616;
+        --fg: #f3f3f3;
+        --fg-soft: #d8d8d8;
+        --muted: #5d5c5c;
+        --border: rgba(243, 243, 243, 0.055);
+        --line: rgba(243, 243, 243, 0.075);
+        --accent: var(--blue);
+        --accent-soft: color-mix(in srgb, var(--blue) 22%, transparent);
+        --on-accent: #141414;
+        --shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 16px 48px rgba(0, 0, 0, 0.42);
+        --shadow-hover: 0 1px 0 rgba(0, 0, 0, 0.45), 0 22px 56px rgba(0, 0, 0, 0.52);
       }
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    ::selection {
+      background: color-mix(in srgb, var(--accent) 38%, transparent);
+      color: var(--fg);
+    }
     body {
       margin: 0;
       font-family: var(--font-sans);
       font-size: 1.05rem;
       line-height: 1.55;
+      letter-spacing: -0.018em;
       background: var(--bg);
       color: var(--fg);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
     a {
       color: var(--accent);
       text-decoration-thickness: 1px;
-      text-underline-offset: 3px;
+      text-underline-offset: 0.2em;
+      text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      transition: color 0.15s var(--ease-out-expo), text-decoration-color 0.15s var(--ease-out-expo);
     }
-    a:hover { text-decoration: none; }
+    a:hover {
+      text-decoration: none;
+      color: color-mix(in srgb, var(--accent) 88%, var(--fg));
+    }
     a:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 3px;
-      border-radius: 3px;
+      border-radius: 4px;
     }
     main.page {
       max-width: var(--max);
@@ -94,17 +124,23 @@ export function layoutPage(
       gap: 1rem;
       padding: 1rem clamp(1rem, 4vw, 2rem);
       border-bottom: 1px solid var(--border);
-      background: var(--bg-elevated);
+      background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+      backdrop-filter: blur(14px) saturate(1.2);
+      -webkit-backdrop-filter: blur(14px) saturate(1.2);
     }
     .site-nav a.brand {
       font-family: var(--font-display);
       font-weight: 700;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.035em;
       font-size: 1.1rem;
       color: var(--fg);
       text-decoration: none;
+      transition: color 0.18s var(--ease-out-expo), letter-spacing 0.18s var(--ease-out-expo);
     }
-    .site-nav a.brand:hover { color: var(--accent); }
+    .site-nav a.brand:hover {
+      color: var(--accent);
+      letter-spacing: -0.028em;
+    }
 
     /* Tags */
     .tag {
@@ -155,11 +191,12 @@ export function layoutPage(
       text-decoration: none;
       color: inherit;
       box-shadow: var(--shadow);
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      transition: transform 0.35s var(--ease-out-expo), box-shadow 0.35s var(--ease-out-expo), border-color 0.25s ease;
     }
     .project-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-4px);
       box-shadow: var(--shadow-hover);
+      border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
     }
     .project-card:focus-visible {
       outline: 2px solid var(--accent);
@@ -167,7 +204,10 @@ export function layoutPage(
     }
     .project-card .card-media {
       aspect-ratio: 16 / 10;
-      background: linear-gradient(145deg, var(--accent-soft), transparent);
+      background:
+        radial-gradient(120% 80% at 85% 10%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 55%),
+        radial-gradient(90% 70% at 10% 90%, color-mix(in srgb, var(--blue) 14%, transparent), transparent 50%),
+        linear-gradient(165deg, var(--accent-soft), transparent 65%);
       overflow: hidden;
     }
     .project-card .card-media img {
@@ -358,14 +398,15 @@ export function layoutPage(
       margin: 2rem 0;
     }
 
-    /* Admin — Swiss minimal + Onest (font linked via extraHead) */
+    /* Admin — shares root palette + Onest */
     body.admin-app {
-      --adm-fg: #0a0a0a;
-      --adm-bg: #fafafa;
-      --adm-muted: #525252;
-      --adm-line: #0a0a0a;
-      --adm-field-bg: #ffffff;
-      font-family: "Onest", ui-sans-serif, system-ui, sans-serif;
+      --adm-fg: var(--fg);
+      --adm-bg: var(--bg);
+      --adm-muted: var(--muted);
+      --adm-line: var(--line);
+      --adm-field-bg: var(--bg-elevated);
+      --adm-accent: var(--accent);
+      font-family: var(--font-sans);
       background: var(--adm-bg);
       color: var(--adm-fg);
       letter-spacing: -0.02em;
@@ -373,15 +414,6 @@ export function layoutPage(
       line-height: 1.5;
       margin: 0;
       overflow-x: hidden;
-    }
-    @media (prefers-color-scheme: dark) {
-      body.admin-app {
-        --adm-fg: #f5f5f5;
-        --adm-bg: #0a0a0a;
-        --adm-muted: #a3a3a3;
-        --adm-line: rgba(245, 245, 245, 0.35);
-        --adm-field-bg: #141414;
-      }
     }
     body.admin-app .admin-shell {
       max-width: none;
@@ -398,6 +430,9 @@ export function layoutPage(
       padding: 1rem clamp(1rem, 2vw, 1.5rem);
       margin-bottom: 0;
       border-bottom: 1px solid var(--adm-line);
+      background: color-mix(in srgb, var(--adm-bg) 88%, transparent);
+      backdrop-filter: blur(16px) saturate(1.15);
+      -webkit-backdrop-filter: blur(16px) saturate(1.15);
     }
     body.admin-app .admin-header__row {
       display: flex;
@@ -423,7 +458,7 @@ export function layoutPage(
     }
     body.admin-app .admin-header__exit:hover {
       color: var(--adm-fg);
-      border-bottom-color: var(--adm-line);
+      border-bottom-color: color-mix(in srgb, var(--adm-accent) 45%, var(--adm-line));
     }
     body.admin-app .admin-nav {
       display: flex;
@@ -446,11 +481,17 @@ export function layoutPage(
       border-radius: 0;
       width: auto;
       max-width: none;
+      transition: color 0.2s var(--ease-out-expo), border-color 0.2s var(--ease-out-expo);
     }
     body.admin-app .admin-nav__btn:hover { color: var(--adm-fg); }
     body.admin-app .admin-nav__btn.is-active {
       color: var(--adm-fg);
-      border-bottom-color: var(--adm-fg);
+      border-bottom-color: var(--adm-accent);
+    }
+    body.admin-app .admin-nav__btn:focus-visible {
+      outline: 2px solid var(--adm-accent);
+      outline-offset: 6px;
+      border-radius: 2px;
     }
     body.admin-app .admin-main {
       flex: 1;
@@ -505,17 +546,19 @@ export function layoutPage(
       font-size: 1.25rem;
       font-weight: 500;
       line-height: 1;
-      background: transparent;
+      background: var(--adm-field-bg);
       color: var(--adm-fg);
       border: 1px solid var(--adm-line);
       cursor: pointer;
-      border-radius: 0;
+      border-radius: var(--radius-sm);
       max-width: none;
+      transition: background 0.2s var(--ease-out-expo), border-color 0.2s ease, color 0.2s ease, transform 0.2s var(--ease-out-expo);
     }
     body.admin-app .admin-add-btn:hover {
-      background: var(--adm-fg);
-      color: var(--adm-bg);
-      border-color: var(--adm-fg);
+      background: color-mix(in srgb, var(--adm-accent) 14%, var(--adm-field-bg));
+      border-color: color-mix(in srgb, var(--adm-accent) 35%, var(--adm-line));
+      color: var(--adm-fg);
+      transform: scale(1.04);
     }
     body.admin-app .admin-overlay[hidden] {
       display: none !important;
@@ -536,13 +579,11 @@ export function layoutPage(
       border: none;
       padding: 0;
       margin: 0;
-      background: rgba(10, 10, 10, 0.42);
+      background: color-mix(in srgb, #000000 52%, transparent);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       cursor: pointer;
-    }
-    @media (prefers-color-scheme: dark) {
-      body.admin-app .admin-overlay__backdrop {
-        background: rgba(0, 0, 0, 0.72);
-      }
+      transition: background 0.25s ease;
     }
     body.admin-app .admin-overlay__panel {
       position: relative;
@@ -553,13 +594,9 @@ export function layoutPage(
       overflow-y: auto;
       background: var(--adm-field-bg);
       border: 1px solid var(--adm-line);
+      border-radius: var(--radius);
       padding: 1.25rem 1.35rem 1.5rem;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    }
-    @media (prefers-color-scheme: dark) {
-      body.admin-app .admin-overlay__panel {
-        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
-      }
+      box-shadow: var(--shadow-hover), 0 0 0 1px color-mix(in srgb, var(--adm-fg) 4%, transparent);
     }
     body.admin-app .admin-overlay__head {
       display: flex;
@@ -606,15 +643,12 @@ export function layoutPage(
       background: transparent;
       color: var(--adm-fg);
       border-color: var(--adm-line);
+      border-radius: var(--radius-sm);
+      box-shadow: none;
     }
     body.admin-app .admin-btn.admin-btn--ghost:hover {
-      opacity: 0.92;
-      background: rgba(10, 10, 10, 0.04);
-    }
-    @media (prefers-color-scheme: dark) {
-      body.admin-app .admin-btn.admin-btn--ghost:hover {
-        background: rgba(245, 245, 245, 0.06);
-      }
+      opacity: 1;
+      background: color-mix(in srgb, var(--adm-fg) 6%, transparent);
     }
     body.admin-app .admin-panel {
       margin: 0;
@@ -660,19 +694,26 @@ export function layoutPage(
     body.admin-app select {
       font: inherit;
       letter-spacing: -0.01em;
-      border-radius: 0;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--adm-line);
       padding: 0.55rem 0.65rem;
       background: var(--adm-field-bg);
       color: var(--adm-fg);
       width: 100%;
       max-width: 100%;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
     }
     body.admin-app input:focus,
     body.admin-app textarea:focus,
     body.admin-app select:focus {
       outline: none;
-      box-shadow: inset 0 0 0 1px var(--adm-fg);
+      border-color: color-mix(in srgb, var(--adm-accent) 55%, var(--adm-line));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--adm-accent) 22%, transparent);
+    }
+    body.admin-app input:focus-visible,
+    body.admin-app textarea:focus-visible,
+    body.admin-app select:focus-visible {
+      outline: none;
     }
     body.admin-app button[type="submit"],
     body.admin-app .admin-btn {
@@ -683,25 +724,30 @@ export function layoutPage(
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      background: var(--adm-fg);
-      color: var(--adm-bg);
-      border: 1px solid var(--adm-fg);
+      background: var(--adm-accent);
+      color: var(--on-accent);
+      border: 1px solid color-mix(in srgb, var(--adm-accent) 72%, #000000);
       padding: 0.55rem 1rem;
-      border-radius: 0;
+      border-radius: var(--radius-sm);
       max-width: none;
+      transition: transform 0.18s var(--ease-out-expo), opacity 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--adm-fg) 12%, transparent);
     }
     body.admin-app button[type="submit"]:hover,
     body.admin-app .admin-btn:hover {
-      opacity: 0.92;
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--adm-accent) 35%, transparent);
     }
     body.admin-app button#btn-new {
       background: transparent;
       color: var(--adm-fg);
       border-color: var(--adm-line);
+      box-shadow: none;
     }
-    body.admin-app button#btn-new:hover { background: rgba(10, 10, 10, 0.04); }
-    @media (prefers-color-scheme: dark) {
-      body.admin-app button#btn-new:hover { background: rgba(245, 245, 245, 0.06); }
+    body.admin-app button#btn-new:hover {
+      background: color-mix(in srgb, var(--adm-fg) 6%, transparent);
+      transform: translateY(-1px);
     }
     body.admin-app button#btn-del {
       background: transparent;
@@ -710,8 +756,9 @@ export function layoutPage(
       font-weight: 500;
     }
     body.admin-app button#btn-del:hover {
-      color: var(--adm-fg);
-      border-color: var(--adm-fg);
+      color: var(--red);
+      border-color: color-mix(in srgb, var(--red) 45%, var(--adm-line));
+      background: color-mix(in srgb, var(--red) 8%, transparent);
     }
     body.admin-app .admin-actions {
       display: flex;
@@ -730,8 +777,11 @@ export function layoutPage(
       max-height: 14rem;
       overflow-y: auto;
       border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
       padding: 0.35rem 0;
       background: var(--adm-field-bg);
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--adm-muted) 55%, transparent) transparent;
     }
     body.admin-app .admin-collab-picker__empty {
       margin: 0;
@@ -751,17 +801,12 @@ export function layoutPage(
       line-height: 1.35;
     }
     body.admin-app .admin-collab-row:hover {
-      background: rgba(10, 10, 10, 0.03);
-    }
-    @media (prefers-color-scheme: dark) {
-      body.admin-app .admin-collab-row:hover {
-        background: rgba(245, 245, 245, 0.05);
-      }
+      background: color-mix(in srgb, var(--adm-accent) 9%, transparent);
     }
     body.admin-app .admin-collab-row input {
       width: auto;
       margin: 0;
-      accent-color: var(--adm-fg);
+      accent-color: var(--adm-accent);
     }
     body.admin-app .admin-collab-row__text {
       min-width: 0;
@@ -879,6 +924,8 @@ export function layoutPage(
       font-size: 0.875rem;
       line-height: 1.55;
       max-width: none;
+      border-radius: var(--radius-sm);
+      box-shadow: inset 0 1px 2px color-mix(in srgb, var(--adm-fg) 4%, transparent);
     }
     body.admin-app .admin-editor-preview {
       padding: 1.25rem 0 1.5rem 1.5rem;
@@ -893,7 +940,12 @@ export function layoutPage(
       flex: 1;
       overflow-y: auto;
       min-height: 0;
-      padding-right: 0.35rem;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--adm-line);
+      background: color-mix(in srgb, var(--adm-field-bg) 94%, var(--adm-accent));
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--adm-muted) 45%, transparent) transparent;
     }
     body.admin-app .admin-preview-placeholder {
       margin: 0;
