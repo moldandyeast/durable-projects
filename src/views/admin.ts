@@ -49,7 +49,20 @@ export function adminTemplate(): string {
           </header>
           <div class="admin-editor-layout">
             <div class="admin-editor-md">
-              <label class="admin-label" for="pf-body">Markdown</label>
+              <div class="admin-md-head">
+                <label class="admin-label" for="pf-body">Markdown</label>
+                <div class="admin-md-tools" role="toolbar" aria-label="Insert markdown">
+                  <button type="button" class="admin-md-tool" id="md-tool-bold" aria-label="Bold" title="Bold (⌘B / Ctrl+B)">
+                    <span class="admin-md-tool__b" aria-hidden="true">B</span>
+                  </button>
+                  <button type="button" class="admin-md-tool" id="md-tool-italic" aria-label="Italic" title="Italic (⌘I / Ctrl+I)">
+                    <span class="admin-md-tool__i" aria-hidden="true">I</span>
+                  </button>
+                  <button type="button" class="admin-md-tool admin-md-tool--wide" id="md-tool-link" aria-label="Link" title="Link (⌘K / Ctrl+K)">
+                    Link
+                  </button>
+                </div>
+              </div>
               <textarea id="pf-body" name="body" placeholder="#" spellcheck="false"></textarea>
             </div>
             <aside class="admin-editor-preview">
@@ -309,6 +322,71 @@ export function adminTemplate(): string {
     function schedulePreview() {
       clearTimeout(previewTimer);
       previewTimer = setTimeout(refreshPreview, 240);
+    }
+
+    function mdWrapDelimiter(ta, delim, placeholder) {
+      var start = ta.selectionStart;
+      var end = ta.selectionEnd;
+      var val = ta.value;
+      var sel = val.slice(start, end);
+      var mid = sel.length ? sel : placeholder;
+      var insert = delim + mid + delim;
+      ta.value = val.slice(0, start) + insert + val.slice(end);
+      ta.focus();
+      var innerStart = start + delim.length;
+      var innerEnd = innerStart + mid.length;
+      ta.setSelectionRange(innerStart, innerEnd);
+      schedulePreview();
+    }
+
+    function mdInsertLink(ta) {
+      var start = ta.selectionStart;
+      var end = ta.selectionEnd;
+      var val = ta.value;
+      var sel = val.slice(start, end);
+      var url = window.prompt("Link URL", "https://");
+      if (url === null) return;
+      url = String(url).trim();
+      if (!url) return;
+      var text = sel.length ? sel : "link text";
+      var insert = "[" + text + "](" + url + ")";
+      ta.value = val.slice(0, start) + insert + val.slice(end);
+      ta.focus();
+      if (!sel.length) {
+        ta.setSelectionRange(start + 1, start + 1 + text.length);
+      } else {
+        ta.setSelectionRange(start + insert.length, start + insert.length);
+      }
+      schedulePreview();
+    }
+
+    function bindMarkdownTools() {
+      var ta = document.getElementById("pf-body");
+      if (!ta) return;
+      document.getElementById("md-tool-bold").addEventListener("click", function() {
+        mdWrapDelimiter(ta, "**", "bold");
+      });
+      document.getElementById("md-tool-italic").addEventListener("click", function() {
+        mdWrapDelimiter(ta, "*", "italic");
+      });
+      document.getElementById("md-tool-link").addEventListener("click", function() {
+        mdInsertLink(ta);
+      });
+      ta.addEventListener("keydown", function(ev) {
+        var mod = ev.metaKey || ev.ctrlKey;
+        if (!mod || ev.altKey) return;
+        var k = ev.key && ev.key.toLowerCase();
+        if (k === "b") {
+          ev.preventDefault();
+          mdWrapDelimiter(ta, "**", "bold");
+        } else if (k === "i") {
+          ev.preventDefault();
+          mdWrapDelimiter(ta, "*", "italic");
+        } else if (k === "k") {
+          ev.preventDefault();
+          mdInsertLink(ta);
+        }
+      });
     }
 
     function showView(name) {
@@ -885,6 +963,8 @@ export function adminTemplate(): string {
     });
 
     document.getElementById("pf-body").addEventListener("input", schedulePreview);
+
+    bindMarkdownTools();
 
     loadLists();
     previewPlaceholder();

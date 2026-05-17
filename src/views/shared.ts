@@ -1145,6 +1145,68 @@ export function layoutPage(
       min-width: 0;
       border-right: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
     }
+    body.admin-app .admin-md-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.65rem 1.25rem;
+      flex-wrap: wrap;
+    }
+    body.admin-app .admin-md-head .admin-label {
+      margin-bottom: 0;
+    }
+    body.admin-app .admin-md-tools {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+    body.admin-app .admin-md-tool {
+      margin: 0;
+      padding: 0.3rem 0.5rem;
+      min-width: 1.85rem;
+      font-family: inherit;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.15;
+      color: var(--adm-fg);
+      background: transparent;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      box-shadow: none;
+      max-width: none;
+      width: auto;
+    }
+    body.admin-app .admin-md-tool:hover {
+      background: color-mix(in srgb, var(--adm-fg) 6%, transparent);
+      border-color: color-mix(in srgb, var(--adm-accent) 38%, var(--adm-line));
+      transform: none;
+      opacity: 1;
+    }
+    body.admin-app .admin-md-tool:focus-visible {
+      outline: 2px solid var(--adm-accent);
+      outline-offset: 2px;
+    }
+    body.admin-app .admin-md-tool__b {
+      font-weight: 800;
+    }
+    body.admin-app .admin-md-tool__i {
+      font-weight: 600;
+      font-style: italic;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      font-size: 0.8125rem;
+    }
+    body.admin-app .admin-md-tool--wide {
+      padding-left: 0.55rem;
+      padding-right: 0.55rem;
+      min-width: auto;
+      font-weight: 600;
+    }
     body.admin-app .admin-editor-md textarea[name="body"] {
       flex: 1;
       min-height: 0;
