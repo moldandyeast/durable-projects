@@ -579,11 +579,27 @@ export function layoutPage(
       border: none;
       padding: 0;
       margin: 0;
-      background: color-mix(in srgb, #000000 52%, transparent);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: color-mix(in srgb, #0a0c10 58%, transparent);
+      backdrop-filter: blur(14px) saturate(1.15);
+      -webkit-backdrop-filter: blur(14px) saturate(1.15);
       cursor: pointer;
-      transition: background 0.25s ease;
+      transition: background 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.admin-app .admin-overlay__backdrop:hover {
+      background: color-mix(in srgb, #0a0c10 64%, transparent);
+    }
+    body.admin-app .admin-overlay:not([hidden]) .admin-overlay__panel {
+      animation: admin-overlay-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes admin-overlay-rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.988);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
     }
     body.admin-app .admin-overlay__panel {
       position: relative;
@@ -593,10 +609,13 @@ export function layoutPage(
       max-height: min(92dvh, 100%);
       overflow-y: auto;
       background: var(--adm-field-bg);
-      border: 1px solid var(--adm-line);
-      border-radius: var(--radius);
+      border: 1px solid color-mix(in srgb, var(--adm-line) 85%, var(--adm-fg));
+      border-radius: calc(var(--radius) + 2px);
       padding: 1.25rem 1.35rem 1.5rem;
-      box-shadow: var(--shadow-hover), 0 0 0 1px color-mix(in srgb, var(--adm-fg) 4%, transparent);
+      box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--adm-fg) 5%, transparent),
+        0 24px 48px -16px color-mix(in srgb, #000000 55%, transparent),
+        0 12px 24px -12px color-mix(in srgb, var(--adm-accent) 12%, transparent);
     }
     body.admin-app .admin-overlay__head {
       display: flex;
@@ -613,6 +632,120 @@ export function layoutPage(
       text-transform: uppercase;
       color: var(--adm-muted);
     }
+    body.admin-app .admin-overlay__title-stack {
+      min-width: 0;
+      padding-right: 0.5rem;
+    }
+    body.admin-app .admin-overlay__eyebrow {
+      margin: 0 0 0.35rem;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--adm-muted) 92%, var(--adm-accent));
+    }
+    body.admin-app .admin-overlay__heading {
+      margin: 0 0 0.45rem;
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.035em;
+      line-height: 1.15;
+      color: var(--adm-fg);
+      text-transform: none;
+    }
+    body.admin-app .admin-overlay__lede {
+      margin: 0;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      line-height: 1.5;
+      color: var(--adm-muted);
+      max-width: 28rem;
+    }
+    body.admin-app .admin-overlay__head--rich {
+      align-items: flex-start;
+      margin-bottom: 0;
+      padding-bottom: 1.1rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 92%, transparent);
+    }
+    body.admin-app .admin-overlay__panel--settings {
+      max-width: min(36rem, 100%);
+      max-height: min(92dvh, 880px);
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      border-radius: calc(var(--radius) + 4px);
+    }
+    body.admin-app .admin-overlay__panel--settings > .admin-overlay__head {
+      padding: 1.35rem 1.5rem 1.15rem;
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+    body.admin-app .admin-overlay__body--scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 1.25rem 1.5rem 1.5rem;
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--adm-muted) 45%, transparent) transparent;
+    }
+    body.admin-app .admin-settings-section {
+      padding-bottom: 1.35rem;
+      margin-bottom: 1.35rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 88%, transparent);
+    }
+    body.admin-app .admin-settings-section:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    body.admin-app .admin-settings-section__label {
+      margin: 0 0 1rem;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--adm-muted) 85%, var(--adm-fg));
+    }
+    body.admin-app .admin-settings-section__fields {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    body.admin-app .admin-settings-section__fields--dense {
+      gap: 1.15rem;
+    }
+    body.admin-app .admin-overlay__footer {
+      flex-shrink: 0;
+      padding: 1rem 1.5rem 1.35rem;
+      border-top: 1px solid color-mix(in srgb, var(--adm-line) 92%, transparent);
+      background: color-mix(in srgb, var(--adm-field-bg) 92%, var(--adm-accent));
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    body.admin-app .admin-overlay__footer-note {
+      margin: 0;
+      font-size: 0.75rem;
+      line-height: 1.45;
+      color: var(--adm-muted);
+      letter-spacing: 0.02em;
+    }
+    body.admin-app .admin-overlay__footer-note strong {
+      font-weight: 600;
+      color: color-mix(in srgb, var(--adm-muted) 35%, var(--adm-fg));
+    }
+    body.admin-app .admin-btn.admin-btn--primary-wide {
+      display: inline-flex;
+      align-items: center;
+      width: 100%;
+      justify-content: center;
+      padding-top: 0.65rem;
+      padding-bottom: 0.65rem;
+      letter-spacing: 0.12em;
+    }
     body.admin-app .admin-overlay__close {
       flex-shrink: 0;
       width: 2rem;
@@ -625,11 +758,13 @@ export function layoutPage(
       font-size: 1.5rem;
       line-height: 1;
       cursor: pointer;
-      border-radius: 0;
+      border-radius: var(--radius-sm);
       max-width: none;
+      transition: color 0.2s ease, background 0.2s ease;
     }
     body.admin-app .admin-overlay__close:hover {
       color: var(--adm-fg);
+      background: color-mix(in srgb, var(--adm-fg) 6%, transparent);
     }
     body.admin-app .admin-overlay__actions {
       display: flex;
@@ -895,63 +1030,120 @@ export function layoutPage(
       margin: 0;
       padding: 0.65rem 0 0.35rem;
     }
+    body.admin-app .admin-editor-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem 1.5rem;
+      padding: 1rem 0 1.05rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
+      flex-shrink: 0;
+    }
+    body.admin-app .admin-editor-toolbar__left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 0.55rem 1rem;
+      min-width: min(100%, 14rem);
+    }
+    body.admin-app .admin-editor-toolbar__label {
+      margin-bottom: 0.38rem;
+      flex: 0 0 100%;
+      width: 100%;
+    }
+    @media (min-width: 40rem) {
+      body.admin-app .admin-editor-toolbar__label {
+        flex: 0 0 auto;
+        width: auto;
+        margin-bottom: 0;
+        padding-bottom: 0.52rem;
+      }
+    }
+    body.admin-app .admin-editor-toolbar__select {
+      min-width: min(100%, 14rem);
+      max-width: min(100%, 22rem);
+    }
+    body.admin-app .admin-editor-toolbar__hint {
+      flex: 1 1 12rem;
+      margin: 0;
+      padding-bottom: 0.15rem;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      color: color-mix(in srgb, var(--adm-muted) 94%, var(--adm-fg));
+      line-height: 1.35;
+    }
+    body.admin-app .admin-editor-toolbar__right {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.65rem 0.85rem;
+      justify-content: flex-end;
+    }
+    body.admin-app .admin-editor-toolbar__settings {
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.1em;
+    }
+    body.admin-app .admin-toolbar-rule {
+      width: 1px;
+      height: 1.6rem;
+      background: color-mix(in srgb, var(--adm-line) 92%, transparent);
+      flex-shrink: 0;
+    }
+    body.admin-app .admin-editor-toolbar__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
+    }
+    body.admin-app .admin-editor-toolbar__status {
+      flex: 1 1 100%;
+      margin: 0;
+      text-align: right;
+      min-height: 1.25rem;
+    }
+    @media (min-width: 52rem) {
+      body.admin-app .admin-editor-toolbar__status {
+        flex: 0 1 auto;
+        text-align: left;
+      }
+    }
     body.admin-app .admin-editor-layout {
       display: grid;
-      grid-template-columns: minmax(14rem, 22vw) minmax(0, 1fr) minmax(14rem, 32vw);
+      grid-template-columns: minmax(0, 1fr) minmax(14rem, 38vw);
       grid-template-rows: minmax(0, 1fr);
       gap: 0;
       align-items: stretch;
       flex: 1;
       min-height: 0;
       margin-top: 0;
-      border-top: 1px solid var(--adm-line);
+      border-top: none;
     }
-    @media (max-width: 72rem) {
+    @media (max-width: 60rem) {
       body.admin-app .admin-editor-layout {
         grid-template-columns: 1fr;
-        grid-template-rows: none;
-        flex: none;
-        min-height: auto;
-      }
-      body.admin-app .admin-editor-meta {
-        border-right: none;
-        border-bottom: 1px solid var(--adm-line);
-        padding: 1.25rem 0;
+        grid-template-rows: minmax(16rem, 42vh) minmax(12rem, 1fr);
+        flex: 1;
+        min-height: 0;
       }
       body.admin-app .admin-editor-md {
+        border-right: none;
         border-bottom: 1px solid var(--adm-line);
-        padding: 1.25rem 0;
       }
       body.admin-app .admin-editor-preview {
         border-left: none;
-        padding: 1.25rem 0 0;
+        padding-left: 0;
       }
     }
-    body.admin-app .admin-editor-meta {
-      padding: 1.25rem 1.5rem 1.5rem 0;
-      border-right: 1px solid var(--adm-line);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      min-height: 0;
-      overflow-y: auto;
-    }
-    body.admin-app .admin-actions-wrap .admin-actions {
-      margin-top: 0;
-    }
-    body.admin-app .admin-editor-meta .admin-actions-wrap {
-      margin-top: 1.25rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--adm-line);
-      flex-shrink: 0;
-    }
     body.admin-app .admin-editor-md {
-      padding: 1.25rem 1.5rem;
+      padding: 1.15rem 1.5rem 1.35rem 0;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
       min-height: 0;
       min-width: 0;
+      border-right: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
     }
     body.admin-app .admin-editor-md textarea[name="body"] {
       flex: 1;
@@ -965,8 +1157,8 @@ export function layoutPage(
       box-shadow: inset 0 1px 2px color-mix(in srgb, var(--adm-fg) 4%, transparent);
     }
     body.admin-app .admin-editor-preview {
-      padding: 1.25rem 0 1.5rem 1.5rem;
-      border-left: 1px solid var(--adm-line);
+      padding: 1.15rem 0 1.35rem 1.5rem;
+      border-left: none;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
@@ -1000,7 +1192,17 @@ export function layoutPage(
       color: var(--fg);
     }
 
+    body.admin-app .admin-overlay__panel--settings .admin-collab-picker {
+      max-height: 11.5rem;
+    }
+
     body.admin-app .admin-view[hidden] { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.admin-app .admin-overlay:not([hidden]) .admin-overlay__panel {
+        animation: none;
+      }
+    }
   </style>
 </head>
 <body${bodyClassAttr}>

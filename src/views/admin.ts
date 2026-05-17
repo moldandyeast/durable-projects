@@ -17,67 +17,37 @@ export function adminTemplate(): string {
   </header>
 
   <main class="admin-main">
-    <section id="view-editor" class="admin-view" aria-labelledby="editor-heading">
-      <h1 id="editor-heading" class="admin-view-title">Project editor</h1>
+    <section id="view-editor" class="admin-view" aria-label="Project editor">
       <section class="admin-panel">
         <form id="proj-form">
+          <header class="admin-editor-toolbar">
+            <div class="admin-editor-toolbar__left">
+              <label class="admin-label admin-editor-toolbar__label" for="proj-select">Project</label>
+              <select id="proj-select" class="admin-editor-toolbar__select" aria-describedby="editor-toolbar-hint">
+                <option value="">— New —</option>
+              </select>
+              <span id="editor-toolbar-hint" class="admin-editor-toolbar__hint">Compose below · metadata lives in settings</span>
+            </div>
+            <div class="admin-editor-toolbar__right">
+              <button
+                type="button"
+                class="admin-btn admin-btn--ghost admin-editor-toolbar__settings"
+                id="open-project-settings"
+                aria-haspopup="dialog"
+                aria-controls="overlay-project-settings"
+              >
+                Settings
+              </button>
+              <span class="admin-toolbar-rule" aria-hidden="true"></span>
+              <div class="admin-editor-toolbar__actions">
+                <button type="submit" id="btn-save">Save</button>
+                <button type="button" id="btn-new">New</button>
+                <button type="button" id="btn-del">Archive</button>
+              </div>
+              <p id="proj-save-status" class="admin-save-status admin-editor-toolbar__status" role="status" aria-live="polite" aria-atomic="true"></p>
+            </div>
+          </header>
           <div class="admin-editor-layout">
-            <aside class="admin-editor-meta">
-              <div>
-                <label class="admin-label" for="proj-select">Project</label>
-                <select id="proj-select"><option value="">— New —</option></select>
-              </div>
-              <div>
-                <label class="admin-label" for="pf-title">Title</label>
-                <input id="pf-title" name="title" placeholder="" required />
-              </div>
-              <div>
-                <label class="admin-label" for="pf-summary">Summary</label>
-                <input id="pf-summary" name="summary" placeholder="" />
-              </div>
-              <div>
-                <label class="admin-label" for="pf-tags">Tags</label>
-                <input id="pf-tags" name="tags" placeholder="Comma-separated" />
-              </div>
-              <div class="admin-collab-wrap">
-                <span id="client-picker-label" class="admin-label">Clients</span>
-                <p class="admin-field-hint">Check to include; order follows when you select (first checked first).</p>
-                <div id="client-picker" class="admin-collab-picker" role="group" aria-labelledby="client-picker-label"></div>
-                <input type="hidden" id="pf-client-ids" name="client_ids" value="" />
-              </div>
-              <div class="admin-collab-wrap">
-                <span id="via-picker-label" class="admin-label">Via clients</span>
-                <p class="admin-field-hint">Optional intermediaries — same picker as above; order follows selection (e.g. WE3.co closest to the work first). Primary clients are omitted here.</p>
-                <div id="via-picker" class="admin-collab-picker" role="group" aria-labelledby="via-picker-label"></div>
-                <input type="hidden" name="via_client_ids" id="pf-via-ids" value="" />
-              </div>
-              <div class="admin-collab-wrap">
-                <span id="collab-picker-label" class="admin-label">Collaborators</span>
-                <p class="admin-field-hint">Check to include; order follows when you select.</p>
-                <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
-                <input type="hidden" name="team_member_ids" id="pf-team-ids" value="" />
-              </div>
-              <div>
-                <label class="admin-label" for="pf-sort">Sort date</label>
-                <input id="pf-sort" name="sort_date" placeholder="YYYY-MM-DD" />
-              </div>
-              <div>
-                <label class="admin-label" for="pf-preview">Preview image URL</label>
-                <input id="pf-preview" name="preview_image" placeholder="" />
-              </div>
-              <div>
-                <label class="admin-label" for="pf-gallery">Gallery JSON</label>
-                <textarea id="pf-gallery" name="gallery_json" rows="4" placeholder='[{"url":"","caption":"","alt":""}]'></textarea>
-              </div>
-              <div class="admin-actions-wrap">
-                <div class="admin-actions">
-                  <button type="submit" id="btn-save">Save</button>
-                  <button type="button" id="btn-new">New</button>
-                  <button type="button" id="btn-del">Archive</button>
-                </div>
-                <p id="proj-save-status" class="admin-save-status" role="status" aria-live="polite" aria-atomic="true"></p>
-              </div>
-            </aside>
             <div class="admin-editor-md">
               <label class="admin-label" for="pf-body">Markdown</label>
               <textarea id="pf-body" name="body" placeholder="#" spellcheck="false"></textarea>
@@ -167,6 +137,94 @@ export function adminTemplate(): string {
           <button type="submit">Add</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div id="overlay-project-settings" class="admin-overlay" hidden aria-hidden="true">
+    <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
+    <div
+      class="admin-overlay__panel admin-overlay__panel--settings"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="overlay-project-settings-heading"
+    >
+      <div class="admin-overlay__head admin-overlay__head--rich">
+        <div class="admin-overlay__title-stack">
+          <p class="admin-overlay__eyebrow">Editor</p>
+          <h2 id="overlay-project-settings-heading" class="admin-overlay__heading">Project settings</h2>
+          <p class="admin-overlay__lede">Everything except the markdown body — tuned for clarity and save.</p>
+        </div>
+        <button type="button" class="admin-overlay__close" data-overlay-close="overlay-project-settings" aria-label="Close">&times;</button>
+      </div>
+      <div class="admin-overlay__body admin-overlay__body--scroll">
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Basics</h3>
+          <div class="admin-settings-section__fields">
+            <div>
+              <label class="admin-label" for="pf-title">Title</label>
+              <input form="proj-form" id="pf-title" name="title" placeholder="" required />
+            </div>
+            <div>
+              <label class="admin-label" for="pf-summary">Summary</label>
+              <input form="proj-form" id="pf-summary" name="summary" placeholder="" />
+            </div>
+            <div>
+              <label class="admin-label" for="pf-tags">Tags</label>
+              <input form="proj-form" id="pf-tags" name="tags" placeholder="Comma-separated" />
+            </div>
+            <div>
+              <label class="admin-label" for="pf-sort">Sort date</label>
+              <input form="proj-form" id="pf-sort" name="sort_date" placeholder="YYYY-MM-DD" />
+            </div>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Clients & collaborators</h3>
+          <div class="admin-settings-section__fields admin-settings-section__fields--dense">
+            <div class="admin-collab-wrap">
+              <span id="client-picker-label" class="admin-label">Clients</span>
+              <p class="admin-field-hint">Check to include; order follows when you select (first checked first).</p>
+              <div id="client-picker" class="admin-collab-picker" role="group" aria-labelledby="client-picker-label"></div>
+              <input form="proj-form" type="hidden" id="pf-client-ids" name="client_ids" value="" />
+            </div>
+            <div class="admin-collab-wrap">
+              <span id="via-picker-label" class="admin-label">Via clients</span>
+              <p class="admin-field-hint">Optional intermediaries — same picker as above; order follows selection (e.g. WE3.co closest to the work first). Primary clients are omitted here.</p>
+              <div id="via-picker" class="admin-collab-picker" role="group" aria-labelledby="via-picker-label"></div>
+              <input form="proj-form" type="hidden" name="via_client_ids" id="pf-via-ids" value="" />
+            </div>
+            <div class="admin-collab-wrap">
+              <span id="collab-picker-label" class="admin-label">Collaborators</span>
+              <p class="admin-field-hint">Check to include; order follows when you select.</p>
+              <div id="collab-picker" class="admin-collab-picker" role="group" aria-labelledby="collab-picker-label"></div>
+              <input form="proj-form" type="hidden" name="team_member_ids" id="pf-team-ids" value="" />
+            </div>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Media</h3>
+          <div class="admin-settings-section__fields">
+            <div>
+              <label class="admin-label" for="pf-preview">Preview image URL</label>
+              <input form="proj-form" id="pf-preview" name="preview_image" placeholder="" />
+            </div>
+            <div>
+              <label class="admin-label" for="pf-gallery">Gallery JSON</label>
+              <textarea
+                form="proj-form"
+                id="pf-gallery"
+                name="gallery_json"
+                rows="4"
+                placeholder='[{"url":"","caption":"","alt":""}]'
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="admin-overlay__footer">
+        <p class="admin-overlay__footer-note">Changes apply when you choose <strong>Save</strong> in the toolbar.</p>
+        <button type="button" class="admin-btn admin-btn--primary-wide" data-overlay-close="overlay-project-settings">Done</button>
+      </footer>
     </div>
   </div>
 </div>
@@ -294,11 +352,12 @@ export function adminTemplate(): string {
     var overlayFocusReturn = null;
 
     function syncOverlayScrollLock() {
-      var oc = document.getElementById("overlay-collab");
-      var ol = document.getElementById("overlay-client");
-      if ((!oc || oc.hidden) && (!ol || ol.hidden)) {
-        document.body.classList.remove("admin-overlay-open");
-      }
+      var ids = ["overlay-collab", "overlay-client", "overlay-project-settings"];
+      var anyOpen = ids.some(function(id) {
+        var el = document.getElementById(id);
+        return el && !el.hidden;
+      });
+      if (!anyOpen) document.body.classList.remove("admin-overlay-open");
     }
 
     function openOverlay(id) {
@@ -308,8 +367,11 @@ export function adminTemplate(): string {
       el.hidden = false;
       el.setAttribute("aria-hidden", "false");
       document.body.classList.add("admin-overlay-open");
-      var input = el.querySelector("input[name=name], input");
-      if (input) input.focus();
+      var input =
+        id === "overlay-project-settings" ?
+          document.getElementById("pf-title")
+        : el.querySelector("input[name=name], input");
+      if (input && typeof input.focus === "function") input.focus();
     }
 
     function closeOverlay(id) {
@@ -331,6 +393,9 @@ export function adminTemplate(): string {
       document.getElementById("open-client-overlay").addEventListener("click", function() {
         openOverlay("overlay-client");
       });
+      document.getElementById("open-project-settings").addEventListener("click", function() {
+        openOverlay("overlay-project-settings");
+      });
       document.querySelectorAll(".admin-overlay__backdrop").forEach(function(btn) {
         btn.addEventListener("click", function() {
           var overlay = btn.closest(".admin-overlay");
@@ -344,9 +409,11 @@ export function adminTemplate(): string {
       });
       document.addEventListener("keydown", function(ev) {
         if (ev.key !== "Escape") return;
+        var os = document.getElementById("overlay-project-settings");
         var oc = document.getElementById("overlay-collab");
         var ol = document.getElementById("overlay-client");
-        if (oc && !oc.hidden) closeOverlay("overlay-collab");
+        if (os && !os.hidden) closeOverlay("overlay-project-settings");
+        else if (oc && !oc.hidden) closeOverlay("overlay-collab");
         else if (ol && !ol.hidden) closeOverlay("overlay-client");
       });
     }
