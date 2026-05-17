@@ -49,8 +49,8 @@ export function layoutPage(
       --accent: #3d87c4;
       --accent-soft: color-mix(in srgb, var(--accent) 17%, transparent);
       --on-accent: #fafafa;
-      --radius: 12px;
-      --radius-sm: 8px;
+      --radius: 1px;
+      --radius-sm: 1px;
       --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
       --font-sans: "Onest", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
       --font-display: "Onest", ui-sans-serif, system-ui, sans-serif;
@@ -106,7 +106,7 @@ export function layoutPage(
     a:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 3px;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
     }
     main.page {
       max-width: var(--max);
@@ -146,7 +146,7 @@ export function layoutPage(
     .tag {
       display: inline-block;
       padding: 0.2rem 0.55rem;
-      border-radius: 999px;
+      border-radius: var(--radius-sm);
       background: var(--accent-soft);
       color: var(--accent);
       font-size: 0.72rem;
@@ -380,7 +380,7 @@ export function layoutPage(
       font-size: 0.88em;
       background: var(--accent-soft);
       padding: 0.12rem 0.35rem;
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
     }
     .article-body pre code {
       background: none;
@@ -491,7 +491,7 @@ export function layoutPage(
     body.admin-app .admin-nav__btn:focus-visible {
       outline: 2px solid var(--adm-accent);
       outline-offset: 6px;
-      border-radius: 2px;
+      border-radius: var(--radius-sm);
     }
     body.admin-app .admin-main {
       flex: 1;
@@ -610,7 +610,7 @@ export function layoutPage(
       overflow-y: auto;
       background: var(--adm-field-bg);
       border: 1px solid color-mix(in srgb, var(--adm-line) 85%, var(--adm-fg));
-      border-radius: calc(var(--radius) + 2px);
+      border-radius: var(--radius-sm);
       padding: 1.25rem 1.35rem 1.5rem;
       box-shadow:
         0 0 0 1px color-mix(in srgb, var(--adm-fg) 5%, transparent),
@@ -676,7 +676,7 @@ export function layoutPage(
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      border-radius: calc(var(--radius) + 4px);
+      border-radius: var(--radius-sm);
     }
     body.admin-app .admin-overlay__panel--settings > .admin-overlay__head {
       padding: 1.35rem 1.5rem 1.15rem;
