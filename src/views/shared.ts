@@ -1667,9 +1667,155 @@ export function layoutPage(
         margin-right: 0.25rem;
       }
     }
+    body.admin-app .admin-editor-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      padding: 1.15rem 0.65rem 1.35rem 0;
+      min-height: 0;
+      min-width: 0;
+      border-right: 1px solid var(--adm-line);
+      box-sizing: border-box;
+    }
+    body.admin-app .admin-editor-rail__tabs {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    body.admin-app .admin-editor-rail__tab {
+      margin: 0;
+      padding: 0.28rem 0.35rem;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      text-align: left;
+      color: var(--adm-muted);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid transparent;
+      border-radius: 0;
+      cursor: default;
+      max-width: none;
+      width: 100%;
+      box-shadow: none;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    body.admin-app .admin-editor-rail__tab:hover {
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-editor-rail__tab.is-active {
+      color: var(--adm-fg);
+      border-bottom-color: var(--adm-fg);
+    }
+    body.admin-app .admin-editor-rail__tab:focus-visible {
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 2px;
+    }
+    body.admin-app .admin-editor-rail__body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    body.admin-app .admin-editor-rail__hint {
+      margin: 0;
+      font-family: var(--adm-mono);
+      font-size: 0.625rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      line-height: 1.35;
+      color: var(--adm-muted);
+      opacity: 0.9;
+    }
+    body.admin-app .admin-editor-media-strip {
+      flex: 1;
+      min-height: 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--adm-muted) 45%, transparent) transparent;
+      padding-right: 0.15rem;
+    }
+    body.admin-app .admin-editor-media-empty {
+      margin: 0;
+      font-family: var(--adm-mono);
+      font-size: 0.625rem;
+      line-height: 1.45;
+      color: var(--adm-muted);
+      opacity: 0.85;
+    }
+    body.admin-app .admin-editor-media-empty[hidden] {
+      display: none !important;
+    }
+    body.admin-app .admin-editor-media-card {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      display: block;
+      width: 100%;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      background: var(--adm-bg-soft);
+      overflow: hidden;
+      cursor: grab;
+      max-width: none;
+      box-shadow: none;
+      transition: border-color 0.14s ease, background 0.14s ease;
+    }
+    body.admin-app .admin-editor-media-card:hover {
+      border-color: var(--adm-line-strong);
+      background: var(--adm-scrim);
+    }
+    body.admin-app .admin-editor-media-card:active {
+      cursor: grabbing;
+    }
+    body.admin-app .admin-editor-media-card:focus-visible {
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 2px;
+    }
+    body.admin-app .admin-editor-media-card__tag {
+      position: absolute;
+      top: 0.22rem;
+      left: 0.22rem;
+      z-index: 1;
+      padding: 0.1rem 0.28rem;
+      font-family: var(--adm-mono);
+      font-size: 0.5625rem;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: lowercase;
+      color: var(--adm-fg-soft);
+      background: color-mix(in srgb, var(--adm-bg) 82%, transparent);
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      pointer-events: none;
+    }
+    body.admin-app .admin-editor-media-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      vertical-align: middle;
+    }
+    body.admin-app .admin-editor-media-card--broken {
+      min-height: 4.25rem;
+      background: repeating-linear-gradient(
+        -36deg,
+        transparent,
+        transparent 5px,
+        color-mix(in srgb, var(--adm-line) 55%, transparent) 5px,
+        color-mix(in srgb, var(--adm-line) 55%, transparent) 6px
+      );
+    }
     body.admin-app .admin-editor-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(14rem, 38vw);
+      grid-template-columns: minmax(6.75rem, 9rem) minmax(0, 1fr) minmax(14rem, 38vw);
       grid-template-rows: minmax(0, 1fr);
       gap: 0;
       align-items: stretch;
@@ -1681,9 +1827,42 @@ export function layoutPage(
     @media (max-width: 60rem) {
       body.admin-app .admin-editor-layout {
         grid-template-columns: 1fr;
-        grid-template-rows: minmax(16rem, 42vh) minmax(12rem, 1fr);
+        grid-template-rows: auto minmax(16rem, 42vh) minmax(12rem, 1fr);
         flex: 1;
         min-height: 0;
+      }
+      body.admin-app .admin-editor-rail {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0.65rem;
+        padding: 0.65rem 0 0.75rem;
+        border-right: none;
+        border-bottom: 1px solid var(--adm-line);
+      }
+      body.admin-app .admin-editor-rail__tabs {
+        flex-direction: column;
+        padding-top: 0.12rem;
+      }
+      body.admin-app .admin-editor-rail__tab {
+        width: auto;
+        white-space: nowrap;
+      }
+      body.admin-app .admin-editor-rail__body {
+        flex: 1;
+        min-width: 0;
+      }
+      body.admin-app .admin-editor-media-strip {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 0.4rem;
+        min-height: auto;
+        padding-bottom: 0.2rem;
+      }
+      body.admin-app .admin-editor-media-card {
+        flex: 0 0 4.75rem;
+        width: 4.75rem;
       }
       body.admin-app .admin-editor-md {
         border-right: none;
@@ -1695,7 +1874,7 @@ export function layoutPage(
       }
     }
     body.admin-app .admin-editor-md {
-      padding: 1.25rem 1.75rem 1.5rem 0;
+      padding: 1.25rem 1.75rem 1.5rem 1rem;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;

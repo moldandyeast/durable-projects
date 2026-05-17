@@ -54,6 +54,25 @@ export function adminTemplate(): string {
             </div>
           </header>
           <div class="admin-editor-layout">
+            <aside class="admin-editor-rail" aria-label="Images for markdown">
+              <div class="admin-editor-rail__tabs" role="tablist" aria-label="Editor sidebar">
+                <button
+                  type="button"
+                  class="admin-editor-rail__tab is-active"
+                  role="tab"
+                  aria-selected="true"
+                  id="editor-tab-media"
+                  aria-controls="editor-panel-media"
+                >
+                  Media
+                </button>
+              </div>
+              <div class="admin-editor-rail__body" id="editor-panel-media" role="tabpanel" aria-labelledby="editor-tab-media">
+                <p class="admin-editor-rail__hint">Drag or tap to insert into markdown</p>
+                <div id="editor-media-strip" class="admin-editor-media-strip"></div>
+                <p id="editor-media-empty" class="admin-editor-media-empty">Preview or gallery URLs from settings appear here.</p>
+              </div>
+            </aside>
             <div class="admin-editor-md">
               <div class="admin-md-head">
                 <label class="admin-label" for="pf-body">Markdown</label>
@@ -372,6 +391,118 @@ export function adminTemplate(): string {
     function schedulePreview() {
       clearTimeout(previewTimer);
       previewTimer = setTimeout(refreshPreview, 240);
+    }
+
+    function insertIntoMarkdown(ta, text) {
+      if (!ta || text == null || text === "") return;
+      var start = ta.selectionStart;
+      var end = ta.selectionEnd;
+      var val = ta.value;
+      ta.value = val.slice(0, start) + text + val.slice(end);
+      ta.focus();
+      var pos = start + text.length;
+      ta.setSelectionRange(pos, pos);
+      schedulePreview();
+    }
+
+    function mdImageMarkdown(url, alt) {
+      alt = String(alt || "")
+        .replace(/\]/g, "")
+        .replace(/\r?\n/g, " ")
+        .trim();
+      url = String(url || "").trim();
+      if (!url) return "";
+      var urlPart = url.indexOf(")") >= 0 || /\s/.test(url) ? "<" + url + ">" : url;
+      return "![" + alt + "](" + urlPart + ")\n";
+    }
+
+    function refreshEditorMediaStrip() {
+      var strip = document.getElementById("editor-media-strip");
+      var emptyMsg = document.getElementById("editor-media-empty");
+      var previewInp = document.getElementById("pf-preview");
+      if (!strip || !emptyMsg) return;
+      strip.textContent = "";
+      var entries = [];
+      var pv = previewInp ? String(previewInp.value || "").trim() : "";
+      if (pv) entries.push({ url: pv, alt: "", tag: "preview" });
+      collectGalleryFromEditor().forEach(function(it, i) {
+        var u = it.url ? String(it.url).trim() : "";
+        if (!u) return;
+        entries.push({ url: u, alt: (it.alt || "").trim(), tag: String(i + 1) });
+      });
+      emptyMsg.hidden = entries.length > 0;
+      var ta = document.getElementById("pf-body");
+      entries.forEach(function(ent) {
+        var snippet = mdImageMarkdown(ent.url, ent.alt);
+        if (!snippet) return;
+        var card = document.createElement("button");
+        card.type = "button";
+        card.className = "admin-editor-media-card";
+        card.draggable = true;
+        card.setAttribute("aria-label", "Insert image from " + ent.tag + " into markdown");
+        var img = document.createElement("img");
+        img.src = ent.url;
+        img.alt = "";
+        img.loading = "lazy";
+        img.draggable = false;
+        img.referrerPolicy = "no-referrer";
+        img.addEventListener("error", function() {
+          img.hidden = true;
+          card.classList.add("admin-editor-media-card--broken");
+        });
+        var tag = document.createElement("span");
+        tag.className = "admin-editor-media-card__tag";
+        tag.textContent = ent.tag;
+        card.appendChild(tag);
+        card.appendChild(img);
+        card.addEventListener("dragstart", function(ev) {
+          ev.dataTransfer.setData("text/plain", snippet);
+          ev.dataTransfer.effectAllowed = "copy";
+        });
+        card.addEventListener("click", function() {
+          if (!ta) return;
+          insertIntoMarkdown(ta, snippet);
+        });
+        strip.appendChild(card);
+      });
+    }
+
+    function initEditorMediaRail() {
+      var ta = document.getElementById("pf-body");
+      var pv = document.getElementById("pf-preview");
+      if (ta && !ta.getAttribute("data-md-drop")) {
+        ta.setAttribute("data-md-drop", "1");
+        ta.addEventListener("dragover", function(ev) {
+          var types = ev.dataTransfer.types;
+          var ok = false;
+          if (types && typeof types.contains === "function") {
+            ok = types.contains("text/plain") || types.contains("Text");
+          } else if (types && types.length) {
+            for (var ti = 0; ti < types.length; ti++) {
+              if (types[ti] === "text/plain" || types[ti] === "Text") {
+                ok = true;
+                break;
+              }
+            }
+          }
+          if (!ok) return;
+          ev.preventDefault();
+          ev.dataTransfer.dropEffect = "copy";
+        });
+        ta.addEventListener("drop", function(ev) {
+          ev.preventDefault();
+          var text = ev.dataTransfer.getData("text/plain") || ev.dataTransfer.getData("Text");
+          if (!text || text === "gallery") return;
+          var t = text.trim();
+          if (t.indexOf("![") !== 0) return;
+          insertIntoMarkdown(ta, text.indexOf("\n") >= 0 ? text : text + "\n");
+        });
+      }
+      if (pv && !pv.getAttribute("data-strip-refresh")) {
+        pv.setAttribute("data-strip-refresh", "1");
+        pv.addEventListener("input", refreshEditorMediaStrip);
+      }
+      refreshEditorMediaStrip();
     }
 
     function mdWrapDelimiter(ta, delim, placeholder) {
@@ -932,6 +1063,7 @@ export function adminTemplate(): string {
         grid.appendChild(fig);
       });
       updateGalleryChrome();
+      refreshEditorMediaStrip();
     }
 
     function bindGalleryRowListeners(row) {
@@ -1293,6 +1425,8 @@ export function adminTemplate(): string {
     bindMarkdownTools();
 
     initGalleryComposerAndDnD();
+
+    initEditorMediaRail();
 
     loadLists().then(function() {
       var sel = document.getElementById("proj-select");
