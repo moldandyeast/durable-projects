@@ -994,10 +994,94 @@ export function layoutPage(
       gap: 1rem;
       margin-top: 1rem;
     }
-    body.admin-app textarea[name="gallery_json"] {
-      min-height: 6rem;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    body.admin-app .admin-gallery-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    body.admin-app .admin-gallery-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    body.admin-app .admin-gallery-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+      align-items: flex-start;
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--adm-field-bg) 94%, transparent);
+    }
+    body.admin-app .admin-gallery-row__fields {
+      flex: 1 1 16rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      min-width: 0;
+    }
+    @media (min-width: 32rem) {
+      body.admin-app .admin-gallery-row__fields {
+        grid-template-columns: 1fr 1fr;
+      }
+      body.admin-app .admin-gallery-field:first-child {
+        grid-column: 1 / -1;
+      }
+    }
+    body.admin-app .admin-gallery-field .admin-label {
+      margin-bottom: 0.28rem;
+    }
+    body.admin-app .admin-gallery-row__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    body.admin-app .admin-gallery-row__icon {
+      min-width: 2rem;
+      padding-left: 0.45rem;
+      padding-right: 0.45rem;
       font-size: 0.8125rem;
+      line-height: 1;
+    }
+    body.admin-app .admin-gallery-row__rm {
+      font-size: 0.625rem;
+    }
+    body.admin-app .admin-gallery-add {
+      margin-top: 0.25rem;
+      align-self: flex-start;
+    }
+    body.admin-app .admin-gallery-preview-block {
+      margin-top: 1.15rem;
+      padding-top: 1rem;
+      border-top: 1px solid color-mix(in srgb, var(--adm-line) 92%, transparent);
+    }
+    body.admin-app .admin-gallery-preview-block > .admin-label {
+      margin-bottom: 0.5rem;
+    }
+    body.admin-app .admin-gallery-live.gallery-grid {
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr));
+      gap: 0.65rem;
+      margin-bottom: 0;
+    }
+    body.admin-app .admin-gallery-live.gallery-grid figure {
+      border-color: var(--adm-line);
+      background: var(--adm-field-bg);
+    }
+    body.admin-app .admin-gallery-live.gallery-grid figcaption {
+      color: var(--adm-muted);
+      font-size: 0.72rem;
+    }
+    body.admin-app .admin-gallery-live-empty {
+      margin: 0.35rem 0 0;
+      font-size: 0.8125rem;
+      color: var(--adm-muted);
+      line-height: 1.45;
+    }
+    body.admin-app .admin-gallery-live-empty[hidden] {
+      display: none !important;
     }
     body.admin-app code { font-size: 0.85em; font-family: ui-monospace, monospace; }
     body.admin-app .admin-list {

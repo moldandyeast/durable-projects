@@ -221,15 +221,16 @@ export function adminTemplate(): string {
               <label class="admin-label" for="pf-preview">Preview image URL</label>
               <input form="proj-form" id="pf-preview" name="preview_image" placeholder="" />
             </div>
-            <div>
-              <label class="admin-label" for="pf-gallery">Gallery JSON</label>
-              <textarea
-                form="proj-form"
-                id="pf-gallery"
-                name="gallery_json"
-                rows="4"
-                placeholder='[{"url":"","caption":"","alt":""}]'
-              ></textarea>
+            <div class="admin-gallery-block">
+              <span id="gallery-editor-label" class="admin-label">Gallery</span>
+              <p class="admin-field-hint">Paste image URLs — preview matches the public grid. Caption shows under the image; alt helps accessibility.</p>
+              <div id="gallery-rows" class="admin-gallery-rows" role="list" aria-labelledby="gallery-editor-label"></div>
+              <button type="button" class="admin-btn admin-btn--ghost admin-gallery-add" id="gallery-add">Add image</button>
+              <div class="admin-gallery-preview-block">
+                <span class="admin-label">Preview</span>
+                <div id="gallery-live-preview" class="gallery-grid admin-gallery-live" aria-live="polite"></div>
+                <p id="gallery-live-empty" class="admin-gallery-live-empty">No images yet — add a URL above.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -789,13 +790,164 @@ export function adminTemplate(): string {
       });
     }
 
-    function parseGallery(txt) {
-      try {
-        var x = JSON.parse(txt || "[]");
-        return Array.isArray(x) ? x : [];
-      } catch (e) {
-        return [];
+    function collectGalleryFromEditor() {
+      var wrap = document.getElementById("gallery-rows");
+      if (!wrap) return [];
+      var out = [];
+      wrap.querySelectorAll(".admin-gallery-row").forEach(function(row) {
+        var urlEl = row.querySelector(".admin-gallery-url");
+        var url = urlEl ? String(urlEl.value || "").trim() : "";
+        if (!url) return;
+        var capEl = row.querySelector(".admin-gallery-caption");
+        var altEl = row.querySelector(".admin-gallery-alt");
+        var cap = capEl ? String(capEl.value || "").trim() : "";
+        var alt = altEl ? String(altEl.value || "").trim() : "";
+        var o = { url: url };
+        if (cap) o.caption = cap;
+        if (alt) o.alt = alt;
+        out.push(o);
+      });
+      return out;
+    }
+
+    function refreshGalleryLivePreview() {
+      var grid = document.getElementById("gallery-live-preview");
+      var emptyEl = document.getElementById("gallery-live-empty");
+      if (!grid || !emptyEl) return;
+      var items = collectGalleryFromEditor();
+      grid.textContent = "";
+      if (!items.length) {
+        emptyEl.hidden = false;
+        return;
       }
+      emptyEl.hidden = true;
+      items.forEach(function(it) {
+        var fig = document.createElement("figure");
+        var img = document.createElement("img");
+        img.src = it.url;
+        img.alt = it.alt || "";
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.addEventListener("error", function() {
+          img.alt = "(Could not load image)";
+          img.style.opacity = "0.4";
+        });
+        fig.appendChild(img);
+        if (it.caption) {
+          var fc = document.createElement("figcaption");
+          fc.textContent = it.caption;
+          fig.appendChild(fc);
+        }
+        grid.appendChild(fig);
+      });
+    }
+
+    function bindGalleryRowListeners(row) {
+      row.querySelectorAll("input").forEach(function(inp) {
+        inp.addEventListener("input", refreshGalleryLivePreview);
+      });
+    }
+
+    function moveGalleryRow(row, delta) {
+      var parent = row.parentNode;
+      if (!parent) return;
+      var idx = Array.prototype.indexOf.call(parent.children, row);
+      var j = idx + delta;
+      if (j < 0 || j >= parent.children.length) return;
+      var swap = parent.children[j];
+      if (delta < 0) parent.insertBefore(row, swap);
+      else parent.insertBefore(swap, row);
+      refreshGalleryLivePreview();
+    }
+
+    function appendGalleryRow(item, skipPreview) {
+      item = item || {};
+      var wrap = document.getElementById("gallery-rows");
+      if (!wrap) return;
+      var row = document.createElement("div");
+      row.className = "admin-gallery-row";
+      row.setAttribute("role", "listitem");
+
+      var fields = document.createElement("div");
+      fields.className = "admin-gallery-row__fields";
+
+      function field(labelText, className, value, placeholder) {
+        var d = document.createElement("div");
+        d.className = "admin-gallery-field";
+        var lab = document.createElement("label");
+        lab.className = "admin-label";
+        lab.textContent = labelText;
+        var inp = document.createElement("input");
+        inp.type = "text";
+        inp.className = className;
+        inp.value = value || "";
+        inp.setAttribute("placeholder", placeholder);
+        inp.autocomplete = "off";
+        d.appendChild(lab);
+        d.appendChild(inp);
+        fields.appendChild(d);
+      }
+
+      field("Image URL", "admin-gallery-url", item.url, "https://…");
+      field("Caption", "admin-gallery-caption", item.caption, "Optional");
+      field("Alt text", "admin-gallery-alt", item.alt, "Describe the image");
+
+      var actions = document.createElement("div");
+      actions.className = "admin-gallery-row__actions";
+
+      var up = document.createElement("button");
+      up.type = "button";
+      up.className = "admin-btn admin-btn--ghost admin-gallery-row__icon";
+      up.setAttribute("aria-label", "Move up");
+      up.textContent = "↑";
+      up.addEventListener("click", function() {
+        moveGalleryRow(row, -1);
+      });
+
+      var down = document.createElement("button");
+      down.type = "button";
+      down.className = "admin-btn admin-btn--ghost admin-gallery-row__icon";
+      down.setAttribute("aria-label", "Move down");
+      down.textContent = "↓";
+      down.addEventListener("click", function() {
+        moveGalleryRow(row, 1);
+      });
+
+      var rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "admin-btn admin-btn--ghost admin-gallery-row__rm";
+      rm.textContent = "Remove";
+      rm.addEventListener("click", function() {
+        row.remove();
+        var w = document.getElementById("gallery-rows");
+        if (w && !w.children.length) appendGalleryRow({}, true);
+        refreshGalleryLivePreview();
+      });
+
+      actions.appendChild(up);
+      actions.appendChild(down);
+      actions.appendChild(rm);
+
+      row.appendChild(fields);
+      row.appendChild(actions);
+      wrap.appendChild(row);
+      bindGalleryRowListeners(row);
+      if (!skipPreview) refreshGalleryLivePreview();
+    }
+
+    function renderGalleryEditor(items) {
+      var wrap = document.getElementById("gallery-rows");
+      if (!wrap) return;
+      wrap.textContent = "";
+      var arr = Array.isArray(items) ? items : [];
+      if (!arr.length) {
+        appendGalleryRow({}, true);
+      } else {
+        arr.forEach(function(it) {
+          appendGalleryRow(it, true);
+        });
+      }
+      refreshGalleryLivePreview();
     }
 
     async function loadProject(id) {
@@ -809,6 +961,7 @@ export function adminTemplate(): string {
         syncTeamPickHidden();
         renderClientPicker(cachedClients);
         applyTeamIdsToCheckboxes([]);
+        renderGalleryEditor([]);
         previewPlaceholder();
         return;
       }
@@ -828,7 +981,7 @@ export function adminTemplate(): string {
       applyTeamIdsToCheckboxes(p.team_member_ids || []);
       f.sort_date.value = p.sort_date || "";
       f.preview_image.value = p.preview_image || "";
-      f.gallery_json.value = JSON.stringify(p.gallery_images || [], null, 2);
+      renderGalleryEditor(p.gallery_images || []);
       f.body.value = p.body || "";
       schedulePreview();
     }
@@ -891,7 +1044,7 @@ export function adminTemplate(): string {
         sort_date: f.sort_date.value || undefined,
         preview_image: f.preview_image.value || undefined,
         team_member_ids: teamIds,
-        gallery_images: parseGallery(f.gallery_json.value),
+        gallery_images: collectGalleryFromEditor(),
         body: f.body.value,
       };
 
@@ -966,7 +1119,14 @@ export function adminTemplate(): string {
 
     bindMarkdownTools();
 
-    loadLists();
+    document.getElementById("gallery-add").addEventListener("click", function() {
+      appendGalleryRow({});
+    });
+
+    loadLists().then(function() {
+      var sel = document.getElementById("proj-select");
+      return loadProject(sel && sel.value ? sel.value : "");
+    });
     previewPlaceholder();
   </script>`;
 
