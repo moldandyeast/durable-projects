@@ -222,14 +222,34 @@ export function adminTemplate(): string {
               <input form="proj-form" id="pf-preview" name="preview_image" placeholder="" />
             </div>
             <div class="admin-gallery-block">
-              <span id="gallery-editor-label" class="admin-label">Gallery</span>
-              <p class="admin-field-hint">Paste image URLs — preview matches the public grid. Caption shows under the image; alt helps accessibility.</p>
-              <div id="gallery-rows" class="admin-gallery-rows" role="list" aria-labelledby="gallery-editor-label"></div>
-              <button type="button" class="admin-btn admin-btn--ghost admin-gallery-add" id="gallery-add">Add image</button>
+              <div class="admin-gallery-head">
+                <span id="gallery-editor-label" class="admin-gallery-title">Gallery</span>
+                <span id="gallery-count" class="admin-gallery-count" aria-live="polite"></span>
+              </div>
+              <div class="admin-gallery-composer">
+                <input
+                  type="text"
+                  id="gallery-url-input"
+                  class="admin-gallery-composer-input"
+                  placeholder="Paste image URL…"
+                  autocomplete="off"
+                  inputmode="url"
+                  aria-describedby="gallery-composer-hint"
+                />
+                <button type="button" class="admin-gallery-composer-add" id="gallery-add-from-input">Add</button>
+              </div>
+              <p id="gallery-composer-hint" class="admin-gallery-composer-hint">HTTPS recommended · <kbd>Enter</kbd> to add · drag rows to reorder</p>
+              <div class="admin-gallery-list-shell">
+                <p id="gallery-list-empty" class="admin-gallery-list-empty">No images yet — paste a URL above.</p>
+                <div id="gallery-rows" class="admin-gallery-rows" role="list" aria-labelledby="gallery-editor-label"></div>
+              </div>
               <div class="admin-gallery-preview-block">
-                <span class="admin-label">Preview</span>
+                <div class="admin-gallery-preview-head">
+                  <span class="admin-gallery-preview-kicker">Live</span>
+                  <span class="admin-gallery-preview-title">Site grid</span>
+                </div>
                 <div id="gallery-live-preview" class="gallery-grid admin-gallery-live" aria-live="polite"></div>
-                <p id="gallery-live-empty" class="admin-gallery-live-empty">No images yet — add a URL above.</p>
+                <p id="gallery-live-empty" class="admin-gallery-live-empty">Preview fills in when URLs resolve.</p>
               </div>
             </div>
           </div>
@@ -810,6 +830,37 @@ export function adminTemplate(): string {
       return out;
     }
 
+    function updateGalleryChrome() {
+      var wrap = document.getElementById("gallery-rows");
+      var empty = document.getElementById("gallery-list-empty");
+      var countEl = document.getElementById("gallery-count");
+      if (!wrap || !empty) return;
+      var n = wrap.querySelectorAll(".admin-gallery-row").length;
+      empty.hidden = n > 0;
+      if (countEl) {
+        countEl.textContent = n ? String(n) : "";
+        countEl.setAttribute("aria-label", n ? n + " images in gallery" : "No images");
+      }
+    }
+
+    function syncGalleryRowThumb(row) {
+      var urlInp = row.querySelector(".admin-gallery-url");
+      var img = row.querySelector(".admin-gallery-thumb-img");
+      var ph = row.querySelector(".admin-gallery-thumb-ph");
+      if (!urlInp || !img || !ph) return;
+      var url = String(urlInp.value || "").trim();
+      if (!url) {
+        img.removeAttribute("src");
+        img.hidden = true;
+        ph.hidden = false;
+        return;
+      }
+      img.hidden = false;
+      ph.hidden = true;
+      img.alt = "";
+      img.src = url;
+    }
+
     function refreshGalleryLivePreview() {
       var grid = document.getElementById("gallery-live-preview");
       var emptyEl = document.getElementById("gallery-live-empty");
@@ -818,6 +869,7 @@ export function adminTemplate(): string {
       grid.textContent = "";
       if (!items.length) {
         emptyEl.hidden = false;
+        updateGalleryChrome();
         return;
       }
       emptyEl.hidden = true;
@@ -829,8 +881,8 @@ export function adminTemplate(): string {
         img.loading = "lazy";
         img.referrerPolicy = "no-referrer";
         img.addEventListener("error", function() {
-          img.alt = "(Could not load image)";
-          img.style.opacity = "0.4";
+          img.alt = "Could not load";
+          img.style.opacity = "0.35";
         });
         fig.appendChild(img);
         if (it.caption) {
@@ -840,99 +892,160 @@ export function adminTemplate(): string {
         }
         grid.appendChild(fig);
       });
+      updateGalleryChrome();
     }
 
     function bindGalleryRowListeners(row) {
       row.querySelectorAll("input").forEach(function(inp) {
-        inp.addEventListener("input", refreshGalleryLivePreview);
+        inp.addEventListener("input", function() {
+          if (inp.classList.contains("admin-gallery-url")) syncGalleryRowThumb(row);
+          refreshGalleryLivePreview();
+        });
       });
     }
 
-    function moveGalleryRow(row, delta) {
-      var parent = row.parentNode;
-      if (!parent) return;
-      var idx = Array.prototype.indexOf.call(parent.children, row);
-      var j = idx + delta;
-      if (j < 0 || j >= parent.children.length) return;
-      var swap = parent.children[j];
-      if (delta < 0) parent.insertBefore(row, swap);
-      else parent.insertBefore(swap, row);
-      refreshGalleryLivePreview();
+    var galleryDragRow = null;
+
+    function galleryDragAfterElement(container, y) {
+      var els = [].slice.call(container.querySelectorAll(".admin-gallery-row:not(.admin-gallery-row--dragging)"));
+      var closest = els.reduce(
+        function(acc, child) {
+          var box = child.getBoundingClientRect();
+          var offset = y - box.top - box.height / 2;
+          if (offset < 0 && offset > acc.offset) {
+            return { offset: offset, element: child };
+          }
+          return acc;
+        },
+        { offset: Number.NEGATIVE_INFINITY, element: undefined },
+      );
+      return closest.element;
+    }
+
+    function initGalleryDnD() {
+      var wrap = document.getElementById("gallery-rows");
+      if (!wrap || wrap.getAttribute("data-gallery-dnd") === "1") return;
+      wrap.setAttribute("data-gallery-dnd", "1");
+      wrap.addEventListener("dragover", function(ev) {
+        ev.preventDefault();
+        if (!galleryDragRow) return;
+        ev.dataTransfer.dropEffect = "move";
+        var after = galleryDragAfterElement(wrap, ev.clientY);
+        if (after == null) wrap.appendChild(galleryDragRow);
+        else wrap.insertBefore(galleryDragRow, after);
+      });
+    }
+
+    function bindGalleryRowGrip(row, grip) {
+      grip.addEventListener("dragstart", function(ev) {
+        galleryDragRow = row;
+        row.classList.add("admin-gallery-row--dragging");
+        grip.setAttribute("aria-grabbed", "true");
+        ev.dataTransfer.effectAllowed = "move";
+        ev.dataTransfer.setData("text/plain", "gallery");
+      });
+      grip.addEventListener("dragend", function() {
+        row.classList.remove("admin-gallery-row--dragging");
+        grip.setAttribute("aria-grabbed", "false");
+        galleryDragRow = null;
+        refreshGalleryLivePreview();
+      });
     }
 
     function appendGalleryRow(item, skipPreview) {
       item = item || {};
       var wrap = document.getElementById("gallery-rows");
       if (!wrap) return;
+
       var row = document.createElement("div");
       row.className = "admin-gallery-row";
       row.setAttribute("role", "listitem");
 
-      var fields = document.createElement("div");
-      fields.className = "admin-gallery-row__fields";
+      var grip = document.createElement("button");
+      grip.type = "button";
+      grip.className = "admin-gallery-grip";
+      grip.draggable = true;
+      grip.setAttribute("aria-label", "Drag to reorder");
+      grip.setAttribute("aria-grabbed", "false");
+      grip.innerHTML =
+        '<span class="admin-gallery-grip__bars" aria-hidden="true"></span><span class="admin-gallery-grip__bars" aria-hidden="true"></span>';
+      bindGalleryRowGrip(row, grip);
 
-      function field(labelText, className, value, placeholder) {
-        var d = document.createElement("div");
-        d.className = "admin-gallery-field";
-        var lab = document.createElement("label");
-        lab.className = "admin-label";
-        lab.textContent = labelText;
-        var inp = document.createElement("input");
-        inp.type = "text";
-        inp.className = className;
-        inp.value = value || "";
-        inp.setAttribute("placeholder", placeholder);
-        inp.autocomplete = "off";
-        d.appendChild(lab);
-        d.appendChild(inp);
-        fields.appendChild(d);
-      }
-
-      field("Image URL", "admin-gallery-url", item.url, "https://…");
-      field("Caption", "admin-gallery-caption", item.caption, "Optional");
-      field("Alt text", "admin-gallery-alt", item.alt, "Describe the image");
-
-      var actions = document.createElement("div");
-      actions.className = "admin-gallery-row__actions";
-
-      var up = document.createElement("button");
-      up.type = "button";
-      up.className = "admin-btn admin-btn--ghost admin-gallery-row__icon";
-      up.setAttribute("aria-label", "Move up");
-      up.textContent = "↑";
-      up.addEventListener("click", function() {
-        moveGalleryRow(row, -1);
+      var thumb = document.createElement("div");
+      thumb.className = "admin-gallery-thumb";
+      var img = document.createElement("img");
+      img.className = "admin-gallery-thumb-img";
+      img.alt = "";
+      img.loading = "lazy";
+      img.referrerPolicy = "no-referrer";
+      img.hidden = true;
+      var ph = document.createElement("span");
+      ph.className = "admin-gallery-thumb-ph";
+      ph.textContent = "";
+      ph.setAttribute("aria-hidden", "true");
+      img.addEventListener("error", function() {
+        img.hidden = true;
+        ph.hidden = false;
       });
+      thumb.appendChild(img);
+      thumb.appendChild(ph);
 
-      var down = document.createElement("button");
-      down.type = "button";
-      down.className = "admin-btn admin-btn--ghost admin-gallery-row__icon";
-      down.setAttribute("aria-label", "Move down");
-      down.textContent = "↓";
-      down.addEventListener("click", function() {
-        moveGalleryRow(row, 1);
-      });
+      var main = document.createElement("div");
+      main.className = "admin-gallery-row__main";
+
+      var urlInp = document.createElement("input");
+      urlInp.type = "text";
+      urlInp.className = "admin-gallery-url";
+      urlInp.placeholder = "Image URL";
+      urlInp.autocomplete = "off";
+      urlInp.inputMode = "url";
+      urlInp.value = item.url || "";
+
+      var capInp = document.createElement("input");
+      capInp.type = "text";
+      capInp.className = "admin-gallery-caption";
+      capInp.placeholder = "Caption — optional, shown under the image";
+      capInp.autocomplete = "off";
+      capInp.value = item.caption || "";
+
+      var det = document.createElement("details");
+      det.className = "admin-gallery-more";
+      var sum = document.createElement("summary");
+      sum.className = "admin-gallery-more-summary";
+      sum.textContent = "Accessibility";
+      var altInp = document.createElement("input");
+      altInp.type = "text";
+      altInp.className = "admin-gallery-alt";
+      altInp.placeholder = "Describe the image for screen readers";
+      altInp.autocomplete = "off";
+      altInp.value = item.alt || "";
+      det.appendChild(sum);
+      det.appendChild(altInp);
+
+      main.appendChild(urlInp);
+      main.appendChild(capInp);
+      main.appendChild(det);
 
       var rm = document.createElement("button");
       rm.type = "button";
-      rm.className = "admin-btn admin-btn--ghost admin-gallery-row__rm";
-      rm.textContent = "Remove";
+      rm.className = "admin-gallery-remove";
+      rm.setAttribute("aria-label", "Remove from gallery");
+      rm.innerHTML = "&times;";
       rm.addEventListener("click", function() {
         row.remove();
-        var w = document.getElementById("gallery-rows");
-        if (w && !w.children.length) appendGalleryRow({}, true);
         refreshGalleryLivePreview();
       });
 
-      actions.appendChild(up);
-      actions.appendChild(down);
-      actions.appendChild(rm);
-
-      row.appendChild(fields);
-      row.appendChild(actions);
+      row.appendChild(grip);
+      row.appendChild(thumb);
+      row.appendChild(main);
+      row.appendChild(rm);
       wrap.appendChild(row);
+
       bindGalleryRowListeners(row);
+      syncGalleryRowThumb(row);
       if (!skipPreview) refreshGalleryLivePreview();
+      else updateGalleryChrome();
     }
 
     function renderGalleryEditor(items) {
@@ -940,14 +1053,35 @@ export function adminTemplate(): string {
       if (!wrap) return;
       wrap.textContent = "";
       var arr = Array.isArray(items) ? items : [];
-      if (!arr.length) {
-        appendGalleryRow({}, true);
-      } else {
-        arr.forEach(function(it) {
-          appendGalleryRow(it, true);
+      arr.forEach(function(it) {
+        appendGalleryRow(it, true);
+      });
+      refreshGalleryLivePreview();
+    }
+
+    function tryAddGalleryFromComposer() {
+      var inp = document.getElementById("gallery-url-input");
+      if (!inp) return;
+      var url = String(inp.value || "").trim();
+      if (!url) return;
+      appendGalleryRow({ url: url }, false);
+      inp.value = "";
+      inp.focus();
+    }
+
+    function initGalleryComposerAndDnD() {
+      initGalleryDnD();
+      var inp = document.getElementById("gallery-url-input");
+      var btn = document.getElementById("gallery-add-from-input");
+      if (inp && btn) {
+        btn.addEventListener("click", tryAddGalleryFromComposer);
+        inp.addEventListener("keydown", function(ev) {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            tryAddGalleryFromComposer();
+          }
         });
       }
-      refreshGalleryLivePreview();
     }
 
     async function loadProject(id) {
@@ -1119,9 +1253,7 @@ export function adminTemplate(): string {
 
     bindMarkdownTools();
 
-    document.getElementById("gallery-add").addEventListener("click", function() {
-      appendGalleryRow({});
-    });
+    initGalleryComposerAndDnD();
 
     loadLists().then(function() {
       var sel = document.getElementById("proj-select");

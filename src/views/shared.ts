@@ -997,73 +997,336 @@ export function layoutPage(
     body.admin-app .admin-gallery-block {
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0;
+    }
+    body.admin-app .admin-gallery-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    body.admin-app .admin-gallery-title {
+      margin: 0;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--adm-muted) 88%, var(--adm-fg));
+    }
+    body.admin-app .admin-gallery-count {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+      color: var(--adm-muted);
+      min-height: 1.2em;
+    }
+    body.admin-app .admin-gallery-count:not(:empty) {
+      padding: 0.12rem 0.45rem;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--adm-field-bg) 85%, transparent);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-gallery-composer {
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+      border: 1px dashed color-mix(in srgb, var(--adm-line) 88%, var(--adm-accent));
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--adm-field-bg) 97%, var(--adm-accent));
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    body.admin-app .admin-gallery-composer:focus-within {
+      border-style: solid;
+      border-color: color-mix(in srgb, var(--adm-accent) 42%, var(--adm-line));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--adm-accent) 14%, transparent);
+    }
+    body.admin-app .admin-gallery-composer-input {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      padding: 0.65rem 0.75rem !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 0.8125rem;
+      letter-spacing: -0.02em;
+      background: transparent !important;
+    }
+    body.admin-app .admin-gallery-composer-input:focus {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+    body.admin-app .admin-gallery-composer-add {
+      flex-shrink: 0;
+      margin: 0;
+      padding: 0 1rem;
+      font-family: inherit;
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--on-accent);
+      background: var(--adm-accent);
+      border: none;
+      border-left: 1px solid color-mix(in srgb, var(--adm-fg) 12%, transparent);
+      cursor: pointer;
+      transition: filter 0.15s ease;
+      max-width: none;
+      width: auto;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    body.admin-app .admin-gallery-composer-add:hover {
+      filter: brightness(1.06);
+      transform: none;
+      opacity: 1;
+    }
+    body.admin-app .admin-gallery-composer-hint {
+      margin: 0.45rem 0 0.85rem;
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      line-height: 1.45;
+      color: var(--adm-muted);
+    }
+    body.admin-app .admin-gallery-composer-hint kbd {
+      font-family: ui-monospace, monospace;
+      font-size: 0.68em;
+      padding: 0.08rem 0.28rem;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--adm-field-bg) 92%, transparent);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-gallery-list-shell {
+      position: relative;
+      min-height: 2rem;
+    }
+    body.admin-app .admin-gallery-list-empty {
+      margin: 0;
+      padding: 1.25rem 0.5rem 0.75rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: var(--adm-muted);
+      letter-spacing: 0.02em;
+    }
+    body.admin-app .admin-gallery-list-empty[hidden] {
+      display: none !important;
     }
     body.admin-app .admin-gallery-rows {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0;
     }
     body.admin-app .admin-gallery-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem 1rem;
-      align-items: flex-start;
-      padding: 0.85rem 1rem;
-      border: 1px solid var(--adm-line);
-      border-radius: var(--radius-sm);
-      background: color-mix(in srgb, var(--adm-field-bg) 94%, transparent);
-    }
-    body.admin-app .admin-gallery-row__fields {
-      flex: 1 1 16rem;
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.65rem;
+      grid-template-columns: auto 3.25rem minmax(0, 1fr) auto;
+      gap: 0.65rem 0.75rem;
+      align-items: start;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
+      transition: opacity 0.15s ease;
+    }
+    body.admin-app .admin-gallery-row:last-child {
+      border-bottom: none;
+    }
+    body.admin-app .admin-gallery-row--dragging {
+      opacity: 0.45;
+    }
+    body.admin-app .admin-gallery-grip {
+      display: inline-flex;
+      gap: 3px;
+      align-self: center;
+      padding: 0.35rem 0.25rem;
+      margin: 0;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: inherit;
+      cursor: grab;
+      max-width: none;
+      width: auto;
+      box-shadow: none;
+    }
+    body.admin-app .admin-gallery-grip:hover {
+      background: color-mix(in srgb, var(--adm-fg) 5%, transparent);
+      transform: none;
+      opacity: 1;
+    }
+    body.admin-app .admin-gallery-grip:active {
+      cursor: grabbing;
+    }
+    body.admin-app .admin-gallery-grip__bars {
+      display: block;
+      width: 3px;
+      height: 14px;
+      border-radius: 1px;
+      opacity: 0.5;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--adm-muted) 0 2px,
+        transparent 2px 4px
+      );
+    }
+    body.admin-app .admin-gallery-thumb {
+      position: relative;
+      width: 3.25rem;
+      height: 3.25rem;
+      flex-shrink: 0;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--adm-line) 92%, transparent);
+      background: color-mix(in srgb, var(--adm-muted) 10%, var(--adm-field-bg));
+    }
+    body.admin-app .admin-gallery-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      margin: 0;
+      padding: 0;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+    body.admin-app .admin-gallery-thumb-ph {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    body.admin-app .admin-gallery-thumb-ph[hidden] {
+      display: none !important;
+    }
+    body.admin-app .admin-gallery-thumb-ph::before {
+      content: "";
+      display: block;
+      width: 58%;
+      height: 58%;
+      border: 1px dashed color-mix(in srgb, var(--adm-muted) 55%, transparent);
+      border-radius: var(--radius-sm);
+    }
+    body.admin-app .admin-gallery-row__main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
       min-width: 0;
     }
-    @media (min-width: 32rem) {
-      body.admin-app .admin-gallery-row__fields {
-        grid-template-columns: 1fr 1fr;
-      }
-      body.admin-app .admin-gallery-field:first-child {
-        grid-column: 1 / -1;
-      }
-    }
-    body.admin-app .admin-gallery-field .admin-label {
-      margin-bottom: 0.28rem;
-    }
-    body.admin-app .admin-gallery-row__actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    body.admin-app .admin-gallery-row__icon {
-      min-width: 2rem;
-      padding-left: 0.45rem;
-      padding-right: 0.45rem;
+    body.admin-app .admin-gallery-row__main > input {
+      margin: 0;
+      padding: 0.38rem 0.45rem !important;
       font-size: 0.8125rem;
-      line-height: 1;
+      border-radius: var(--radius-sm) !important;
+      background: color-mix(in srgb, var(--adm-field-bg) 98%, transparent) !important;
     }
-    body.admin-app .admin-gallery-row__rm {
-      font-size: 0.625rem;
+    body.admin-app .admin-gallery-url {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 0.78rem !important;
+      letter-spacing: -0.02em;
     }
-    body.admin-app .admin-gallery-add {
-      margin-top: 0.25rem;
+    body.admin-app .admin-gallery-caption::placeholder {
+      color: color-mix(in srgb, var(--adm-muted) 92%, transparent);
+    }
+    body.admin-app .admin-gallery-more {
+      margin: 0.15rem 0 0;
+      border: none;
+      padding: 0;
+    }
+    body.admin-app .admin-gallery-more-summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--adm-muted);
+      padding: 0.2rem 0;
+      user-select: none;
+    }
+    body.admin-app .admin-gallery-more-summary::-webkit-details-marker {
+      display: none;
+    }
+    body.admin-app .admin-gallery-more-summary::before {
+      content: "";
+      display: inline-block;
+      width: 0.35em;
+      height: 0.35em;
+      margin-right: 0.45em;
+      border-right: 1px solid var(--adm-muted);
+      border-bottom: 1px solid var(--adm-muted);
+      transform: rotate(-45deg);
+      vertical-align: 0.15em;
+      opacity: 0.75;
+      transition: transform 0.2s ease;
+    }
+    body.admin-app .admin-gallery-more[open] .admin-gallery-more-summary::before {
+      transform: rotate(45deg);
+      vertical-align: 0.05em;
+    }
+    body.admin-app .admin-gallery-more .admin-gallery-alt {
+      margin-top: 0.35rem;
+      width: 100%;
+      font-size: 0.8125rem !important;
+    }
+    body.admin-app .admin-gallery-remove {
       align-self: flex-start;
+      margin: 0;
+      padding: 0.2rem 0.45rem;
+      font-size: 1.35rem;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--adm-muted);
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: color 0.15s ease, background 0.15s ease;
+      max-width: none;
+      width: auto;
+      box-shadow: none;
+    }
+    body.admin-app .admin-gallery-remove:hover {
+      color: var(--red);
+      background: color-mix(in srgb, var(--red) 10%, transparent);
+      transform: none;
+      opacity: 1;
     }
     body.admin-app .admin-gallery-preview-block {
-      margin-top: 1.15rem;
+      margin-top: 1.35rem;
       padding-top: 1rem;
       border-top: 1px solid color-mix(in srgb, var(--adm-line) 92%, transparent);
     }
-    body.admin-app .admin-gallery-preview-block > .admin-label {
-      margin-bottom: 0.5rem;
+    body.admin-app .admin-gallery-preview-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+    }
+    body.admin-app .admin-gallery-preview-kicker {
+      font-size: 0.5625rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--adm-accent) 65%, var(--adm-muted));
+    }
+    body.admin-app .admin-gallery-preview-title {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--adm-muted);
     }
     body.admin-app .admin-gallery-live.gallery-grid {
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 130px), 1fr));
-      gap: 0.65rem;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
+      gap: 0.6rem;
       margin-bottom: 0;
     }
     body.admin-app .admin-gallery-live.gallery-grid figure {
@@ -1076,9 +1339,10 @@ export function layoutPage(
     }
     body.admin-app .admin-gallery-live-empty {
       margin: 0.35rem 0 0;
-      font-size: 0.8125rem;
+      font-size: 0.78rem;
       color: var(--adm-muted);
       line-height: 1.45;
+      letter-spacing: 0.02em;
     }
     body.admin-app .admin-gallery-live-empty[hidden] {
       display: none !important;
