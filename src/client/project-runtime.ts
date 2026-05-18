@@ -160,7 +160,63 @@ function initGalleryLightbox(): void {
   });
 }
 
+function initProjectStickyTitle(): void {
+  const h1 = document.getElementById("project-heading");
+  const navTitle = document.getElementById("site-nav-doc-title");
+  if (!(h1 instanceof HTMLElement) || !(navTitle instanceof HTMLElement)) return;
+
+  const sync = (crossing: boolean): void => {
+    const show = !crossing;
+    navTitle.classList.toggle("is-visible", show);
+    navTitle.setAttribute("aria-hidden", show ? "false" : "true");
+  };
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      const e = entries[0];
+      sync(e?.isIntersecting ?? false);
+    },
+    { root: null, threshold: 0, rootMargin: "-56px 0px 0px 0px" },
+  );
+  io.observe(h1);
+}
+
+function initProjectShare(): void {
+  const btn = document.querySelector("[data-project-share]");
+  if (!(btn instanceof HTMLButtonElement)) return;
+
+  btn.addEventListener("click", async () => {
+    const url = location.href;
+    const title = document.title.trim() || "Project";
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+        return;
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        /* continue to clipboard fallback */
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      const prev = btn.textContent?.trim() ?? "Share";
+      btn.textContent = "Copied";
+      window.setTimeout(() => {
+        btn.textContent = prev;
+      }, 1600);
+    } catch {
+      window.prompt("Copy link:", url);
+    }
+  });
+}
+
 function boot(): void {
+  if (document.body.classList.contains("page-project")) {
+    initProjectStickyTitle();
+    initProjectShare();
+  }
   initProjectDekLayout();
   initGalleryLightbox();
 }

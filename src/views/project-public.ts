@@ -1,9 +1,37 @@
 import type { Client, GalleryImage, ProjectClientRef, ProjectData, ProjectLink, TeamMember } from "../types";
 import { escapeHtml, layoutPage } from "./shared";
 
-function gallerySection(images: GalleryImage[]): string {
+/** ASCII-ish filename for download= attributes (matches server export basename rules). */
+function safeDownloadBasename(title: string, id: string): string {
+  const raw = title
+    .trim()
+    .replace(/[\u0000-\u001f<>:"/\\|?*]+/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 96);
+  return raw || id;
+}
+
+function gallerySection(images: GalleryImage[], mode: "interactive" | "static"): string {
   if (!images.length) return "";
   const n = images.length;
+  if (mode === "static") {
+    const figures = images
+      .map((img, i) => {
+        const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
+        const alt = escapeHtml(img.alt ?? "");
+        const capEscaped = escapeHtml(rawCaption);
+        const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
+        const heroClass = i === 0 ? " gallery-figure--hero" : "";
+        const loadAttrs =
+          i === 0 ? `loading="eager" decoding="async" fetchpriority="high"` : `loading="lazy" decoding="async"`;
+        return `<figure class="gallery-figure gallery-figure--export${heroClass}"><img class="gallery-export-img" src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/>${capHtml}</figure>`;
+      })
+      .join("\n");
+    return `<section id="project-gallery" class="project-gallery" aria-label="Selected work"><div class="gallery-strip">${figures}</div></section>`;
+  }
+
   const figures = images
     .map((img, i) => {
       const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
@@ -48,7 +76,7 @@ function linksSection(links: ProjectLink[] | undefined): string {
   return `<section><ul class="project-links">${items}</ul></section>`;
 }
 
-/** Compact team line at the bottom of the article (after body). */
+/** Compact team block — label column + flowing credits (editorial rhythm). */
 function teamFooterMinimal(team: TeamMember[]): string {
   if (!team.length) return "";
   const chunks = team.map((m) => {
@@ -56,9 +84,10 @@ function teamFooterMinimal(team: TeamMember[]): string {
       ? `<a href="${escapeHtml(m.url)}" rel="noopener noreferrer" class="project-team-min__name">${escapeHtml(m.name)}</a>`
       : `<span class="project-team-min__name">${escapeHtml(m.name)}</span>`;
     const roleHtml = m.role ? `<span class="project-team-min__role">${escapeHtml(m.role)}</span>` : "";
-    return roleHtml ? `${nameHtml}\u00a0${roleHtml}` : nameHtml;
+    const inner = roleHtml ? `${nameHtml}\u200a\u200a${roleHtml}` : nameHtml;
+    return `<span class="project-team-min__member">${inner}</span>`;
   });
-  return `<div class="project-team-min"><span class="project-team-min__tag">Team</span> ${chunks.join(" · ")}</div>`;
+  return `<div class="project-team-min"><span class="project-team-min__tag">Team</span><div class="project-team-min__body">${chunks.join('<span class="project-team-min__sep" aria-hidden="true"> · </span>')}</div></div>`;
 }
 
 /** Tags and last-updated on one line at the bottom: `tags | Updated …`. */
@@ -102,9 +131,8 @@ function primaryClientSegments(refs: ProjectClientRef[]): string {
     .join(mutedDot);
 }
 
-export function projectPublicPage(
+function buildDateClientsRow(
   project: ProjectData,
-  team: TeamMember[],
   primaryRefs: ProjectClientRef[],
   viaClients: Client[],
 ): string {
@@ -118,33 +146,68 @@ export function projectPublicPage(
     `<span class="project-header-date-clients__date"><span class="project-header-date-clients__muted">Date : </span><span class="project-header-date-clients__value">${escapeHtml(sortRaw)}</span></span>`
   : "";
 
-  let dateClientsRow = "";
   if (dateSpan && clientsInner) {
-    dateClientsRow = `<div class="project-header-date-clients">${dateSpan}<span class="project-header-date-clients__sep" aria-hidden="true"> | </span><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
-  } else if (dateSpan) {
-    dateClientsRow = `<div class="project-header-date-clients">${dateSpan}</div>`;
-  } else if (clientsInner) {
-    dateClientsRow = `<div class="project-header-date-clients"><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
+    return `<div class="project-header-date-clients">${dateSpan}<span class="project-header-date-clients__sep" aria-hidden="true"> | </span><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
   }
+  if (dateSpan) return `<div class="project-header-date-clients">${dateSpan}</div>`;
+  if (clientsInner) {
+    return `<div class="project-header-date-clients"><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
+  }
+  return "";
+}
 
-  const inner = `
-<header class="site-nav">
-  <a class="brand" href="/">Work</a>
-</header>
-<main class="page">
-  <div class="back-row"><a href="/">← All projects</a></div>
-  <article>
+/** Article markup shared by the live page and standalone HTML export. */
+export function projectArticleInnerHtml(
+  project: ProjectData,
+  team: TeamMember[],
+  primaryRefs: ProjectClientRef[],
+  viaClients: Client[],
+  galleryMode: "interactive" | "static",
+): string {
+  const dateClientsRow = buildDateClientsRow(project, primaryRefs, viaClients);
+  return `<article>
     <header class="project-header">
-      <h1>${escapeHtml(project.title)}</h1>
+      <h1 id="project-heading">${escapeHtml(project.title)}</h1>
       ${project.summary ? `<p class="dek">${escapeHtml(project.summary)}</p>` : ""}
       ${dateClientsRow}
     </header>
     <div id="article-body" class="article-body">${project.rendered_html}</div>
     ${linksSection(project.project_links)}
-    ${gallerySection(project.gallery_images)}
+    ${gallerySection(project.gallery_images, galleryMode)}
     ${teamFooterMinimal(team)}
     ${tagsAndUpdatedFooter(project.tags ?? [], project.edited_at)}
-  </article>
+  </article>`;
+}
+
+function projectToolbarHeader(project: ProjectData): string {
+  const id = escapeHtml(project.id);
+  const title = escapeHtml(project.title);
+  const base = escapeHtml(safeDownloadBasename(project.title, project.id));
+  return `<header class="site-nav site-nav--project">
+  <div class="site-nav__start">
+    <a class="brand" href="/">Work</a>
+    <a class="site-nav__crumb" href="/">All projects</a>
+  </div>
+  <div class="site-nav__title-slot">
+    <span class="site-nav__doc-title" id="site-nav-doc-title" aria-hidden="true">${title}</span>
+  </div>
+  <nav class="site-nav__tools" aria-label="Share and download">
+    <button type="button" class="site-nav__tool" data-project-share aria-label="Share this project">Share</button>
+    <a class="site-nav__tool site-nav__tool--link" href="/${id}.md" download="${base}.md">Markdown</a>
+    <a class="site-nav__tool site-nav__tool--link" href="/${id}/export.html" download="${base}.html">HTML</a>
+  </nav>
+</header>`;
+}
+
+export function projectPublicPage(
+  project: ProjectData,
+  team: TeamMember[],
+  primaryRefs: ProjectClientRef[],
+  viaClients: Client[],
+): string {
+  const inner = `${projectToolbarHeader(project)}
+<main class="page page--project">
+${projectArticleInnerHtml(project, team, primaryRefs, viaClients, "interactive")}
 </main>`;
 
   const suffixParts: string[] = [];
@@ -152,6 +215,7 @@ export function projectPublicPage(
   suffixParts.push(`<script src="/project-runtime.js" defer></script>`);
 
   return layoutPage(project.title, inner, {
+    bodyClass: "page-project",
     bodySuffix: suffixParts.join("\n"),
   });
 }

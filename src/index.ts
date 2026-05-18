@@ -11,6 +11,7 @@ import { canAuthor, forbidden } from "./auth";
 import { generateSlug, isValidSlug } from "./slug";
 import { BodyTooLargeError, readBoundedText, readJsonBody } from "./request-body";
 import { applySecurityHeaders } from "./security-headers";
+import { buildStandaloneProjectHtml, safeExportBasename } from "./project-export-html";
 import { PROJECT_RUNTIME_JS } from "./project-runtime-bundled";
 import { adminTemplate } from "./views/admin";
 import { homePage, sortEntries } from "./views/home";
@@ -318,6 +319,11 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
     return methodNotAllowed("GET");
   }
 
+  const exportEarly = url.pathname.match(/^\/([0-9a-hjkmnpqrstvwxyz]{8})\/export\.html$/);
+  if (exportEarly && request.method !== "GET" && request.method !== "HEAD") {
+    return methodNotAllowed("GET, HEAD");
+  }
+
   if (url.pathname === "/admin" && request.method === "GET") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
     if (!canAuthor(request, env)) return forbidden(request, url);
@@ -463,6 +469,12 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
     return apiGetProject(apiMatch[1], env);
   }
 
+  const exportHtmlMatch = url.pathname.match(/^\/([0-9a-hjkmnpqrstvwxyz]{8})\/export\.html$/);
+  if (exportHtmlMatch && (request.method === "GET" || request.method === "HEAD")) {
+    if (!(await allow(env.READ_LIMIT, ip))) return rateLimited();
+    return getProjectExportHtml(exportHtmlMatch[1], request, env);
+  }
+
   const postMatch = url.pathname.match(PROJECT_URL_RE);
   if (postMatch && request.method === "GET") {
     if (!(await allow(env.READ_LIMIT, ip))) return rateLimited();
@@ -470,6 +482,35 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
   }
 
   return new Response("Not found", { status: 404 });
+}
+
+async function getProjectExportHtml(id: string, request: Request, env: Env): Promise<Response> {
+  if (!isValidSlug(id)) return new Response("Not found", { status: 404 });
+  if (!(await projectExists(env, id))) return new Response("Not found", { status: 404 });
+  const project = await fetchProjectGet(env, id);
+  if (!project) return new Response("Gone", { status: 410 });
+
+  const team = mergeProjectTeamRoles(
+    await resolveTeam(env, project.team_member_ids),
+    project.team_member_roles,
+  );
+  const primaryRefs = await resolveProjectPrimaryRefs(env, effectiveProjectClientIds(project));
+  const viaClients = await resolveClientsInOrder(env, project.via_client_ids ?? []);
+
+  const origin = new URL(request.url).origin;
+  const base = safeExportBasename(project.title, project.id);
+  const headers: Record<string, string> = {
+    "Content-Type": "text/html; charset=utf-8",
+    "Content-Disposition": `attachment; filename="${base}.html"`,
+    "Cache-Control": "public, max-age=120, stale-while-revalidate=60",
+  };
+
+  if (request.method === "HEAD") {
+    return new Response(null, { headers });
+  }
+
+  const html = await buildStandaloneProjectHtml(project, team, primaryRefs, viaClients, origin, fetch);
+  return new Response(html, { headers });
 }
 
 async function home(env: Env, url: URL): Promise<Response> {
