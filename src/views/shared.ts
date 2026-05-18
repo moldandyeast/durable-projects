@@ -863,21 +863,33 @@ export function layoutPage(
       font-weight: 400;
       padding: 0 0.18em;
     }
+    /* Cards match the native video aspect (16:9) so Cloudflare Stream iframes
+       don't letterbox, then everything sits at a 1.1× scale for a tight crop
+       (hides any residual bars on non-standard sources and gives images a
+       slightly tighter, more editorial feel). Hover nudges to 1.13. */
     .index__media {
       position: relative;
-      aspect-ratio: 4 / 3;
+      aspect-ratio: 16 / 9;
       overflow: hidden;
       background: color-mix(in srgb, var(--fg) 3%, transparent);
+    }
+    .index__media img,
+    .index__media-iframe,
+    .index__media-video {
+      transform: scale(1.1);
+      transform-origin: center;
+      transition: transform 0.55s var(--ease-out-expo);
     }
     .index__media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.55s var(--ease-out-expo);
     }
-    .index__row:hover .index__media img {
-      transform: scale(1.018);
+    .index__row:hover .index__media img,
+    .index__row:hover .index__media-iframe,
+    .index__row:hover .index__media-video {
+      transform: scale(1.13);
     }
     .index__media--video {
       background: #000;
@@ -918,7 +930,6 @@ export function layoutPage(
         grid-template-columns: 1fr;
         row-gap: clamp(2rem, 5vw, 2.8rem);
       }
-      .index__media { aspect-ratio: 16 / 10; }
     }
 
     /* Project detail anchors */
