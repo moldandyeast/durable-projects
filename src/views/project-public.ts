@@ -83,15 +83,22 @@ export function projectPublicPage(
   primaryRefs: ProjectClientRef[],
   viaClients: Client[],
 ): string {
-  const clientLine =
+  const clientsInner =
     primaryRefs.length ?
-      `<p class="muted">${primaryClientSegments(primaryRefs)}${projectViaSuffix(viaClients)}</p>`
+      `${primaryClientSegments(primaryRefs)}${projectViaSuffix(viaClients)}`
     : "";
 
   const sortRaw = project.sort_date?.trim();
-  const metaParts: string[] = [];
-  if (sortRaw) metaParts.push(`<span class="meta-row__date">Date : ${escapeHtml(sortRaw)}</span>`);
-  const metaRow = metaParts.length ? `<div class="meta-row">${metaParts.join("")}</div>` : "";
+  const dateSpan = sortRaw ? `<span class="meta-row__date">Date : ${escapeHtml(sortRaw)}</span>` : "";
+
+  let dateClientsRow = "";
+  if (dateSpan && clientsInner) {
+    dateClientsRow = `<div class="project-header-date-clients">${dateSpan}<span class="project-header-date-clients__sep" aria-hidden="true"> | </span><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
+  } else if (dateSpan) {
+    dateClientsRow = `<div class="project-header-date-clients">${dateSpan}</div>`;
+  } else if (clientsInner) {
+    dateClientsRow = `<div class="project-header-date-clients"><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
+  }
 
   const inner = `
 <header class="site-nav">
@@ -103,12 +110,11 @@ export function projectPublicPage(
     <header class="project-header">
       <h1>${escapeHtml(project.title)}</h1>
       ${project.summary ? `<p class="dek">${escapeHtml(project.summary)}</p>` : ""}
-      ${clientLine}
-      ${metaRow}
+      ${dateClientsRow}
     </header>
+    <div class="article-body">${project.rendered_html}</div>
     ${gallerySection(project.gallery_images)}
     ${linksSection(project.project_links)}
-    <div class="article-body">${project.rendered_html}</div>
     ${teamFooterMinimal(team)}
     ${tagsAndUpdatedFooter(project.tags ?? [], project.edited_at)}
   </article>

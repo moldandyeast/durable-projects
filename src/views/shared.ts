@@ -122,18 +122,48 @@ export function layoutPage(
       padding: 1.25rem clamp(1rem, 4vw, 2rem) 5rem;
     }
     .muted { color: var(--muted); font-size: 0.92rem; }
-    .client-via { color: var(--muted); font-weight: 400; white-space: nowrap; }
-    .muted a.project-client-link {
+
+    .project-header-date-clients {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0 0.35rem;
+      row-gap: 0.35rem;
+      margin: 0 0 0.85rem;
+      max-width: 48rem;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      font-weight: 500;
+      color: var(--fg-soft);
+      letter-spacing: -0.01em;
+    }
+    .project-header-date-clients__sep {
+      color: color-mix(in srgb, var(--muted) 55%, var(--fg-soft));
+      user-select: none;
+      flex-shrink: 0;
+      margin: 0 0.2rem;
+      font-weight: 400;
+    }
+    .project-header-date-clients .meta-row__date {
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .project-header-date-clients .client-via {
+      font-weight: 400;
+      color: color-mix(in srgb, var(--fg-soft) 72%, var(--muted));
+      white-space: nowrap;
+    }
+    .project-header-date-clients a.project-client-link {
       color: inherit;
       font-weight: inherit;
       text-decoration: none;
     }
-    .muted a.project-client-link:hover {
+    .project-header-date-clients a.project-client-link:hover {
       color: var(--accent);
       text-decoration: underline;
       text-underline-offset: 0.18em;
     }
-    .muted a.project-client-link:focus-visible {
+    .project-header-date-clients a.project-client-link:focus-visible {
       outline: 1px solid var(--accent);
       outline-offset: 2px;
       border-radius: 2px;
@@ -303,18 +333,6 @@ export function layoutPage(
       margin: 0 0 1rem;
       max-width: 42rem;
     }
-    .meta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem 1.25rem;
-      align-items: baseline;
-      font-size: 0.88rem;
-      color: var(--muted);
-    }
-    .meta-row strong { color: var(--fg-soft); font-weight: 600; }
-    .meta-row__date {
-      font-variant-numeric: tabular-nums;
-    }
     .section-title {
       font-size: 0.72rem;
       font-weight: 700;
@@ -449,6 +467,7 @@ export function layoutPage(
       font-size: 1.02rem;
       line-height: 1.65;
       color: var(--fg-soft);
+      margin-bottom: 2.5rem;
     }
     .article-body > *:first-child { margin-top: 0; }
     .article-body h1, .article-body h2, .article-body h3, .article-body h4 {
