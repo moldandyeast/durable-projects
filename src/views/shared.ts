@@ -858,18 +858,18 @@ export function layoutPage(
       font-feature-settings: var(--features-tnum);
     }
     .index__body {
-      grid-column: 3 / span 5;
+      grid-column: 3 / span 4;
       display: flex;
       flex-direction: column;
-      gap: 0.65rem;
+      gap: 0.55rem;
       min-width: 0;
     }
     .index__title {
       font-family: var(--font-display);
-      font-size: clamp(1.85rem, 4vw, 3.2rem);
+      font-size: clamp(1.55rem, 3vw, 2.45rem);
       font-weight: 600;
-      letter-spacing: -0.032em;
-      line-height: 1.02;
+      letter-spacing: -0.028em;
+      line-height: 1.04;
       color: var(--fg);
       margin: 0 0 0.1rem;
       text-wrap: balance;
@@ -880,12 +880,12 @@ export function layoutPage(
     }
     .index__dek {
       margin: 0;
-      font-size: var(--text-md);
-      letter-spacing: var(--tk-body);
-      line-height: 1.48;
-      color: color-mix(in srgb, var(--fg-soft) 90%, var(--muted));
+      font-size: var(--text-sm);
+      letter-spacing: var(--tk-small);
+      line-height: 1.5;
+      color: color-mix(in srgb, var(--fg-soft) 88%, var(--muted));
       text-wrap: pretty;
-      max-width: 32rem;
+      max-width: 26rem;
     }
     .index__clients {
       margin: 0.35rem 0 0;
@@ -904,7 +904,7 @@ export function layoutPage(
     }
     .index__media {
       position: relative;
-      grid-column: 8 / span 5;
+      grid-column: 7 / span 6;
       aspect-ratio: 16 / 10;
       overflow: hidden;
       background: color-mix(in srgb, var(--fg) 3%, transparent);
@@ -943,9 +943,10 @@ export function layoutPage(
           transparent);
     }
 
-    /* Gerstner-style alternation — flip body/media every other row. */
-    .index__row--flip .index__body { grid-column: 8 / span 5; grid-row: 1; }
-    .index__row--flip .index__media { grid-column: 3 / span 5; grid-row: 1; }
+    /* Gerstner-style alternation — flip body/media every other row.
+       Image stays 6 cols wide and dominates; the text rail stays 4 cols. */
+    .index__row--flip .index__body { grid-column: 9 / span 4; grid-row: 1; }
+    .index__row--flip .index__media { grid-column: 3 / span 6; grid-row: 1; }
 
     .index__empty {
       grid-column: 3 / -1;
@@ -957,10 +958,10 @@ export function layoutPage(
     }
     @media (max-width: 1023px) {
       .index__num { grid-column: 1 / span 2; padding-top: 0.6em; }
-      .index__body { grid-column: 3 / span 5; }
-      .index__media { grid-column: 8 / span 5; }
-      .index__row--flip .index__body { grid-column: 8 / span 5; grid-row: 1; }
-      .index__row--flip .index__media { grid-column: 3 / span 5; grid-row: 1; }
+      .index__body { grid-column: 3 / span 4; }
+      .index__media { grid-column: 7 / span 6; }
+      .index__row--flip .index__body { grid-column: 9 / span 4; grid-row: 1; }
+      .index__row--flip .index__media { grid-column: 3 / span 6; grid-row: 1; }
     }
     @media (max-width: 720px) {
       .index { grid-template-columns: 1fr; column-gap: 0; }
