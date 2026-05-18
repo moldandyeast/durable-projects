@@ -64,7 +64,6 @@ function indexRow(entry: IndexEntry, idx: number, clientLabels: Map<string, stri
     ${clientHtml}
   </div>
   ${media}
-  <span class="index__arrow" aria-hidden="true">→</span>
 </a>`;
 }
 

@@ -769,6 +769,19 @@ export function layoutPage(
       column-gap: var(--grid-gap);
       align-items: baseline;
     }
+    /* Lift the hero title locally so the index opens with confident display type,
+       without changing the shared --text-h1-display used by project pages. */
+    .index__hero .project__title {
+      font-size: clamp(2.4rem, 6.4vw, 4.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+      max-width: none;
+      margin-bottom: 0.65rem;
+    }
+    .index__hero .project__dek {
+      font-size: clamp(1.05rem, 1.45vw, 1.25rem);
+      max-width: 38rem;
+    }
     .index__hero .project__dek code {
       font-family: var(--font-mono);
       font-size: 0.86em;
@@ -792,7 +805,7 @@ export function layoutPage(
       grid-template-columns: subgrid;
       column-gap: var(--grid-gap);
       align-items: start;
-      padding: clamp(1.1rem, 1.8vw, 1.55rem) 0;
+      padding: clamp(1.65rem, 2.6vw, 2.4rem) 0;
       border-bottom: 1px solid var(--hairline);
       text-decoration: none;
       color: inherit;
@@ -811,13 +824,13 @@ export function layoutPage(
       align-items: baseline;
       gap: 0;
       font-family: var(--font-mono);
-      font-size: var(--text-2xs);
+      font-size: var(--text-xs);
       letter-spacing: 0.04em;
       text-transform: uppercase;
       line-height: 1.4;
-      color: color-mix(in srgb, var(--muted) 72%, transparent);
+      color: color-mix(in srgb, var(--muted) 78%, transparent);
       white-space: nowrap;
-      padding-top: 0.4em;
+      padding-top: 0.55em;
     }
     .index__num-n {
       color: color-mix(in srgb, var(--fg) 75%, var(--muted));
@@ -833,18 +846,18 @@ export function layoutPage(
       font-feature-settings: var(--features-tnum);
     }
     .index__body {
-      grid-column: 3 / span 6;
+      grid-column: 3 / span 5;
       display: flex;
       flex-direction: column;
-      gap: 0.42rem;
+      gap: 0.6rem;
       min-width: 0;
     }
     .index__title {
       font-family: var(--font-display);
-      font-size: var(--text-h2);
+      font-size: clamp(1.55rem, 3vw, 2.45rem);
       font-weight: 600;
-      letter-spacing: var(--tk-display);
-      line-height: 1.16;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
       color: var(--fg);
       margin: 0;
       text-wrap: balance;
@@ -855,14 +868,15 @@ export function layoutPage(
     }
     .index__dek {
       margin: 0;
-      font-size: var(--text-sm);
+      font-size: var(--text-md);
       letter-spacing: var(--tk-small);
-      line-height: 1.5;
-      color: color-mix(in srgb, var(--fg-soft) 85%, var(--muted));
+      line-height: 1.48;
+      color: color-mix(in srgb, var(--fg-soft) 88%, var(--muted));
       text-wrap: pretty;
+      max-width: 32rem;
     }
     .index__clients {
-      margin: 0.1rem 0 0;
+      margin: 0.2rem 0 0;
       font-family: var(--font-mono);
       font-size: var(--text-2xs);
       font-weight: 500;
@@ -878,21 +892,21 @@ export function layoutPage(
     }
     .index__media {
       position: relative;
-      grid-column: 9 / span 3;
+      grid-column: 8 / span 5;
       aspect-ratio: 16 / 10;
       overflow: hidden;
-      border: 1px solid var(--hairline);
-      background: color-mix(in srgb, var(--fg) 3%, transparent);
+      border: 0;
+      background: transparent;
     }
     .index__media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.45s var(--ease-standard);
+      transition: transform 0.5s var(--ease-out-expo);
     }
     .index__row:hover .index__media img {
-      transform: scale(1.02);
+      transform: scale(1.015);
     }
     .index__media--video {
       background: #000;
@@ -916,23 +930,10 @@ export function layoutPage(
           color-mix(in srgb, var(--fg) 4%, transparent),
           color-mix(in srgb, var(--fg) 1%, transparent) 60%,
           transparent);
+      border: 1px solid var(--hairline);
     }
     .index__arrow {
-      grid-column: 12;
-      justify-self: end;
-      align-self: start;
-      padding-top: 0.45em;
-      font-family: var(--font-mono);
-      font-size: var(--text-sm);
-      color: color-mix(in srgb, var(--muted) 55%, transparent);
-      transition:
-        transform var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard);
-      user-select: none;
-    }
-    .index__row:hover .index__arrow {
-      color: var(--accent);
-      transform: translateX(3px);
+      display: none;
     }
     .index__empty {
       grid-column: 3 / -1;
@@ -944,23 +945,23 @@ export function layoutPage(
     }
     @media (max-width: 1023px) {
       .index__num { grid-column: 1 / span 3; }
-      .index__body { grid-column: 4 / span 5; }
-      .index__media { grid-column: 9 / span 3; }
-      .index__arrow { grid-column: 12; }
+      .index__body { grid-column: 4 / span 4; }
+      .index__media { grid-column: 8 / span 5; }
     }
     @media (max-width: 720px) {
       .index { grid-template-columns: 1fr; column-gap: 0; }
       .index__hero { grid-template-columns: 1fr; row-gap: 0.45rem; }
+      .index__hero .project__title { font-size: clamp(1.95rem, 9vw, 2.6rem); }
       .index__list { grid-template-columns: 1fr; }
       .index__row {
         grid-template-columns: 1fr;
-        row-gap: 0.65rem;
-        padding: 1rem 0;
+        row-gap: 0.9rem;
+        padding: 1.4rem 0;
       }
       .index__num { grid-column: 1; padding-top: 0; }
       .index__body { grid-column: 1; }
-      .index__media { grid-column: 1; aspect-ratio: 16 / 10; }
-      .index__arrow { display: none; }
+      .index__title { font-size: clamp(1.4rem, 6.4vw, 1.8rem); }
+      .index__media { grid-column: 1; aspect-ratio: 4 / 3; order: -1; }
     }
 
     /* Project detail anchors */
