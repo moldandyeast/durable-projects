@@ -129,26 +129,26 @@ function galleryItem(
   const heroClass = i === 0 ? " gallery-figure--hero" : "";
   const kind = detectMediaKind(img.url);
 
-  // Cloudflare Stream — embed the official iframe player
+  // Cloudflare Stream — embed the official iframe player (autoplay + muted + looped)
   if (kind === "video-stream") {
     const ref = parseStreamUrl(img.url);
     if (ref) {
-      const src = streamIframeUrl(ref);
+      const src = streamIframeUrl(ref, { autoplay: true });
       const titleAttr = escapeHtml(altText || `Video ${i + 1} of ${total}`);
       return `<figure class="gallery-figure gallery-figure--video${heroClass}">
   <div class="gallery-video">
-    <iframe class="gallery-video__iframe" src="${escapeHtml(src)}" loading="lazy" title="${titleAttr}" allow="accelerometer; gyroscope; encrypted-media; picture-in-picture;" allowfullscreen></iframe>
+    <iframe class="gallery-video__iframe" src="${escapeHtml(src)}" loading="lazy" title="${titleAttr}" allow="autoplay; accelerometer; gyroscope; encrypted-media; picture-in-picture;" allowfullscreen></iframe>
   </div>
   ${capHtml}
 </figure>`;
     }
   }
 
-  // Direct .mp4/.webm/… — native <video> element with controls
+  // Direct .mp4/.webm/… — native <video>, autoplay + muted + looped, controls available
   if (kind === "video-file") {
     return `<figure class="gallery-figure gallery-figure--video${heroClass}">
   <div class="gallery-video">
-    <video class="gallery-video__el" src="${escapeHtml(img.url)}" controls preload="metadata" playsinline></video>
+    <video class="gallery-video__el" src="${escapeHtml(img.url)}" autoplay loop muted playsinline controls preload="metadata"></video>
   </div>
   ${capHtml}
 </figure>`;

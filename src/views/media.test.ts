@@ -78,6 +78,12 @@ describe("streamIframeUrl", () => {
       `${ref.base}/iframe?autoplay=true&loop=true&muted=true&controls=false&preload=auto`,
     );
   });
+
+  it("returns autoplay+loop+muted with controls visible when autoplay is set", () => {
+    expect(streamIframeUrl(ref, { autoplay: true })).toBe(
+      `${ref.base}/iframe?autoplay=true&loop=true&muted=true&preload=auto`,
+    );
+  });
 });
 
 describe("streamThumbnailUrl", () => {

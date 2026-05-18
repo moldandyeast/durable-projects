@@ -38,11 +38,16 @@ export function parseStreamUrl(url: string): StreamRef | null {
 export interface StreamIframeOpts {
   /** Autoplay + loop + muted + no controls — used for index previews. */
   loop?: boolean;
+  /** Autoplay + loop + muted, controls visible — used for gallery videos. */
+  autoplay?: boolean;
 }
 
 export function streamIframeUrl(ref: StreamRef, opts: StreamIframeOpts = {}): string {
   if (opts.loop) {
     return `${ref.base}/iframe?autoplay=true&loop=true&muted=true&controls=false&preload=auto`;
+  }
+  if (opts.autoplay) {
+    return `${ref.base}/iframe?autoplay=true&loop=true&muted=true&preload=auto`;
   }
   return `${ref.base}/iframe?preload=metadata`;
 }
