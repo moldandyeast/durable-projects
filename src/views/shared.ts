@@ -15,10 +15,11 @@ const FONT_HEAD_ONEST = `<link rel="preconnect" href="https://fonts.googleapis.c
 export function layoutPage(
   title: string,
   body: string,
-  opts?: { bodyClass?: string; extraHead?: string },
+  opts?: { bodyClass?: string; extraHead?: string; bodySuffix?: string },
 ): string {
   const bodyClassAttr = opts?.bodyClass?.trim() ? ` class="${escapeHtml(opts.bodyClass.trim())}"` : "";
   const extraHead = opts?.extraHead ?? "";
+  const bodySuffix = opts?.bodySuffix ?? "";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -133,37 +134,39 @@ export function layoutPage(
       max-width: 48rem;
       font-size: 1.05rem;
       line-height: 1.55;
-      font-weight: 500;
-      color: var(--fg-soft);
       letter-spacing: -0.01em;
+      font-weight: 400;
+      color: color-mix(in srgb, var(--muted) 55%, var(--fg-soft));
+    }
+    .project-header-date-clients__muted {
+      color: color-mix(in srgb, var(--muted) 72%, transparent);
+      font-weight: 400;
+    }
+    .project-header-date-clients__value {
+      color: var(--fg-soft);
+      font-weight: 500;
+    }
+    .project-header-date-clients__date .project-header-date-clients__value {
+      font-variant-numeric: tabular-nums;
     }
     .project-header-date-clients__sep {
-      color: color-mix(in srgb, var(--muted) 55%, var(--fg-soft));
+      color: color-mix(in srgb, var(--muted) 72%, transparent);
       user-select: none;
       flex-shrink: 0;
       margin: 0 0.2rem;
       font-weight: 400;
     }
-    .project-header-date-clients .meta-row__date {
-      font-variant-numeric: tabular-nums;
-      flex-shrink: 0;
-    }
-    .project-header-date-clients .client-via {
-      font-weight: 400;
-      color: color-mix(in srgb, var(--fg-soft) 72%, var(--muted));
-      white-space: nowrap;
-    }
-    .project-header-date-clients a.project-client-link {
+    .project-header-date-clients__value a.project-client-link {
       color: inherit;
       font-weight: inherit;
       text-decoration: none;
     }
-    .project-header-date-clients a.project-client-link:hover {
+    .project-header-date-clients__value a.project-client-link:hover {
       color: var(--accent);
       text-decoration: underline;
       text-underline-offset: 0.18em;
     }
-    .project-header-date-clients a.project-client-link:focus-visible {
+    .project-header-date-clients__value a.project-client-link:focus-visible {
       outline: 1px solid var(--accent);
       outline-offset: 2px;
       border-radius: 2px;
@@ -341,6 +344,187 @@ export function layoutPage(
       color: var(--muted);
       margin: 0 0 1rem;
     }
+
+    /* Full-bleed project gallery (editorial strip, Rauno-ish) */
+    .project-gallery {
+      margin: 2.5rem 0;
+    }
+    .project-gallery__head {
+      max-width: var(--max);
+      margin: 0 auto 1rem;
+      padding: 0 clamp(1rem, 4vw, 2rem);
+    }
+    .gallery-strip {
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .gallery-figure {
+      margin: 0;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      overflow: hidden;
+      background: var(--bg-elevated);
+    }
+    .gallery-thumb {
+      display: block;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      background: transparent;
+      cursor: zoom-in;
+      color: inherit;
+      font: inherit;
+      line-height: 0;
+    }
+    .gallery-thumb:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+    }
+    .gallery-thumb img {
+      width: 100%;
+      height: auto;
+      vertical-align: middle;
+      display: block;
+      transition: opacity 0.35s var(--ease-out-expo);
+    }
+    @media (hover: hover) {
+      .gallery-thumb:hover img {
+        opacity: 0.92;
+      }
+    }
+    .gallery-strip .gallery-figcaption {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0.55rem clamp(1rem, 4vw, 2rem) 0.15rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+    }
+    .gallery-figure:last-child .gallery-figcaption {
+      padding-bottom: 0;
+    }
+
+    .gallery-lightbox {
+      padding: 0;
+      border: none;
+      margin: 0;
+      max-width: none;
+      max-height: none;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+    .gallery-lightbox::backdrop {
+      background: rgba(12, 12, 12, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .gallery-lightbox__shell {
+      position: relative;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: clamp(3rem, 8vw, 4rem) clamp(0.75rem, 3vw, 1.25rem) clamp(1.5rem, 4vw, 2rem);
+    }
+    .gallery-lightbox__close {
+      position: absolute;
+      top: clamp(0.65rem, 2vw, 1rem);
+      right: clamp(0.65rem, 2vw, 1rem);
+      z-index: 2;
+      padding: 0.4rem 0.65rem;
+      border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+      color: var(--fg-soft);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .gallery-lightbox__close:hover {
+      border-color: var(--accent);
+      color: var(--fg);
+    }
+    .gallery-lightbox__row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      width: 100%;
+      max-width: min(96vw, 1680px);
+      margin: 0 auto;
+      flex: 1;
+      min-height: 0;
+    }
+    .gallery-lightbox__nav {
+      flex-shrink: 0;
+      width: 2.75rem;
+      height: 2.75rem;
+      padding: 0;
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--bg-elevated) 55%, transparent);
+      color: var(--fg-soft);
+      font-size: 1.65rem;
+      font-weight: 300;
+      line-height: 1;
+      cursor: pointer;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+    .gallery-lightbox__nav:hover {
+      border-color: var(--accent);
+      color: var(--fg);
+    }
+    .gallery-lightbox__figure {
+      margin: 0;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+    }
+    .gallery-lightbox__img {
+      display: block;
+      max-width: 100%;
+      max-height: min(82vh, 1400px);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+    .gallery-lightbox__caption {
+      margin: 0;
+      padding: 0 0.5rem;
+      max-width: 42rem;
+      text-align: center;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: color-mix(in srgb, var(--fg) 78%, var(--muted));
+    }
+    .gallery-lightbox__caption:empty {
+      display: none;
+    }
+
+    /* Admin + compact grids elsewhere */
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
@@ -365,6 +549,23 @@ export function layoutPage(
       font-size: 0.8rem;
       color: var(--muted);
       line-height: 1.35;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .gallery-thumb img {
+        transition: none;
+      }
+      .gallery-lightbox::backdrop {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+    }
+    @media (max-width: 520px) {
+      .gallery-lightbox__nav {
+        width: 2.35rem;
+        height: 2.35rem;
+        font-size: 1.35rem;
+      }
     }
     .project-team-min {
       margin: 2.75rem 0 0;
@@ -2412,6 +2613,7 @@ export function layoutPage(
 </head>
 <body${bodyClassAttr}>
 ${body}
+${bodySuffix}
 </body>
 </html>`;
 }

@@ -3,14 +3,80 @@ import { escapeHtml, layoutPage } from "./shared";
 
 function gallerySection(images: GalleryImage[]): string {
   if (!images.length) return "";
+  const n = images.length;
   const figures = images
-    .map((img) => {
+    .map((img, i) => {
+      const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
       const alt = escapeHtml(img.alt ?? "");
-      const cap = img.caption ? `<figcaption>${escapeHtml(img.caption)}</figcaption>` : "";
-      return `<figure><img src="${escapeHtml(img.url)}" alt="${alt}" loading="lazy"/>${cap}</figure>`;
+      const capEscaped = escapeHtml(rawCaption);
+      const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
+      const aria = escapeHtml(`Open image ${i + 1} of ${n} larger`);
+      return `<figure class="gallery-figure"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" loading="lazy" decoding="async"/></button>${capHtml}</figure>`;
     })
     .join("\n");
-  return `<section><h2 class="section-title">Gallery</h2><div class="gallery-grid">${figures}</div></section>`;
+  return `<section class="project-gallery" aria-label="Gallery"><div class="project-gallery__head"><h2 class="section-title">Gallery</h2></div><div class="gallery-strip" data-gallery-strip>${figures}</div></section>`;
+}
+
+/** Dialog + script appended before </body> when the page has a gallery strip. */
+function galleryLightboxFragment(): string {
+  const script = `(function(){
+  var strip=document.querySelector("[data-gallery-strip]");
+  var dlg=document.getElementById("gallery-lightbox");
+  if(!strip||!dlg||typeof dlg.showModal!=="function")return;
+  var imgEl=dlg.querySelector(".gallery-lightbox__img");
+  var capEl=dlg.querySelector(".gallery-lightbox__caption");
+  var prevBtn=dlg.querySelector("[data-gallery-prev]");
+  var nextBtn=dlg.querySelector("[data-gallery-next]");
+  if(!imgEl||!capEl)return;
+  var thumbs=[].slice.call(strip.querySelectorAll(".gallery-thumb"));
+  var idx=0;
+  function apply(i){
+    if(!thumbs.length)return;
+    idx=(i+thumbs.length)%thumbs.length;
+    var b=thumbs[idx];
+    imgEl.src=b.getAttribute("data-gallery-src")||"";
+    imgEl.alt=b.getAttribute("data-gallery-alt")||"";
+    var c=b.getAttribute("data-gallery-caption")||"";
+    capEl.textContent=c;
+    var multi=thumbs.length>1;
+    if(prevBtn)prevBtn.hidden=!multi;
+    if(nextBtn)nextBtn.hidden=!multi;
+  }
+  strip.addEventListener("click",function(ev){
+    var btn=ev.target.closest(".gallery-thumb");
+    if(!btn)return;
+    var j=thumbs.indexOf(btn);
+    if(j<0)return;
+    apply(j);
+    dlg.showModal();
+  });
+  dlg.addEventListener("click",function(ev){
+    if(ev.target===dlg)dlg.close();
+    if(ev.target.closest("[data-gallery-close]"))dlg.close();
+    if(ev.target.closest("[data-gallery-prev]")){ev.preventDefault();apply(idx-1);}
+    if(ev.target.closest("[data-gallery-next]")){ev.preventDefault();apply(idx+1);}
+  });
+  dlg.addEventListener("keydown",function(ev){
+    if(!dlg.open)return;
+    if(ev.key==="ArrowRight"){ev.preventDefault();apply(idx+1);}
+    if(ev.key==="ArrowLeft"){ev.preventDefault();apply(idx-1);}
+  });
+})();`;
+
+  return `<dialog id="gallery-lightbox" class="gallery-lightbox" aria-modal="true">
+<div class="gallery-lightbox__shell">
+<button type="button" class="gallery-lightbox__close" data-gallery-close>Close</button>
+<div class="gallery-lightbox__row">
+<button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--prev" data-gallery-prev aria-label="Previous image">&#8249;</button>
+<figure class="gallery-lightbox__figure">
+<img class="gallery-lightbox__img" alt="" decoding="async"/>
+<figcaption class="gallery-lightbox__caption"></figcaption>
+</figure>
+<button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--next" data-gallery-next aria-label="Next image">&#8250;</button>
+</div>
+</div>
+</dialog>
+<script>${script}<\/script>`;
 }
 
 function linksSection(links: ProjectLink[] | undefined): string {
@@ -60,21 +126,22 @@ function clientNameLink(c: { name: string; url?: string }): string {
 function projectViaSuffix(viaClients: Client[]): string {
   let s = "";
   for (const vc of viaClients) {
-    s += ` <span class="client-via">· via ${clientNameLink(vc)}</span>`;
+    s += `<span class="project-header-date-clients__muted"> · </span><span class="project-header-date-clients__value">via ${clientNameLink(vc)}</span>`;
   }
   return s;
 }
 
 function primaryClientSegments(refs: ProjectClientRef[]): string {
+  const mutedDot = '<span class="project-header-date-clients__muted"> · </span>';
   return refs
     .map((ref) => {
       const c = ref.client;
       const dirVia = ref.parent_client ?
-        ` <span class="client-via">· via ${clientNameLink(ref.parent_client)}</span>`
+        `${mutedDot}<span class="project-header-date-clients__value">via ${clientNameLink(ref.parent_client)}</span>`
       : "";
-      return `${clientNameLink(c)}${dirVia}`;
+      return `<span class="project-header-date-clients__value">${clientNameLink(c)}</span>${dirVia}`;
     })
-    .join(" · ");
+    .join(mutedDot);
 }
 
 export function projectPublicPage(
@@ -89,7 +156,9 @@ export function projectPublicPage(
     : "";
 
   const sortRaw = project.sort_date?.trim();
-  const dateSpan = sortRaw ? `<span class="meta-row__date">Date : ${escapeHtml(sortRaw)}</span>` : "";
+  const dateSpan = sortRaw ?
+    `<span class="project-header-date-clients__date"><span class="project-header-date-clients__muted">Date : </span><span class="project-header-date-clients__value">${escapeHtml(sortRaw)}</span></span>`
+  : "";
 
   let dateClientsRow = "";
   if (dateSpan && clientsInner) {
@@ -120,5 +189,7 @@ export function projectPublicPage(
   </article>
 </main>`;
 
-  return layoutPage(project.title, inner);
+  return layoutPage(project.title, inner, {
+    bodySuffix: project.gallery_images?.length ? galleryLightboxFragment() : undefined,
+  });
 }
