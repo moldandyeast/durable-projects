@@ -17,12 +17,7 @@ function gallerySection(images: GalleryImage[]): string {
       return `<figure class="gallery-figure${heroClass}"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/></button>${capHtml}</figure>`;
     })
     .join("\n");
-  return `<section id="project-gallery" class="project-gallery" aria-label="Selected work"><div class="project-gallery__top"><a class="project-jump__link" href="#article-body">Writing</a></div><div class="gallery-strip" data-gallery-strip>${figures}</div></section>`;
-}
-
-/** Minimal in-page anchors when prose + gallery both exist (no visible “Gallery” label). */
-function projectJumpNav(): string {
-  return `<nav class="project-jump" aria-label="On this page"><a class="project-jump__link" href="#article-body">Writing</a><span class="project-jump__sep" aria-hidden="true">·</span><a class="project-jump__link" href="#project-gallery">Media</a></nav>`;
+  return `<section id="project-gallery" class="project-gallery" aria-label="Selected work"><nav class="project-gallery__top" aria-label="Back to article"><a class="project-gallery__back-link" href="#article-body">Article</a></nav><div class="gallery-strip" data-gallery-strip>${figures}</div></section>`;
 }
 
 /** Dialog + external script before </body> when the page has a gallery strip (see /gallery-lightbox.js). */
@@ -133,9 +128,6 @@ export function projectPublicPage(
     dateClientsRow = `<div class="project-header-date-clients"><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
   }
 
-  const hasGallery = !!(project.gallery_images && project.gallery_images.length);
-  const jumpRow = hasGallery ? projectJumpNav() : "";
-
   const inner = `
 <header class="site-nav">
   <a class="brand" href="/">Work</a>
@@ -147,7 +139,6 @@ export function projectPublicPage(
       <h1>${escapeHtml(project.title)}</h1>
       ${project.summary ? `<p class="dek">${escapeHtml(project.summary)}</p>` : ""}
       ${dateClientsRow}
-      ${jumpRow}
     </header>
     <div id="article-body" class="article-body">${project.rendered_html}</div>
     ${gallerySection(project.gallery_images)}

@@ -359,43 +359,6 @@ export function layoutPage(
       margin: 0 0 1rem;
     }
 
-    .project-jump {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 0.45rem 0.55rem;
-      margin: 0.65rem 0 0;
-      max-width: 48rem;
-    }
-    .project-jump__link {
-      font-size: 0.625rem;
-      font-weight: 600;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: color-mix(in srgb, var(--muted) 75%, var(--fg-soft));
-      border-bottom: 1px solid transparent;
-      padding-bottom: 0.1em;
-      transition: color 0.18s var(--ease-out-expo), border-color 0.18s ease;
-    }
-    .project-jump__link:hover {
-      color: var(--fg-soft);
-      border-bottom-color: color-mix(in srgb, var(--muted) 50%, transparent);
-    }
-    .project-jump__link:focus-visible {
-      outline: 1px solid var(--accent);
-      outline-offset: 3px;
-      border-radius: 2px;
-      border-bottom-color: transparent;
-    }
-    .project-jump__sep {
-      font-size: 0.625rem;
-      font-weight: 400;
-      letter-spacing: 0.1em;
-      color: color-mix(in srgb, var(--muted) 62%, transparent);
-      user-select: none;
-    }
-
     #article-body,
     #project-gallery {
       scroll-margin-top: 1.5rem;
@@ -409,6 +372,25 @@ export function layoutPage(
       max-width: 48rem;
       margin: 0 0 clamp(1rem, 2.5vw, 1.5rem);
       padding: 0;
+    }
+    .project-gallery__back-link {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      letter-spacing: -0.012em;
+      text-decoration: none;
+      color: color-mix(in srgb, var(--muted) 82%, var(--fg-soft));
+      border-bottom: 1px solid transparent;
+      transition: color 0.16s var(--ease-out-expo), border-color 0.16s ease;
+    }
+    .project-gallery__back-link:hover {
+      color: var(--fg-soft);
+      border-bottom-color: color-mix(in srgb, var(--muted) 45%, transparent);
+    }
+    .project-gallery__back-link:focus-visible {
+      outline: 1px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+      border-bottom-color: transparent;
     }
     .gallery-strip {
       box-sizing: border-box;
