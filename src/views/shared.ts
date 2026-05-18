@@ -122,6 +122,15 @@ export function layoutPage(
       margin: 0 auto;
       padding: 1.25rem clamp(1rem, 4vw, 2rem) 5rem;
     }
+    /* Project detail — reading column centered (avoid a wide shell with left-ragged text) */
+    main.page > .back-row {
+      max-width: 48rem;
+      margin-inline: auto;
+    }
+    main.page > article {
+      max-width: 48rem;
+      margin-inline: auto;
+    }
     .muted { color: var(--muted); font-size: 0.92rem; }
 
     .project-header-date-clients {
