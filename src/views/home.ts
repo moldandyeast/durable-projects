@@ -100,5 +100,8 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
   </article>
 </main>`;
 
-  return layoutPage("Projects", inner, { bodyClass: "page-index" });
+  return layoutPage("Projects", inner, {
+    bodyClass: "page-index",
+    bodySuffix: `<script src="/project-runtime.js" defer></script>`,
+  });
 }

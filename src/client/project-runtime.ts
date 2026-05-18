@@ -83,6 +83,90 @@ function initProjectDekLayout(): void {
   });
 }
 
+/**
+ * Pick the largest font-size at which `text` fits within `width` in <= maxLines
+ * lines, using @chenglou/pretext for accurate measurement. Mutates el.style.
+ */
+function fitTextToWidth(
+  el: HTMLElement,
+  opts: { minPx: number; maxPx: number; maxLines: number },
+): void {
+  const text = (el.textContent ?? "").trim();
+  if (!text) return;
+  const width = el.clientWidth;
+  if (width <= 0) return;
+
+  const cs = getComputedStyle(el);
+  const rawFamily = firstFontFamily(cs.fontFamily);
+  const family = rawFamily.includes(" ") ? `"${rawFamily}"` : rawFamily;
+  const weight = cs.fontWeight || "400";
+  const baseFs = parseFloat(cs.fontSize) || 16;
+  const lhStr = cs.lineHeight;
+  const lhRatio = (() => {
+    if (lhStr === "normal") return 1.05;
+    if (lhStr.endsWith("px")) {
+      const px = parseFloat(lhStr);
+      return Number.isFinite(px) ? px / baseFs : 1.05;
+    }
+    const r = parseFloat(lhStr);
+    return Number.isFinite(r) ? r : 1.05;
+  })();
+  const lsOpts = letterSpacingPrepareOpts(cs);
+
+  const measure = (px: number): number => {
+    const font = `${weight} ${px}px ${family}`;
+    const prepared = prepare(text, font, lsOpts);
+    const lh = px * lhRatio;
+    const { height } = layout(prepared, width, lh);
+    return Math.max(1, Math.round(height / lh));
+  };
+
+  let lo = opts.minPx;
+  let hi = opts.maxPx;
+  let best = opts.minPx;
+  for (let i = 0; i < 18 && hi - lo > 0.5; i++) {
+    const mid = (lo + hi) / 2;
+    if (measure(mid) <= opts.maxLines) {
+      best = mid;
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  el.style.fontSize = `${best}px`;
+  el.style.lineHeight = `${best * lhRatio}px`;
+}
+
+function initIndexTitleFit(): void {
+  const titles = Array.prototype.slice.call(
+    document.querySelectorAll(".index__title"),
+  ) as HTMLElement[];
+  if (!titles.length) return;
+
+  const fit = (el: HTMLElement): void => {
+    const isHero = !!el.closest(".index__row--hero");
+    fitTextToWidth(el, {
+      minPx: isHero ? 56 : 26,
+      maxPx: isHero ? 176 : 88,
+      maxLines: isHero ? 2 : 2,
+    });
+  };
+
+  const runAll = (): void => titles.forEach(fit);
+
+  // First pass with fallback fonts so we reserve space; refine after webfonts.
+  runAll();
+  if (document.fonts?.ready) {
+    void document.fonts.ready.then(runAll);
+  }
+
+  let raf = 0;
+  window.addEventListener("resize", () => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(runAll);
+  });
+}
+
 function initProjectWhyLayout(): void {
   const nodes = Array.prototype.slice.call(
     document.querySelectorAll(".project__why-p"),
@@ -236,6 +320,9 @@ function boot(): void {
   if (document.body.classList.contains("page-project")) {
     initProjectStickyTitle();
     initProjectShare();
+  }
+  if (document.body.classList.contains("page-index")) {
+    initIndexTitleFit();
   }
   initProjectDekLayout();
   initProjectWhyLayout();
