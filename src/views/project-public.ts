@@ -224,18 +224,20 @@ function projectToolbarHeader(project: ProjectData): string {
   const title = escapeHtml(project.title);
   const base = escapeHtml(safeDownloadBasename(project.title, project.id));
   return `<header class="site-nav site-nav--project">
-  <div class="site-nav__start">
-    <a class="brand" href="/">Work</a>
-    <a class="site-nav__crumb" href="/">All projects</a>
+  <div class="site-nav__inner">
+    <div class="site-nav__start">
+      <a class="brand" href="/">Work</a>
+      <a class="site-nav__crumb" href="/">All projects</a>
+    </div>
+    <div class="site-nav__title-slot">
+      <span class="site-nav__doc-title" id="site-nav-doc-title" aria-hidden="true">${title}</span>
+    </div>
+    <nav class="site-nav__tools" aria-label="Share and download">
+      <button type="button" class="site-nav__tool" data-project-share aria-label="Share this project">Share</button>
+      <a class="site-nav__tool site-nav__tool--link" href="/${id}.md" download="${base}.md">MD</a>
+      <a class="site-nav__tool site-nav__tool--link" href="/${id}/export.html" download="${base}.html">HTML</a>
+    </nav>
   </div>
-  <div class="site-nav__title-slot">
-    <span class="site-nav__doc-title" id="site-nav-doc-title" aria-hidden="true">${title}</span>
-  </div>
-  <nav class="site-nav__tools" aria-label="Share and download">
-    <button type="button" class="site-nav__tool" data-project-share aria-label="Share this project">Share</button>
-    <a class="site-nav__tool site-nav__tool--link" href="/${id}.md" download="${base}.md">Markdown</a>
-    <a class="site-nav__tool site-nav__tool--link" href="/${id}/export.html" download="${base}.html">HTML</a>
-  </nav>
 </header>`;
 }
 
