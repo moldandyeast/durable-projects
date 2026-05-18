@@ -368,15 +368,35 @@ export function layoutPage(
       content: "— ";
     }
 
-    .project-updated-last {
+    .project-footer-meta {
       margin: 1rem 0 0;
       padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0.5rem;
       font-size: 0.68rem;
       letter-spacing: 0.02em;
       color: color-mix(in srgb, var(--muted) 88%, transparent);
       max-width: 48rem;
     }
-    .project-updated-last time {
+    .project-footer-meta__tags {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.35rem;
+    }
+    .project-footer-meta .tag {
+      margin: 0;
+      font-size: 0.62rem;
+      padding: 0.12rem 0.45rem;
+    }
+    .project-footer-meta__sep {
+      color: color-mix(in srgb, var(--muted) 70%, transparent);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .project-footer-meta time {
       font-variant-numeric: tabular-nums;
     }
 

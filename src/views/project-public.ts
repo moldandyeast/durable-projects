@@ -37,8 +37,15 @@ function teamFooterMinimal(team: TeamMember[]): string {
   return `<div class="project-team-min"><span class="project-team-min__tag">Team</span> ${chunks.join(" · ")}</div>`;
 }
 
-function lastUpdatedFooter(editedAt: string): string {
-  return `<p class="project-updated-last"><time datetime="${escapeHtml(editedAt)}">Updated ${escapeHtml(editedAt.slice(0, 10))}</time></p>`;
+/** Tags and last-updated on one line at the bottom: `tags | Updated …`. */
+function tagsAndUpdatedFooter(tags: string[], editedAt: string): string {
+  const list = Array.isArray(tags) ? tags.filter((t) => String(t).trim()) : [];
+  const updatedHtml = `<time datetime="${escapeHtml(editedAt)}">Updated ${escapeHtml(editedAt.slice(0, 10))}</time>`;
+  if (!list.length) {
+    return `<p class="project-footer-meta">${updatedHtml}</p>`;
+  }
+  const tagSpans = list.map((t) => `<span class="tag">${escapeHtml(String(t).trim())}</span>`).join("");
+  return `<p class="project-footer-meta"><span class="project-footer-meta__tags">${tagSpans}</span><span class="project-footer-meta__sep" aria-hidden="true"> | </span>${updatedHtml}</p>`;
 }
 
 function sortDateDisplay(sort_date: string | undefined): string {
@@ -81,11 +88,6 @@ export function projectPublicPage(
       `<p class="muted">${primaryClientSegments(primaryRefs)}${projectViaSuffix(viaClients)}</p>`
     : "";
 
-  const tags =
-    project.tags?.length ?
-      `<p>${project.tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</p>`
-    : "";
-
   const sd = sortDateDisplay(project.sort_date);
 
   const metaParts: string[] = [];
@@ -103,14 +105,13 @@ export function projectPublicPage(
       <h1>${escapeHtml(project.title)}</h1>
       ${project.summary ? `<p class="dek">${escapeHtml(project.summary)}</p>` : ""}
       ${clientLine}
-      ${tags}
       ${metaRow}
     </header>
     ${gallerySection(project.gallery_images)}
     ${linksSection(project.project_links)}
     <div class="article-body">${project.rendered_html}</div>
     ${teamFooterMinimal(team)}
-    ${lastUpdatedFooter(project.edited_at)}
+    ${tagsAndUpdatedFooter(project.tags ?? [], project.edited_at)}
   </article>
 </main>`;
 
