@@ -816,7 +816,7 @@ export function layoutPage(
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: 10px;
-      row-gap: 20px;
+      row-gap: 60px;
     }
     .index__row {
       display: flex;
@@ -929,7 +929,7 @@ export function layoutPage(
       .index__hero { grid-template-columns: 1fr; row-gap: 0.45rem; }
       .index__list {
         grid-template-columns: 1fr;
-        row-gap: 20px;
+        row-gap: 40px;
       }
     }
 
@@ -951,7 +951,7 @@ export function layoutPage(
       padding: 0;
       display: flex;
       flex-direction: column;
-      gap: clamp(2rem, 5vw, 3.75rem);
+      gap: 20px;
     }
     .gallery-figure {
       margin: 0;
