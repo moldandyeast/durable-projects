@@ -401,21 +401,21 @@ export function layoutPage(
       scroll-margin-top: 1.5rem;
     }
 
-    /* Project gallery — prose ↔ media via anchors; no block heading */
+    /* Project gallery — same left edge + measure as .article-body (main.page supplies horizontal padding) */
     .project-gallery {
-      margin: clamp(2.75rem, 7vw, 4rem) 0;
+      margin: 0 0 clamp(2.5rem, 6vw, 3.75rem);
     }
     .project-gallery__top {
-      max-width: var(--max);
-      margin: 0 auto clamp(1.15rem, 2.8vw, 1.85rem);
-      padding: 0 clamp(1rem, 4vw, 2rem);
+      max-width: 48rem;
+      margin: 0 0 clamp(1rem, 2.5vw, 1.5rem);
+      padding: 0;
     }
     .gallery-strip {
       box-sizing: border-box;
       width: 100%;
-      max-width: var(--max);
-      margin: 0 auto;
-      padding: 0 clamp(1rem, 4vw, 2rem);
+      max-width: 48rem;
+      margin: 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
       gap: clamp(2rem, 5vw, 3.75rem);
