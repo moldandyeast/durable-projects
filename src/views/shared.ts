@@ -196,7 +196,7 @@ export function layoutPage(
       height: 0;
       border: none;
       border-top: 1px solid var(--hairline);
-      margin: clamp(1.4rem, 2.5vw, 2.2rem) 0;
+      margin: 5px 0;
     }
     .project__row {
       grid-column: 1 / -1;
@@ -220,7 +220,7 @@ export function layoutPage(
       text-transform: uppercase;
       color: color-mix(in srgb, var(--muted) 72%, transparent);
       white-space: nowrap;
-      padding-top: 0.45em;
+      padding-top: 0.65em;
       user-select: none;
     }
     .project__index-num {
@@ -234,31 +234,44 @@ export function layoutPage(
       color: inherit;
     }
 
-    /* Hero */
+    /* Hero — Swiss display setting.
+       Tight leading (≤1), considered tracking, explicit OT features for kerning
+       and contextual alts. The dek tucks in close so the eye glides without a
+       paragraph break. */
     .project__hero-text {
       grid-column: 3 / -1;
       margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
     }
     .project__title {
       font-family: var(--font-display);
-      font-size: var(--text-h1-display);
+      font-size: clamp(1.85rem, 4.2vw, 2.55rem);
       font-weight: 600;
-      letter-spacing: var(--tk-display);
-      line-height: var(--lh-tight);
-      margin: 0 0 0.55rem;
+      letter-spacing: -0.046em;
+      line-height: 0.98;
+      margin: 0;
       color: var(--fg);
       text-wrap: balance;
       max-width: 22ch;
+      font-feature-settings: "kern", "calt", "liga", "ss01", "cv11";
+      font-variant-ligatures: common-ligatures contextual;
+      font-kerning: normal;
+      hanging-punctuation: first;
     }
     .project__dek {
       margin: 0;
-      font-size: var(--text-dek);
+      font-size: clamp(1.0625rem, 1.45vw, 1.22rem);
       font-weight: 400;
-      letter-spacing: var(--tk-dek);
-      color: color-mix(in srgb, var(--fg-soft) 90%, var(--muted));
-      line-height: 1.42;
+      letter-spacing: -0.018em;
+      color: color-mix(in srgb, var(--fg-soft) 92%, var(--muted));
+      line-height: 1.32;
       max-width: 36rem;
       text-wrap: pretty;
+      hanging-punctuation: first last;
+      font-feature-settings: "kern", "calt", "liga", "ss01", "cv11";
+      font-kerning: normal;
     }
 
     /* Spec sheet — Date / Clients / Via / Tags */

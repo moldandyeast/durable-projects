@@ -118,14 +118,15 @@ body{margin:0;font-family:var(--font-sans);font-size:var(--text-lg);line-height:
 a{color:inherit}
 .page{max-width:var(--grid-max);margin:0 auto;padding:1.6rem clamp(1rem,4vw,2rem) 4rem}
 .project{display:grid;grid-template-columns:repeat(var(--grid-cols),minmax(0,1fr));column-gap:var(--grid-gap);row-gap:0}
-.project__rule{grid-column:1/-1;height:0;border:none;border-top:1px solid var(--hairline);margin:clamp(1.4rem,2.5vw,2.2rem) 0}
+.project__rule{grid-column:1/-1;height:0;border:none;border-top:1px solid var(--hairline);margin:5px 0}
 .project__row{grid-column:1/-1;display:grid;grid-template-columns:subgrid;column-gap:var(--grid-gap);align-items:baseline}
-.project__index{grid-column:1/span 2;font-family:var(--font-mono);font-size:var(--text-2xs);letter-spacing:.02em;line-height:1.4;text-transform:uppercase;color:color-mix(in srgb,var(--muted) 72%,transparent);padding-top:.45em;white-space:nowrap}
+.project__index{grid-column:1/span 2;font-family:var(--font-mono);font-size:var(--text-2xs);letter-spacing:.02em;line-height:1.4;text-transform:uppercase;color:color-mix(in srgb,var(--muted) 72%,transparent);padding-top:.65em;white-space:nowrap}
 .project__index-num{color:color-mix(in srgb,var(--fg) 70%,var(--muted))}
 .project__index-sep{color:color-mix(in srgb,var(--muted) 45%,transparent)}
 .project__hero-text{grid-column:3/-1}
-.project__title{font-family:var(--font-display);font-size:var(--text-h1);font-weight:600;letter-spacing:var(--tk-display);line-height:1.06;margin:0 0 .55rem;color:var(--fg);text-wrap:balance;max-width:22ch}
-.project__dek{margin:0;font-size:var(--text-dek);letter-spacing:var(--tk-dek);color:color-mix(in srgb,var(--fg-soft) 90%,var(--muted));line-height:1.42;max-width:36rem;text-wrap:pretty}
+.project__hero-text{display:flex;flex-direction:column;gap:.3rem}
+.project__title{font-family:var(--font-display);font-size:clamp(1.85rem,4.2vw,2.55rem);font-weight:600;letter-spacing:-.046em;line-height:.98;margin:0;color:var(--fg);text-wrap:balance;max-width:22ch;font-feature-settings:"kern","calt","liga","ss01","cv11";font-variant-ligatures:common-ligatures contextual;font-kerning:normal;hanging-punctuation:first}
+.project__dek{margin:0;font-size:clamp(1.0625rem,1.45vw,1.22rem);letter-spacing:-.018em;color:color-mix(in srgb,var(--fg-soft) 92%,var(--muted));line-height:1.32;max-width:36rem;text-wrap:pretty;hanging-punctuation:first last;font-feature-settings:"kern","calt","liga","ss01","cv11";font-kerning:normal}
 .project__spec{grid-column:3/-1;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));column-gap:var(--grid-gap);row-gap:clamp(.8rem,1.5vw,1.15rem);margin:0;padding:0}
 .spec-cell{display:flex;flex-direction:column;gap:.32rem;min-width:0}
 .spec-cell--date{grid-column:span 2}
