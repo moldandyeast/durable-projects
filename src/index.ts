@@ -337,7 +337,7 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
   if (url.pathname === "/admin/api/projects" && request.method === "GET") {
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
     if (!canAuthor(request, env)) return forbidden(request, url);
-    const res = await indexStub(env).fetch("https://idx/internal/list-all");
+    const res = await indexStub(env).fetch("https://idx/internal/list");
     return new Response(await res.text(), {
       headers: { "Content-Type": "application/json; charset=utf-8" },
     });
