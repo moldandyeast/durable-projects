@@ -257,6 +257,7 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
     ...(viaIds.length ? { via_client_ids: viaIds } : {}),
     ...(viaClients.length ? { via_clients: viaClients } : {}),
     sort_date: data.sort_date,
+    ...(data.my_role ? { my_role: data.my_role } : {}),
     gallery_images: data.gallery_images,
     ...(data.project_links?.length ? { project_links: data.project_links } : {}),
     preview_image: data.preview_image,

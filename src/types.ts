@@ -57,6 +57,8 @@ export interface ProjectData {
    */
   via_client_ids?: string[];
   sort_date?: string;
+  /** Free-text role the portfolio owner played on this engagement (e.g. "Design Lead"). */
+  my_role?: string;
   gallery_images: GalleryImage[];
   /** Ordered outbound links (case study, repo, demo); omit or empty when none. */
   project_links?: ProjectLink[];
@@ -108,6 +110,8 @@ export interface ProjectEnvelope {
   /** Resolved `via_client_ids` in order (project intermediaries). */
   via_clients?: Client[];
   sort_date?: string;
+  /** Free-text role the portfolio owner played on this engagement. Omitted when empty. */
+  my_role?: string;
   gallery_images: GalleryImage[];
   /** Omitted when empty. */
   project_links?: ProjectLink[];

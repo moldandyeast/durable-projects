@@ -60,6 +60,12 @@ function specSheet(
       `<div class="spec-cell spec-cell--date"><dt>Date</dt><dd>${escapeHtml(date)}</dd></div>`,
     );
   }
+  const myRole = project.my_role?.trim();
+  if (myRole) {
+    cells.push(
+      `<div class="spec-cell spec-cell--my-role"><dt>My role</dt><dd>${escapeHtml(myRole)}</dd></div>`,
+    );
+  }
   if (primaryRefs.length) {
     cells.push(
       `<div class="spec-cell spec-cell--clients"><dt>${primaryRefs.length > 1 ? "Clients" : "Client"}</dt><dd>${specClientsValue(primaryRefs)}</dd></div>`,

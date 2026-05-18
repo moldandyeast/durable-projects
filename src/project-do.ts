@@ -206,6 +206,7 @@ export class ProjectDO {
 
     const preview = normalizePreviewUrl(input.preview_image);
     const sort_date = normalizeOptionalTrimmed(input.sort_date);
+    const my_role = normalizeOptionalTrimmed(input.my_role);
     const client_ids = normalizeClientIds(
       Array.isArray(input.client_ids) && input.client_ids.length ?
         input.client_ids
@@ -233,6 +234,7 @@ export class ProjectDO {
       ...(client_ids.length ? { client_ids } : {}),
       ...(via_client_ids.length ? { via_client_ids } : {}),
       ...(sort_date ? { sort_date } : {}),
+      ...(my_role ? { my_role } : {}),
       gallery_images,
       ...(project_links.length ? { project_links } : {}),
       team_member_ids,
@@ -301,6 +303,12 @@ export class ProjectDO {
       const sd = normalizeOptionalTrimmed(input.sort_date);
       if (sd === undefined) delete data.sort_date;
       else data.sort_date = sd;
+    }
+
+    if ("my_role" in input) {
+      const mr = normalizeOptionalTrimmed(input.my_role);
+      if (mr === undefined) delete data.my_role;
+      else data.my_role = mr;
     }
 
     if (input.preview_image !== undefined) {

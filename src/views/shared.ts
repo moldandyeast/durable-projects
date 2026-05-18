@@ -278,6 +278,7 @@ export function layoutPage(
       min-width: 0;
     }
     .spec-cell--date { grid-column: span 2; }
+    .spec-cell--my-role { grid-column: span 3; }
     .spec-cell--clients { grid-column: span 5; }
     .spec-cell--via { grid-column: span 3; }
     .spec-cell--tags { grid-column: 1 / -1; }
@@ -484,8 +485,9 @@ export function layoutPage(
       .project__hero-text { grid-column: 4 / -1; }
       .project__spec { grid-column: 4 / -1; grid-template-columns: repeat(9, minmax(0, 1fr)); }
       .spec-cell--date { grid-column: span 2; }
-      .spec-cell--clients { grid-column: span 5; }
-      .spec-cell--via { grid-column: span 2; }
+      .spec-cell--my-role { grid-column: span 3; }
+      .spec-cell--clients { grid-column: span 4; }
+      .spec-cell--via { grid-column: span 3; }
       .project__body { grid-column: 4 / -1; }
       .project__links { grid-column: 4 / -1; grid-template-columns: repeat(9, minmax(0, 1fr)); }
       .project__links li { grid-column: span 9; }
@@ -515,6 +517,7 @@ export function layoutPage(
       }
       .project__spec { grid-template-columns: 1fr 1fr; }
       .spec-cell--date,
+      .spec-cell--my-role,
       .spec-cell--clients,
       .spec-cell--via,
       .spec-cell--tags { grid-column: 1 / -1; }

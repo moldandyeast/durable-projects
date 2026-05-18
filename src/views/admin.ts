@@ -304,6 +304,11 @@ export function adminTemplate(): string {
               <label class="admin-label" for="pf-sort">Sort date</label>
               <input form="proj-form" id="pf-sort" name="sort_date" placeholder="YYYY-MM-DD" />
             </div>
+            <div>
+              <label class="admin-label" for="pf-my-role">My role</label>
+              <input form="proj-form" id="pf-my-role" name="my_role" placeholder="e.g. Design Lead" />
+              <p class="admin-field-hint">Your role on this engagement — shown in the public spec sheet.</p>
+            </div>
           </div>
         </div>
         <div class="admin-settings-section">
@@ -1883,11 +1888,13 @@ export function adminTemplate(): string {
       var pfSummary = document.getElementById("pf-summary");
       var pfTags = document.getElementById("pf-tags");
       var pfSort = document.getElementById("pf-sort");
+      var pfMyRole = document.getElementById("pf-my-role");
       var pfPreview = document.getElementById("pf-preview");
       var pfBody = document.getElementById("pf-body");
       if (pfTitle) pfTitle.value = p.title || "";
       if (pfSummary) pfSummary.value = p.summary || "";
       if (pfTags) pfTags.value = (p.tags || []).join(", ");
+      if (pfMyRole) pfMyRole.value = p.my_role || "";
       var cids = (p.client_ids && p.client_ids.length) ? p.client_ids.slice() : (p.client_id ? [p.client_id] : []);
       clientPickOrder = cids.slice();
       syncClientPickHidden();
@@ -2021,6 +2028,7 @@ export function adminTemplate(): string {
       syncClientPickHidden();
       var clientIds = clientPickOrder.slice();
       var viaIds = computeViaIds();
+      var pfMyRoleField = document.getElementById("pf-my-role");
       var payload = {
         title: titleVal,
         summary: pfSummary ? pfSummary.value : "",
@@ -2028,6 +2036,7 @@ export function adminTemplate(): string {
         client_ids: clientIds,
         via_client_ids: viaIds,
         sort_date: pfSort && pfSort.value ? pfSort.value : undefined,
+        my_role: pfMyRoleField && pfMyRoleField.value ? pfMyRoleField.value : undefined,
         preview_image: pfPreview && pfPreview.value ? pfPreview.value : undefined,
         team_member_ids: teamIds,
         gallery_images: collectGalleryFromEditor(),

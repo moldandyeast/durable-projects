@@ -127,6 +127,7 @@ a{color:inherit}
 .project__spec{grid-column:3/-1;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));column-gap:var(--grid-gap);row-gap:clamp(.8rem,1.5vw,1.15rem);margin:0;padding:0}
 .spec-cell{display:flex;flex-direction:column;gap:.32rem;min-width:0}
 .spec-cell--date{grid-column:span 2}
+.spec-cell--my-role{grid-column:span 3}
 .spec-cell--clients{grid-column:span 5}
 .spec-cell--via{grid-column:span 3}
 .spec-cell--tags{grid-column:1/-1}
@@ -173,7 +174,9 @@ a{color:inherit}
 .project__index{grid-column:1/span 3;padding-top:.4em}
 .project__hero-text,.project__body,.project__updated{grid-column:4/-1}
 .project__spec,.project__links,.project__team{grid-column:4/-1;grid-template-columns:repeat(9,minmax(0,1fr))}
-.spec-cell--via{grid-column:span 2}
+.spec-cell--my-role{grid-column:span 3}
+.spec-cell--clients{grid-column:span 4}
+.spec-cell--via{grid-column:span 3}
 .project__links li,.project__team-row{grid-column:span 9}
 .project__row--gallery .gallery-strip{grid-column:4/-1}
 }
@@ -183,7 +186,7 @@ a{color:inherit}
 .project__index{grid-column:1;padding-top:0}
 .project__hero-text,.project__spec,.project__body,.project__links,.project__row--gallery .gallery-strip,.project__team,.project__updated{grid-column:1}
 .project__spec{grid-template-columns:1fr 1fr}
-.spec-cell--date,.spec-cell--clients,.spec-cell--via,.spec-cell--tags{grid-column:1/-1}
+.spec-cell--date,.spec-cell--my-role,.spec-cell--clients,.spec-cell--via,.spec-cell--tags{grid-column:1/-1}
 .project__links{grid-template-columns:1fr}
 .project__links li{grid-column:1}
 .project__team{grid-template-columns:1fr}
