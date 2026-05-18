@@ -807,7 +807,7 @@ export function layoutPage(
       font-size: 0.86em;
     }
     /* Two-column image grid — image leads, type is a quiet caption.
-       Columns sit edge-to-edge horizontally so the plates abut each other. */
+       Tight 10px gutter between the plates, generous row gap below. */
     .index__list {
       grid-column: 1 / -1;
       list-style: none;
@@ -815,7 +815,7 @@ export function layoutPage(
       padding: 0;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 0;
+      column-gap: 10px;
       row-gap: clamp(2.6rem, 5vw, 4.4rem);
     }
     .index__row {
