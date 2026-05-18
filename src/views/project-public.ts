@@ -17,11 +17,11 @@ function gallerySection(images: GalleryImage[]): string {
       return `<figure class="gallery-figure${heroClass}"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/></button>${capHtml}</figure>`;
     })
     .join("\n");
-  return `<section id="project-gallery" class="project-gallery" aria-label="Selected work"><nav class="project-gallery__top" aria-label="Back to article"><a class="project-gallery__back-link" href="#article-body">Article</a></nav><div class="gallery-strip" data-gallery-strip>${figures}</div></section>`;
+  return `<section id="project-gallery" class="project-gallery" aria-label="Selected work"><div class="gallery-strip" data-gallery-strip>${figures}</div></section>`;
 }
 
-/** Dialog + external script before </body> when the page has a gallery strip (see /gallery-lightbox.js). */
-function galleryLightboxFragment(): string {
+/** Modal shell only; runtime loads once via `/project-runtime.js` on every project page. */
+function galleryLightboxDialog(): string {
   return `<dialog id="gallery-lightbox" class="gallery-lightbox" aria-modal="true">
 <div class="gallery-lightbox__shell">
 <button type="button" class="gallery-lightbox__close" data-gallery-close>Close</button>
@@ -34,8 +34,7 @@ function galleryLightboxFragment(): string {
 <button type="button" class="gallery-lightbox__nav gallery-lightbox__nav--next" data-gallery-next aria-label="Next image">&#8250;</button>
 </div>
 </div>
-</dialog>
-<script src="/gallery-lightbox.js" defer></script>`;
+</dialog>`;
 }
 
 function linksSection(links: ProjectLink[] | undefined): string {
@@ -46,7 +45,7 @@ function linksSection(links: ProjectLink[] | undefined): string {
       return `<li><a href="${escapeHtml(l.url)}" rel="noopener noreferrer">${escapeHtml(l.label)}</a></li>`;
     })
     .join("\n");
-  return `<section><h2 class="section-title">Links</h2><ul class="project-links">${items}</ul></section>`;
+  return `<section><ul class="project-links">${items}</ul></section>`;
 }
 
 /** Compact team line at the bottom of the article (after body). */
@@ -148,7 +147,11 @@ export function projectPublicPage(
   </article>
 </main>`;
 
+  const suffixParts: string[] = [];
+  if (project.gallery_images?.length) suffixParts.push(galleryLightboxDialog());
+  suffixParts.push(`<script src="/project-runtime.js" defer></script>`);
+
   return layoutPage(project.title, inner, {
-    bodySuffix: project.gallery_images?.length ? galleryLightboxFragment() : undefined,
+    bodySuffix: suffixParts.join("\n"),
   });
 }

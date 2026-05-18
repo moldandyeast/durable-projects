@@ -19,7 +19,7 @@ This codebase is intended to be **public**. The following are **not** in git and
 
 | Control | Behaviour |
 |---------|-----------|
-| **Security headers** | `X-Content-Type-Options: nosniff`, `Referrer-Policy`, restrictive `Permissions-Policy`, **CSP** on HTML (public pages: **`script-src 'self'`** — gallery loads **`/gallery-lightbox.js`** only; **inline** scripts remain blocked so markdown cannot execute script; **`style-src`** allows **`https://fonts.googleapis.com`** for Onest; `/admin` allows inline script only for the authoring shell). |
+| **Security headers** | `X-Content-Type-Options: nosniff`, `Referrer-Policy`, restrictive `Permissions-Policy`, **CSP** on HTML (public pages: **`script-src 'self'`** — project pages load **`/project-runtime.js`** only (gallery + typography helpers); **inline** scripts remain blocked so markdown cannot execute script; **`style-src`** allows **`https://fonts.googleapis.com`** for Onest; `/admin` allows inline script only for the authoring shell). |
 | **HSTS** | `Strict-Transport-Security` only on **`work.moldandyeast.com`** (not on `*.workers.dev`). |
 | **Admin JSON** | `Content-Type` must include **`application/json`**; body size capped (**512 KiB** project payloads, **64 KiB** team/client payloads). |
 | **Public verbs** | `/`, `/api/*` document routes return **405** for non-GET where applicable. |

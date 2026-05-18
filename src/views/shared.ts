@@ -65,6 +65,9 @@ export function layoutPage(
       --shadow: 0 1px 0 rgba(27, 27, 27, 0.04), 0 12px 40px rgba(27, 27, 27, 0.06);
       --shadow-hover: 0 1px 0 rgba(27, 27, 27, 0.06), 0 20px 48px rgba(27, 27, 27, 0.1);
       --max: 68rem;
+      /* Swiss / editorial — barely-there coordinate grid */
+      --grid-cell: 28px;
+      --grid-line: color-mix(in srgb, var(--fg) 3.25%, transparent);
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -81,6 +84,7 @@ export function layoutPage(
         --on-accent: #141414;
         --shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 16px 48px rgba(0, 0, 0, 0.42);
         --shadow-hover: 0 1px 0 rgba(0, 0, 0, 0.45), 0 22px 56px rgba(0, 0, 0, 0.52);
+        --grid-line: color-mix(in srgb, var(--fg) 4.25%, transparent);
       }
     }
     * { box-sizing: border-box; }
@@ -95,7 +99,22 @@ export function layoutPage(
       font-size: 1.05rem;
       line-height: 1.55;
       letter-spacing: -0.018em;
-      background: var(--bg);
+      background-color: var(--bg);
+      background-image:
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent calc(var(--grid-cell) - 1px),
+          var(--grid-line) calc(var(--grid-cell) - 1px),
+          var(--grid-line) var(--grid-cell)
+        ),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent calc(var(--grid-cell) - 1px),
+          var(--grid-line) calc(var(--grid-cell) - 1px),
+          var(--grid-line) var(--grid-cell)
+        );
       color: var(--fg);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
@@ -178,7 +197,7 @@ export function layoutPage(
     .project-header-date-clients__value a.project-client-link:focus-visible {
       outline: 1px solid var(--accent);
       outline-offset: 2px;
-      border-radius: 2px;
+      border-radius: var(--radius-sm);
     }
 
     /* Nav */
@@ -359,15 +378,6 @@ export function layoutPage(
       margin: 0 0 1.05rem;
       max-width: 42rem;
     }
-    .section-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 0 0 1rem;
-    }
-
     #article-body,
     #project-gallery {
       scroll-margin-top: 1.5rem;
@@ -376,30 +386,6 @@ export function layoutPage(
     /* Project gallery — same left edge + measure as .article-body (main.page supplies horizontal padding) */
     .project-gallery {
       margin: 0 0 clamp(2.5rem, 6vw, 3.75rem);
-    }
-    .project-gallery__top {
-      max-width: 48rem;
-      margin: 0 0 clamp(1rem, 2.5vw, 1.5rem);
-      padding: 0;
-    }
-    .project-gallery__back-link {
-      font-size: 0.8125rem;
-      font-weight: 500;
-      letter-spacing: -0.012em;
-      text-decoration: none;
-      color: color-mix(in srgb, var(--muted) 82%, var(--fg-soft));
-      border-bottom: 1px solid transparent;
-      transition: color 0.16s var(--ease-out-expo), border-color 0.16s ease;
-    }
-    .project-gallery__back-link:hover {
-      color: var(--fg-soft);
-      border-bottom-color: color-mix(in srgb, var(--muted) 45%, transparent);
-    }
-    .project-gallery__back-link:focus-visible {
-      outline: 1px solid var(--accent);
-      outline-offset: 3px;
-      border-radius: 2px;
-      border-bottom-color: transparent;
     }
     .gallery-strip {
       box-sizing: border-box;
@@ -415,17 +401,17 @@ export function layoutPage(
       margin: 0;
       padding: clamp(4px, 0.65vw, 7px);
       border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
-      border-radius: clamp(10px, 1.5vw, 16px);
+      border-radius: var(--radius-sm);
       overflow: hidden;
       background: color-mix(in srgb, var(--bg-elevated) 96%, var(--fg) 4%);
       box-shadow:
         0 1px 0 color-mix(in srgb, var(--fg) 3%, transparent),
         0 20px 44px color-mix(in srgb, var(--fg) 4.5%, transparent);
     }
-    /* First plate reads larger — radius, mat, shadow */
+    /* First plate — stronger shadow only; corners stay technical (1px) */
     .gallery-strip .gallery-figure--hero {
       padding: clamp(5px, 0.85vw, 9px);
-      border-radius: clamp(12px, 1.85vw, 20px);
+      border-radius: var(--radius-sm);
       box-shadow:
         0 1px 0 color-mix(in srgb, var(--fg) 4%, transparent),
         0 28px 56px color-mix(in srgb, var(--fg) 6%, transparent);
@@ -467,17 +453,17 @@ export function layoutPage(
     }
     .gallery-strip .gallery-thumb {
       overflow: hidden;
-      border-radius: clamp(7px, 1.1vw, 12px);
+      border-radius: var(--radius-sm);
       background: color-mix(in srgb, var(--bg-elevated) 82%, var(--fg) 18%);
     }
     .gallery-strip .gallery-figure:has(.gallery-figcaption) .gallery-thumb {
-      border-radius: clamp(7px, 1.1vw, 12px) clamp(7px, 1.1vw, 12px) 0 0;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     }
     .gallery-strip .gallery-figure--hero .gallery-thumb {
-      border-radius: clamp(8px, 1.25vw, 14px);
+      border-radius: var(--radius-sm);
     }
     .gallery-strip .gallery-figure--hero:has(.gallery-figcaption) .gallery-thumb {
-      border-radius: clamp(8px, 1.25vw, 14px) clamp(8px, 1.25vw, 14px) 0 0;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     }
     .gallery-strip .gallery-thumb img {
       width: 100%;
