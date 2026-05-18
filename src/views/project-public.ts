@@ -141,8 +141,8 @@ export function projectPublicPage(
       ${dateClientsRow}
     </header>
     <div id="article-body" class="article-body">${project.rendered_html}</div>
-    ${gallerySection(project.gallery_images)}
     ${linksSection(project.project_links)}
+    ${gallerySection(project.gallery_images)}
     ${teamFooterMinimal(team)}
     ${tagsAndUpdatedFooter(project.tags ?? [], project.edited_at)}
   </article>
