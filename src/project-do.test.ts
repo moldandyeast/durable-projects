@@ -176,6 +176,40 @@ describe("ProjectDO", () => {
     expect(data.team_member_roles).toEqual({ aaaaaaaa: "Art direction" });
   });
 
+  it("create stores and update clears my_role and why", async () => {
+    const project = makeProjectDO();
+    const createRes = await project.fetch(
+      new Request("https://p/internal/create", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "abcdabcd",
+          title: "T",
+          summary: "",
+          tags: [],
+          body: "x",
+          team_member_ids: [],
+          my_role: "  Design Lead  ",
+          why: "  First paragraph.\n\nSecond paragraph.  ",
+        }),
+      }),
+    );
+    expect(createRes.ok).toBe(true);
+    const created = await createRes.json<{ my_role?: string; why?: string }>();
+    expect(created.my_role).toBe("Design Lead");
+    expect(created.why).toBe("First paragraph.\n\nSecond paragraph.");
+
+    const updRes = await project.fetch(
+      new Request("https://p/internal/update", {
+        method: "POST",
+        body: JSON.stringify({ my_role: "  ", why: "" }),
+      }),
+    );
+    expect(updRes.ok).toBe(true);
+    const updated = await updRes.json<{ my_role?: string; why?: string }>();
+    expect(updated.my_role).toBeUndefined();
+    expect(updated.why).toBeUndefined();
+  });
+
   it("update clears project_links when empty array sent", async () => {
     const project = makeProjectDO();
     const createReq = new Request("https://p/internal/create", {

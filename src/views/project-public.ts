@@ -91,6 +91,26 @@ function specSheet(
 </section>`;
 }
 
+/** Split free-text on blank lines into paragraphs; escape and wrap each in <p>. */
+function whyParagraphs(why: string): string {
+  return why
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p class="project__why-p">${escapeHtml(p).replace(/\n/g, "<br/>")}</p>`)
+    .join("\n");
+}
+
+function whySection(project: ProjectData): string {
+  const why = project.why?.trim();
+  if (!why) return "";
+  return `${rule()}
+<section class="project__row project__row--why" aria-label="Why this project">
+  ${indexLabel("003", "Why")}
+  <div class="project__why">${whyParagraphs(why)}</div>
+</section>`;
+}
+
 function articleSection(project: ProjectData): string {
   const body = project.rendered_html?.trim();
   if (!body) return "";
@@ -172,7 +192,7 @@ function gallerySection(images: GalleryImage[], mode: "interactive" | "static"):
   const stripAttrs = mode === "interactive" ? ` data-gallery-strip` : "";
   return `${rule()}
 <section id="project-gallery" class="project__row project__row--gallery" aria-label="Selected work">
-  ${indexLabel("005", "Plates")}
+  ${indexLabel("006", "Plates")}
   <div class="gallery-strip"${stripAttrs}>${figures}</div>
 </section>`;
 }
@@ -190,7 +210,7 @@ function creditsSection(team: TeamMember[]): string {
     .join("\n");
   return `${rule()}
 <section class="project__row project__row--credits" aria-label="Credits">
-  ${indexLabel("006", "Credits")}
+  ${indexLabel("007", "Credits")}
   <dl class="project__team">${rows}</dl>
 </section>`;
 }
@@ -240,6 +260,7 @@ export function projectArticleInnerHtml(
     </div>
   </header>
   ${specSheet(project, primaryRefs, viaClients, tags)}
+  ${whySection(project)}
   ${articleSection(project)}
   ${linksSection(project.project_links)}
   ${gallerySection(project.gallery_images, galleryMode)}

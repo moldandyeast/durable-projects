@@ -341,6 +341,25 @@ export function layoutPage(
       min-width: 0;
     }
 
+    /* Why — editorial preamble */
+    .project__why {
+      grid-column: 3 / span 7;
+      min-width: 0;
+      max-width: 38rem;
+      margin: 0;
+    }
+    .project__why-p {
+      margin: 0 0 0.85em;
+      font-family: var(--font-display);
+      font-size: var(--text-dek);
+      font-weight: 400;
+      letter-spacing: var(--tk-dek);
+      line-height: 1.45;
+      color: color-mix(in srgb, var(--fg) 88%, var(--muted));
+      text-wrap: pretty;
+    }
+    .project__why-p:last-child { margin-bottom: 0; }
+
     /* Links */
     .project__links {
       grid-column: 3 / -1;
@@ -489,6 +508,7 @@ export function layoutPage(
       .spec-cell--clients { grid-column: span 4; }
       .spec-cell--via { grid-column: span 3; }
       .project__body { grid-column: 4 / -1; }
+      .project__why { grid-column: 4 / -1; }
       .project__links { grid-column: 4 / -1; grid-template-columns: repeat(9, minmax(0, 1fr)); }
       .project__links li { grid-column: span 9; }
       .project__row--gallery .gallery-strip { grid-column: 4 / -1; }
@@ -509,6 +529,7 @@ export function layoutPage(
       .project__hero-text,
       .project__spec,
       .project__body,
+      .project__why,
       .project__links,
       .project__row--gallery .gallery-strip,
       .project__team,

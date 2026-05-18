@@ -140,6 +140,9 @@ a{color:inherit}
 .spec-cell__inline-muted{color:color-mix(in srgb,var(--muted) 65%,transparent)}
 .spec-cell a,.project-client-link{color:inherit;text-decoration:none}
 .project__body{grid-column:3/span 7;min-width:0;margin:0}
+.project__why{grid-column:3/span 7;min-width:0;max-width:38rem;margin:0}
+.project__why-p{margin:0 0 .85em;font-family:var(--font-display);font-size:var(--text-dek);font-weight:400;letter-spacing:var(--tk-dek);line-height:1.45;color:color-mix(in srgb,var(--fg) 88%,var(--muted));text-wrap:pretty}
+.project__why-p:last-child{margin-bottom:0}
 .article-body{font-size:var(--text-lg);line-height:1.68;letter-spacing:var(--tk-body);color:color-mix(in srgb,var(--fg-soft) 96%,var(--muted));margin:0;text-wrap:pretty}
 .article-body h1,.article-body h2,.article-body h3,.article-body h4{color:var(--fg);font-weight:600;margin:1.8rem 0 .55rem;line-height:1.2;letter-spacing:var(--tk-display);font-family:var(--font-display)}
 .article-body h1{font-size:1.55rem}.article-body h2{font-size:1.28rem}.article-body h3{font-size:1.1rem}.article-body h4{font-size:1rem}
@@ -177,7 +180,7 @@ a{color:inherit}
 .project__updated time{font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--fg) 60%,var(--muted));margin-left:.5em}
 @media (max-width:1023px){
 .project__index{grid-column:1/span 3;padding-top:.4em}
-.project__hero-text,.project__body,.project__updated{grid-column:4/-1}
+.project__hero-text,.project__body,.project__why,.project__updated{grid-column:4/-1}
 .project__spec,.project__links,.project__team{grid-column:4/-1;grid-template-columns:repeat(9,minmax(0,1fr))}
 .spec-cell--my-role{grid-column:span 3}
 .spec-cell--clients{grid-column:span 4}
@@ -189,7 +192,7 @@ a{color:inherit}
 .project{grid-template-columns:1fr;column-gap:0}
 .project__row{grid-template-columns:1fr;row-gap:.45rem}
 .project__index{grid-column:1;padding-top:0}
-.project__hero-text,.project__spec,.project__body,.project__links,.project__row--gallery .gallery-strip,.project__team,.project__updated{grid-column:1}
+.project__hero-text,.project__spec,.project__body,.project__why,.project__links,.project__row--gallery .gallery-strip,.project__team,.project__updated{grid-column:1}
 .project__spec{grid-template-columns:1fr 1fr}
 .spec-cell--date,.spec-cell--my-role,.spec-cell--clients,.spec-cell--via,.spec-cell--tags{grid-column:1/-1}
 .project__links{grid-template-columns:1fr}

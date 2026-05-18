@@ -309,6 +309,11 @@ export function adminTemplate(): string {
               <input form="proj-form" id="pf-my-role" name="my_role" placeholder="e.g. Design Lead" />
               <p class="admin-field-hint">Your role on this engagement — shown in the public spec sheet.</p>
             </div>
+            <div>
+              <label class="admin-label" for="pf-why">Why</label>
+              <textarea form="proj-form" id="pf-why" name="why" rows="4" placeholder="Why I wanted to work with them — one or two short paragraphs."></textarea>
+              <p class="admin-field-hint">Editorial preamble. Plain text; leave a blank line between paragraphs.</p>
+            </div>
           </div>
         </div>
         <div class="admin-settings-section">
@@ -1943,12 +1948,14 @@ export function adminTemplate(): string {
       var pfTags = document.getElementById("pf-tags");
       var pfSort = document.getElementById("pf-sort");
       var pfMyRole = document.getElementById("pf-my-role");
+      var pfWhy = document.getElementById("pf-why");
       var pfPreview = document.getElementById("pf-preview");
       var pfBody = document.getElementById("pf-body");
       if (pfTitle) pfTitle.value = p.title || "";
       if (pfSummary) pfSummary.value = p.summary || "";
       if (pfTags) pfTags.value = (p.tags || []).join(", ");
       if (pfMyRole) pfMyRole.value = p.my_role || "";
+      if (pfWhy) pfWhy.value = p.why || "";
       var cids = (p.client_ids && p.client_ids.length) ? p.client_ids.slice() : (p.client_id ? [p.client_id] : []);
       clientPickOrder = cids.slice();
       syncClientPickHidden();
@@ -2083,6 +2090,7 @@ export function adminTemplate(): string {
       var clientIds = clientPickOrder.slice();
       var viaIds = computeViaIds();
       var pfMyRoleField = document.getElementById("pf-my-role");
+      var pfWhyField = document.getElementById("pf-why");
       var payload = {
         title: titleVal,
         summary: pfSummary ? pfSummary.value : "",
@@ -2091,6 +2099,7 @@ export function adminTemplate(): string {
         via_client_ids: viaIds,
         sort_date: pfSort && pfSort.value ? pfSort.value : undefined,
         my_role: pfMyRoleField && pfMyRoleField.value ? pfMyRoleField.value : undefined,
+        why: pfWhyField && pfWhyField.value ? pfWhyField.value : undefined,
         preview_image: pfPreview && pfPreview.value ? pfPreview.value : undefined,
         team_member_ids: teamIds,
         gallery_images: collectGalleryFromEditor(),

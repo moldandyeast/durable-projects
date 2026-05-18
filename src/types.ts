@@ -59,6 +59,8 @@ export interface ProjectData {
   sort_date?: string;
   /** Free-text role the portfolio owner played on this engagement (e.g. "Design Lead"). */
   my_role?: string;
+  /** Editorial preamble — why I wanted to work with them. Plain text, blank-line paragraphs. */
+  why?: string;
   gallery_images: GalleryImage[];
   /** Ordered outbound links (case study, repo, demo); omit or empty when none. */
   project_links?: ProjectLink[];
@@ -112,6 +114,8 @@ export interface ProjectEnvelope {
   sort_date?: string;
   /** Free-text role the portfolio owner played on this engagement. Omitted when empty. */
   my_role?: string;
+  /** Editorial preamble — why I wanted to work with them. Omitted when empty. */
+  why?: string;
   gallery_images: GalleryImage[];
   /** Omitted when empty. */
   project_links?: ProjectLink[];
