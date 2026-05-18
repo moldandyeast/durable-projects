@@ -806,7 +806,8 @@ export function layoutPage(
       color: color-mix(in srgb, var(--muted) 90%, transparent);
       font-size: 0.86em;
     }
-    /* Two-column image grid — image leads, type is a quiet caption. */
+    /* Two-column image grid — image leads, type is a quiet caption.
+       Columns sit edge-to-edge horizontally so the plates abut each other. */
     .index__list {
       grid-column: 1 / -1;
       list-style: none;
@@ -814,7 +815,7 @@ export function layoutPage(
       padding: 0;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: clamp(1.6rem, 3.2vw, 3rem);
+      column-gap: 0;
       row-gap: clamp(2.6rem, 5vw, 4.4rem);
     }
     .index__row {
