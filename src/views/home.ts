@@ -56,7 +56,9 @@ function indexRow(entry: IndexEntry, idx: number, clientLabels: Map<string, stri
     entry.summary.length > 200 ? `${escapeHtml(entry.summary.slice(0, 200))}…` : escapeHtml(entry.summary);
   const dek = summary ? `<p class="index__dek">${summary}</p>` : "";
   const media = renderIndexMedia(entry.preview_image);
-  return `<a class="index__row" href="/${escapeHtml(entry.id)}">
+  // Alternate body/media side every other row for a Gerstner-style rhythm.
+  const flipClass = idx % 2 === 1 ? " index__row--flip" : "";
+  return `<a class="index__row${flipClass}" href="/${escapeHtml(entry.id)}">
   ${indexNumber(idx + 1, entry.sort_date ?? "")}
   <div class="index__body">
     <h2 class="index__title">${escapeHtml(entry.title)}</h2>
@@ -64,7 +66,6 @@ function indexRow(entry: IndexEntry, idx: number, clientLabels: Map<string, stri
     ${clientHtml}
   </div>
   ${media}
-  <span class="index__arrow" aria-hidden="true">→</span>
 </a>`;
 }
 
@@ -88,7 +89,7 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
       <span class="project__index" aria-hidden="true"><span class="project__index-num">000</span><span class="project__index-sep"> / </span><span class="project__index-label">Index</span></span>
       <div class="project__hero-text">
         <h1 class="project__title">Selected work</h1>
-        <p class="project__dek">10× design, engineered. Filter via <code>?tag=</code> or <code>?client=&lt;id&gt;</code>.</p>
+        <p class="project__dek">10× design, engineered. <span class="index__hero-meta">Filter via <code>?tag=</code> or <code>?client=&lt;id&gt;</code>.</span></p>
       </div>
     </header>
     <hr class="project__rule" aria-hidden="true"/>

@@ -777,6 +777,11 @@ export function layoutPage(
       background: color-mix(in srgb, var(--fg) 5%, transparent);
       border-radius: var(--radius-sm);
     }
+    .index__hero-meta {
+      display: inline;
+      color: color-mix(in srgb, var(--muted) 90%, transparent);
+      font-size: 0.86em;
+    }
     .index__list {
       grid-column: 1 / -1;
       list-style: none;
@@ -792,14 +797,10 @@ export function layoutPage(
       grid-template-columns: subgrid;
       column-gap: var(--grid-gap);
       align-items: start;
-      padding: clamp(1.1rem, 1.8vw, 1.55rem) 0;
+      padding: clamp(2.2rem, 4.4vw, 3.6rem) 0;
       border-bottom: 1px solid var(--hairline);
       text-decoration: none;
       color: inherit;
-      transition: background var(--dur-fast) var(--ease-standard);
-    }
-    .index__row:hover {
-      background: color-mix(in srgb, var(--fg) 2%, transparent);
     }
     .index__row:focus-visible {
       outline: 1.5px solid var(--accent);
@@ -817,7 +818,7 @@ export function layoutPage(
       line-height: 1.4;
       color: color-mix(in srgb, var(--muted) 72%, transparent);
       white-space: nowrap;
-      padding-top: 0.4em;
+      padding-top: 0.7em;
     }
     .index__num-n {
       color: color-mix(in srgb, var(--fg) 75%, var(--muted));
@@ -833,20 +834,20 @@ export function layoutPage(
       font-feature-settings: var(--features-tnum);
     }
     .index__body {
-      grid-column: 3 / span 6;
+      grid-column: 3 / span 5;
       display: flex;
       flex-direction: column;
-      gap: 0.42rem;
+      gap: 0.65rem;
       min-width: 0;
     }
     .index__title {
       font-family: var(--font-display);
-      font-size: var(--text-h2);
+      font-size: clamp(1.85rem, 4vw, 3.2rem);
       font-weight: 600;
-      letter-spacing: var(--tk-display);
-      line-height: 1.16;
+      letter-spacing: -0.032em;
+      line-height: 1.02;
       color: var(--fg);
-      margin: 0;
+      margin: 0 0 0.1rem;
       text-wrap: balance;
       transition: color var(--dur-fast) var(--ease-standard);
     }
@@ -855,20 +856,21 @@ export function layoutPage(
     }
     .index__dek {
       margin: 0;
-      font-size: var(--text-sm);
-      letter-spacing: var(--tk-small);
-      line-height: 1.5;
-      color: color-mix(in srgb, var(--fg-soft) 85%, var(--muted));
+      font-size: var(--text-md);
+      letter-spacing: var(--tk-body);
+      line-height: 1.48;
+      color: color-mix(in srgb, var(--fg-soft) 90%, var(--muted));
       text-wrap: pretty;
+      max-width: 32rem;
     }
     .index__clients {
-      margin: 0.1rem 0 0;
+      margin: 0.35rem 0 0;
       font-family: var(--font-mono);
       font-size: var(--text-2xs);
       font-weight: 500;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: color-mix(in srgb, var(--muted) 82%, transparent);
+      color: color-mix(in srgb, var(--muted) 88%, transparent);
       line-height: 1.4;
     }
     .index__client-sep {
@@ -878,10 +880,9 @@ export function layoutPage(
     }
     .index__media {
       position: relative;
-      grid-column: 9 / span 3;
+      grid-column: 8 / span 5;
       aspect-ratio: 16 / 10;
       overflow: hidden;
-      border: 1px solid var(--hairline);
       background: color-mix(in srgb, var(--fg) 3%, transparent);
     }
     .index__media img {
@@ -889,7 +890,7 @@ export function layoutPage(
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.45s var(--ease-standard);
+      transition: transform 0.5s var(--ease-out-expo);
     }
     .index__row:hover .index__media img {
       transform: scale(1.02);
@@ -917,23 +918,11 @@ export function layoutPage(
           color-mix(in srgb, var(--fg) 1%, transparent) 60%,
           transparent);
     }
-    .index__arrow {
-      grid-column: 12;
-      justify-self: end;
-      align-self: start;
-      padding-top: 0.45em;
-      font-family: var(--font-mono);
-      font-size: var(--text-sm);
-      color: color-mix(in srgb, var(--muted) 55%, transparent);
-      transition:
-        transform var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard);
-      user-select: none;
-    }
-    .index__row:hover .index__arrow {
-      color: var(--accent);
-      transform: translateX(3px);
-    }
+
+    /* Gerstner-style alternation — flip body/media every other row. */
+    .index__row--flip .index__body { grid-column: 8 / span 5; grid-row: 1; }
+    .index__row--flip .index__media { grid-column: 3 / span 5; grid-row: 1; }
+
     .index__empty {
       grid-column: 3 / -1;
       padding: 3rem 0;
@@ -943,24 +932,29 @@ export function layoutPage(
       border-bottom: 1px solid var(--hairline);
     }
     @media (max-width: 1023px) {
-      .index__num { grid-column: 1 / span 3; }
-      .index__body { grid-column: 4 / span 5; }
-      .index__media { grid-column: 9 / span 3; }
-      .index__arrow { grid-column: 12; }
+      .index__num { grid-column: 1 / span 2; padding-top: 0.6em; }
+      .index__body { grid-column: 3 / span 5; }
+      .index__media { grid-column: 8 / span 5; }
+      .index__row--flip .index__body { grid-column: 8 / span 5; grid-row: 1; }
+      .index__row--flip .index__media { grid-column: 3 / span 5; grid-row: 1; }
     }
     @media (max-width: 720px) {
       .index { grid-template-columns: 1fr; column-gap: 0; }
       .index__hero { grid-template-columns: 1fr; row-gap: 0.45rem; }
       .index__list { grid-template-columns: 1fr; }
-      .index__row {
+      .index__row,
+      .index__row--flip {
         grid-template-columns: 1fr;
-        row-gap: 0.65rem;
-        padding: 1rem 0;
+        row-gap: 0.95rem;
+        padding: clamp(1.6rem, 4vw, 2.2rem) 0;
       }
-      .index__num { grid-column: 1; padding-top: 0; }
-      .index__body { grid-column: 1; }
-      .index__media { grid-column: 1; aspect-ratio: 16 / 10; }
-      .index__arrow { display: none; }
+      .index__row .index__num,
+      .index__row--flip .index__num { grid-column: 1; grid-row: auto; padding-top: 0; order: 1; }
+      .index__row .index__media,
+      .index__row--flip .index__media { grid-column: 1; grid-row: auto; aspect-ratio: 16 / 10; order: 2; }
+      .index__row .index__body,
+      .index__row--flip .index__body { grid-column: 1; grid-row: auto; order: 3; }
+      .index__title { font-size: clamp(1.7rem, 7vw, 2.4rem); }
     }
 
     /* Project detail anchors */

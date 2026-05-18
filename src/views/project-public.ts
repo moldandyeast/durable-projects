@@ -92,9 +92,11 @@ function specSheet(
 }
 
 function articleSection(project: ProjectData): string {
+  const body = project.rendered_html?.trim();
+  if (!body) return "";
   return `${rule()}
 <section class="project__row project__row--article" aria-label="Article">
-  ${indexLabel("003", "Article")}
+  ${indexLabel("004", "Article")}
   <div class="project__body article-body" id="article-body">${project.rendered_html}</div>
 </section>`;
 }
@@ -110,7 +112,7 @@ function linksSection(links: ProjectLink[] | undefined): string {
     .join("\n");
   return `${rule()}
 <section class="project__row project__row--links" aria-label="Links">
-  ${indexLabel("004", "Links")}
+  ${indexLabel("005", "Links")}
   <ol class="project__links">${items}</ol>
 </section>`;
 }
