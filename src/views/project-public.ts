@@ -106,7 +106,7 @@ function whySection(project: ProjectData): string {
   if (!why) return "";
   return `${rule()}
 <section class="project__row project__row--why" aria-label="Why this project">
-  ${indexLabel("003", "Why")}
+  ${indexLabel("004", "Why")}
   <div class="project__why">${whyParagraphs(why)}</div>
 </section>`;
 }
@@ -115,8 +115,8 @@ function articleSection(project: ProjectData): string {
   const body = project.rendered_html?.trim();
   if (!body) return "";
   return `${rule()}
-<section class="project__row project__row--article" aria-label="Article">
-  ${indexLabel("004", "Article")}
+<section class="project__row project__row--article" aria-label="About">
+  ${indexLabel("003", "About")}
   <div class="project__body article-body" id="article-body">${project.rendered_html}</div>
 </section>`;
 }
@@ -260,8 +260,8 @@ export function projectArticleInnerHtml(
     </div>
   </header>
   ${specSheet(project, primaryRefs, viaClients, tags)}
-  ${whySection(project)}
   ${articleSection(project)}
+  ${whySection(project)}
   ${linksSection(project.project_links)}
   ${gallerySection(project.gallery_images, galleryMode)}
   ${creditsSection(team)}
