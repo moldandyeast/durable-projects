@@ -816,7 +816,7 @@ export function layoutPage(
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       column-gap: 10px;
-      row-gap: clamp(2.6rem, 5vw, 4.4rem);
+      row-gap: 20px;
     }
     .index__row {
       display: flex;
@@ -929,7 +929,7 @@ export function layoutPage(
       .index__hero { grid-template-columns: 1fr; row-gap: 0.45rem; }
       .index__list {
         grid-template-columns: 1fr;
-        row-gap: clamp(2rem, 5vw, 2.8rem);
+        row-gap: 20px;
       }
     }
 
