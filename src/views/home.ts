@@ -21,15 +21,6 @@ export function sortEntries(entries: IndexEntry[]): IndexEntry[] {
   });
 }
 
-function indexNumber(idx: number, year: string): string {
-  const n = String(idx).padStart(3, "0");
-  const y = year.trim();
-  const yearPart = y ?
-    `<span class="index__num-sep"> / </span><span class="index__num-year">${escapeHtml(y)}</span>`
-  : "";
-  return `<span class="index__num" aria-hidden="true"><span class="index__num-n">${n}</span>${yearPart}</span>`;
-}
-
 function renderIndexMedia(url: string | undefined): string {
   if (!url) return `<div class="index__media index__media--empty" aria-hidden="true"></div>`;
   const kind = detectMediaKind(url);
@@ -46,36 +37,29 @@ function renderIndexMedia(url: string | undefined): string {
   return `<div class="index__media"><img src="${escapeHtml(url)}" alt="" loading="lazy" decoding="async"/></div>`;
 }
 
-function indexRow(entry: IndexEntry, idx: number, clientLabels: Map<string, string>): string {
+function indexCard(entry: IndexEntry, clientLabels: Map<string, string>): string {
   const ids = effectiveEntryClientIds(entry).filter((cid) => clientLabels.has(cid));
-  const clientLabel = ids
-    .map((cid) => escapeHtml(clientLabels.get(cid)!).toUpperCase())
-    .join(' <span class="index__client-sep" aria-hidden="true">·</span> ');
-  const clientHtml = clientLabel ? `<div class="index__clients">${clientLabel}</div>` : "";
-  const summary =
-    entry.summary.length > 200 ? `${escapeHtml(entry.summary.slice(0, 200))}…` : escapeHtml(entry.summary);
-  const dek = summary ? `<p class="index__dek">${summary}</p>` : "";
+  const clientLabels_ = ids.map((cid) => escapeHtml(clientLabels.get(cid)!).toUpperCase());
+  const year = (entry.sort_date ?? "").trim();
+  const metaParts = [...clientLabels_];
+  if (year) metaParts.push(escapeHtml(year));
+  const metaHtml = metaParts.length ?
+    `<p class="index__meta">${metaParts.join(' <span class="index__meta-sep" aria-hidden="true">·</span> ')}</p>`
+  : "";
   const media = renderIndexMedia(entry.preview_image);
-  // First row gets a cinematic hero treatment; thereafter alternate
-  // body/media side for a Gerstner-style rhythm.
-  let mod = "";
-  if (idx === 0) mod = " index__row--hero";
-  else if (idx % 2 === 1) mod = " index__row--flip";
-  return `<a class="index__row${mod}" href="/${escapeHtml(entry.id)}">
-  ${indexNumber(idx + 1, entry.sort_date ?? "")}
+  return `<a class="index__row" href="/${escapeHtml(entry.id)}">
+  ${media}
   <div class="index__body">
     <h2 class="index__title">${escapeHtml(entry.title)}</h2>
-    ${dek}
-    ${clientHtml}
+    ${metaHtml}
   </div>
-  ${media}
 </a>`;
 }
 
 export function homePage(entries: IndexEntry[], clientLabels: Map<string, string>): string {
-  const rows = entries.map((e, i) => indexRow(e, i, clientLabels)).join("\n");
+  const cards = entries.map((e) => indexCard(e, clientLabels)).join("\n");
   const list =
-    rows ? `<ol class="index__list">${rows}</ol>` : `<p class="index__empty">No projects yet.</p>`;
+    cards ? `<ol class="index__list">${cards}</ol>` : `<p class="index__empty">No projects yet.</p>`;
   const count = entries.length;
   const countLabel = `${count} ${count === 1 ? "Project" : "Projects"}`;
 
@@ -100,8 +84,5 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
   </article>
 </main>`;
 
-  return layoutPage("Projects", inner, {
-    bodyClass: "page-index",
-    bodySuffix: `<script src="/project-runtime.js" defer></script>`,
-  });
+  return layoutPage("Projects", inner, { bodyClass: "page-index" });
 }
