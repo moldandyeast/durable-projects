@@ -32,29 +32,43 @@ export function adminTemplate(): string {
     <section id="view-editor" class="admin-view" aria-label="Project editor">
       <section class="admin-panel">
         <form id="proj-form">
-          <header class="admin-editor-toolbar">
-            <div class="admin-editor-toolbar__left">
-              <div class="admin-editor-toolbar__project">
-                <label class="admin-label admin-editor-toolbar__label" for="proj-select">Project</label>
-                <div class="admin-editor-toolbar__field">
-                  <select id="proj-select" class="admin-editor-toolbar__select" aria-describedby="editor-toolbar-hint">
-                    <option value="">New draft</option>
+          <header class="admin-editor-toolbar" data-state="new">
+            <div class="admin-editor-toolbar__doc">
+              <p class="admin-editor-toolbar__crumbs" aria-label="Editor context">
+                <span class="admin-editor-toolbar__crumb">Editor</span>
+                <span class="admin-editor-toolbar__crumb-sep" aria-hidden="true">/</span>
+                <span class="admin-editor-toolbar__state" id="editor-state-label" data-state="new">New draft</span>
+              </p>
+              <h1
+                class="admin-editor-toolbar__title"
+                id="editor-current-title"
+                data-empty="true"
+                aria-live="polite"
+              >Untitled draft</h1>
+              <p class="admin-editor-toolbar__meta">
+                <span id="editor-current-id" class="admin-editor-toolbar__id" data-empty="true">No id yet · saving creates one</span>
+                <span id="proj-save-status" class="admin-save-status admin-editor-toolbar__status" role="status" aria-live="polite" aria-atomic="true"></span>
+              </p>
+            </div>
+            <div class="admin-editor-toolbar__controls">
+              <div class="admin-editor-toolbar__switcher">
+                <label class="admin-editor-toolbar__switcher-label" for="proj-select">Switch project</label>
+                <div class="admin-editor-toolbar__switcher-field">
+                  <select id="proj-select" class="admin-editor-toolbar__select" aria-label="Switch project">
+                    <option value="">+ Start new draft</option>
                   </select>
-                  <span id="editor-toolbar-hint" class="admin-editor-toolbar__hint">Compose below · metadata lives in settings</span>
                 </div>
               </div>
-            </div>
-            <div class="admin-editor-toolbar__right">
-              <button
-                type="button"
-                class="admin-btn admin-btn--ghost admin-editor-toolbar__settings"
-                id="open-project-settings"
-                aria-haspopup="dialog"
-                aria-controls="overlay-project-settings"
-              >
-                Settings
-              </button>
-              <div class="admin-editor-toolbar__actions">
+              <div class="admin-editor-toolbar__actions" role="group" aria-label="Project actions">
+                <button
+                  type="button"
+                  class="admin-btn admin-btn--ghost admin-editor-toolbar__settings"
+                  id="open-project-settings"
+                  aria-haspopup="dialog"
+                  aria-controls="overlay-project-settings"
+                >
+                  Settings
+                </button>
                 <button type="submit" id="btn-save" formnovalidate class="admin-btn admin-btn--toolbar-primary">
                   <span class="admin-btn__label">Save</span>
                   <kbd class="admin-kbd admin-kbd--inline">⌘S</kbd>
@@ -62,7 +76,6 @@ export function adminTemplate(): string {
                 <button type="button" id="btn-new" class="admin-btn admin-btn--toolbar-secondary">New</button>
                 <button type="button" id="btn-del" class="admin-btn admin-btn--toolbar-archive">Archive</button>
               </div>
-              <p id="proj-save-status" class="admin-save-status admin-editor-toolbar__status" role="status" aria-live="polite" aria-atomic="true"></p>
             </div>
           </header>
           <div class="admin-editor-layout">
@@ -566,6 +579,62 @@ export function adminTemplate(): string {
       if (!el) return;
       el.textContent = "";
       el.classList.remove("is-success", "is-error");
+    }
+
+    var editorStateLabels = {
+      "new": "New draft",
+      editing: "Editing",
+      dirty: "Unsaved changes",
+      saved: "Saved",
+    };
+    var editorStateRevertTimer;
+
+    function setEditorState(state) {
+      var el = document.getElementById("editor-state-label");
+      var bar = document.querySelector(".admin-editor-toolbar");
+      if (!el) return;
+      el.dataset.state = state;
+      el.textContent = editorStateLabels[state] || editorStateLabels.editing;
+      if (bar) bar.dataset.state = state;
+    }
+
+    function getActiveProjectId() {
+      var sel = document.getElementById("proj-select");
+      return sel ? String(sel.value || "").trim() : "";
+    }
+
+    function setEditorDocHeader(id, title) {
+      var titleEl = document.getElementById("editor-current-title");
+      var idEl = document.getElementById("editor-current-id");
+      var t = String(title == null ? "" : title).trim();
+      var i = String(id == null ? "" : id).trim();
+      if (titleEl) {
+        titleEl.textContent = t || "Untitled draft";
+        titleEl.dataset.empty = t ? "false" : "true";
+      }
+      if (idEl) {
+        idEl.textContent = i ? i : "No id yet · saving creates one";
+        idEl.dataset.empty = i ? "false" : "true";
+      }
+      clearTimeout(editorStateRevertTimer);
+      setEditorState(i ? "editing" : "new");
+    }
+
+    function markEditorDirty() {
+      var el = document.getElementById("editor-state-label");
+      if (!el) return;
+      var s = el.dataset.state;
+      if (s === "new" || s === "dirty") return;
+      clearTimeout(editorStateRevertTimer);
+      setEditorState("dirty");
+    }
+
+    function flashEditorSaved() {
+      clearTimeout(editorStateRevertTimer);
+      setEditorState("saved");
+      editorStateRevertTimer = setTimeout(function() {
+        setEditorState(getActiveProjectId() ? "editing" : "new");
+      }, 2200);
     }
 
     function previewPlaceholder() {
@@ -1935,6 +2004,7 @@ export function adminTemplate(): string {
         renderGalleryEditor([]);
         renderLinksEditor([]);
         previewPlaceholder();
+        setEditorDocHeader("", "");
         return;
       }
       var r = await j("/admin/api/projects/" + id);
@@ -1943,6 +2013,7 @@ export function adminTemplate(): string {
         return;
       }
       var p = await r.json();
+      setEditorDocHeader(p.id || id, p.title || "");
       var pfTitle = document.getElementById("pf-title");
       var pfSummary = document.getElementById("pf-summary");
       var pfTags = document.getElementById("pf-tags");
@@ -1979,6 +2050,30 @@ export function adminTemplate(): string {
       clearProjSaveStatus();
       loadProject(this.value);
     });
+
+    (function bindEditorDocHeader() {
+      var pfTitleEl = document.getElementById("pf-title");
+      if (pfTitleEl) {
+        pfTitleEl.addEventListener("input", function() {
+          var headEl = document.getElementById("editor-current-title");
+          if (!headEl) return;
+          var v = String(pfTitleEl.value || "").trim();
+          headEl.textContent = v || "Untitled draft";
+          headEl.dataset.empty = v ? "false" : "true";
+          markEditorDirty();
+        });
+      }
+      var form = document.getElementById("proj-form");
+      if (form) {
+        form.addEventListener("input", markEditorDirty);
+        form.addEventListener("change", markEditorDirty);
+      }
+      var settingsOverlay = document.getElementById("overlay-project-settings");
+      if (settingsOverlay) {
+        settingsOverlay.addEventListener("input", markEditorDirty);
+        settingsOverlay.addEventListener("change", markEditorDirty);
+      }
+    })();
 
     document.getElementById("team-form").addEventListener("submit", async function(ev) {
       ev.preventDefault();
@@ -2154,6 +2249,7 @@ export function adminTemplate(): string {
 
         var timeStr = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" });
         setProjSaveStatus("success", "Saved · " + timeStr);
+        flashEditorSaved();
       } catch (err) {
         setProjSaveStatus("error", "Network error — try again.");
       } finally {
