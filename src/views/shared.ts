@@ -1227,6 +1227,27 @@ export function layoutPage(
       color: var(--adm-muted);
       white-space: nowrap;
     }
+    body.admin-app .admin-collab-team-block:not(:last-child) {
+      border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 85%, transparent);
+    }
+    body.admin-app .admin-collab-team-role {
+      padding: 0 0.75rem 0.5rem 2.35rem;
+    }
+    body.admin-app .admin-collab-team-role__input {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.8125rem;
+      line-height: 1.35;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      background: var(--adm-field-bg);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-collab-team-role__input::placeholder {
+      color: var(--adm-muted);
+    }
     body.admin-app .admin-grid {
       display: grid;
       gap: 1rem;

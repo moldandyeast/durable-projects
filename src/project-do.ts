@@ -36,6 +36,37 @@ export function normalizeTeamMemberIds(raw: unknown): string[] {
   return raw.map((x) => String(x).trim()).filter(Boolean);
 }
 
+/** Per-project roles keyed by member id; only ids present in `allowedIds` are kept. */
+export function normalizeTeamMemberRoles(
+  allowedIds: string[],
+  raw: unknown,
+): Record<string, string> | undefined {
+  if (!allowedIds.length || raw === undefined || raw === null) return undefined;
+  if (typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const allow = new Set(allowedIds);
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    const id = String(k).trim();
+    if (!allow.has(id)) continue;
+    const role = typeof v === "string" ? v.trim() : String(v ?? "").trim();
+    if (role) out[id] = role;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+function pruneTeamMemberRolesForIds(data: ProjectData): void {
+  if (!data.team_member_roles) return;
+  const allow = new Set(data.team_member_ids);
+  const next: Record<string, string> = {};
+  for (const [k, v] of Object.entries(data.team_member_roles)) {
+    if (!allow.has(k)) continue;
+    const t = String(v ?? "").trim();
+    if (t) next[k] = t;
+  }
+  if (Object.keys(next).length) data.team_member_roles = next;
+  else delete data.team_member_roles;
+}
+
 /** Ordered unique client ids (primaries). */
 export function normalizeClientIds(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -134,6 +165,9 @@ export class ProjectDO {
     );
     const via_client_ids = normalizeViaClientIds(input.via_client_ids, client_ids);
 
+    const team_member_ids = normalizeTeamMemberIds(input.team_member_ids);
+    const team_member_roles = normalizeTeamMemberRoles(team_member_ids, input.team_member_roles);
+
     const data: ProjectData = {
       id: input.id!,
       title: input.title ?? "Untitled",
@@ -149,7 +183,8 @@ export class ProjectDO {
       ...(via_client_ids.length ? { via_client_ids } : {}),
       ...(sort_date ? { sort_date } : {}),
       gallery_images: normalizeGalleryImages(input.gallery_images),
-      team_member_ids: normalizeTeamMemberIds(input.team_member_ids),
+      team_member_ids,
+      ...(team_member_roles ? { team_member_roles } : {}),
       ...(preview ? { preview_image: preview } : {}),
     };
 
@@ -228,6 +263,13 @@ export class ProjectDO {
 
     if (input.team_member_ids !== undefined) {
       data.team_member_ids = normalizeTeamMemberIds(input.team_member_ids);
+      pruneTeamMemberRolesForIds(data);
+    }
+
+    if (input.team_member_roles !== undefined) {
+      const nextRoles = normalizeTeamMemberRoles(data.team_member_ids, input.team_member_roles);
+      if (nextRoles && Object.keys(nextRoles).length) data.team_member_roles = nextRoles;
+      else delete data.team_member_roles;
     }
 
     if ("via_client_ids" in input) {

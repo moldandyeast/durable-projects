@@ -54,6 +54,8 @@ export interface ProjectData {
   gallery_images: GalleryImage[];
   preview_image?: string;
   team_member_ids: string[];
+  /** Optional display role per collaborator id for this project only (overrides directory role when set). */
+  team_member_roles?: Record<string, string>;
 }
 
 export interface IndexEntry {
@@ -101,6 +103,8 @@ export interface ProjectEnvelope {
   gallery_images: GalleryImage[];
   preview_image?: string;
   team_member_ids: string[];
+  /** Same keys as stored on the project; omitted when empty. */
+  team_member_roles?: Record<string, string>;
   team?: TeamMember[];
 }
 

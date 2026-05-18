@@ -331,7 +331,7 @@ export function adminTemplate(): string {
             </div>
             <div class="admin-collab-wrap">
               <span id="collab-picker-label" class="admin-label">Collaborators</span>
-              <p class="admin-field-hint">Same pattern as clients — checked names show; order follows selection.</p>
+              <p class="admin-field-hint">Same pattern as clients — checked names show; order follows selection. Optional “Role on project” overrides the directory role for this engagement only.</p>
               <details class="admin-field-more">
                 <summary>About ordering</summary>
                 <p class="admin-field-more__body">First checked appears first alongside the project.</p>
@@ -489,6 +489,8 @@ export function adminTemplate(): string {
     var clientPickOrder = [];
     var viaPickOrder = [];
     var teamPickOrder = [];
+    var teamPickRoles = {};
+    var cachedTeamMembers = [];
 
     function clearProjSaveStatusSoon() {
       clearTimeout(projSaveStatusTimer);
@@ -902,6 +904,65 @@ export function adminTemplate(): string {
       wrap.appendChild(row);
     }
 
+    function appendCollaboratorTeamBlock(wrap, m, checked) {
+      var block = document.createElement("div");
+      block.className = "admin-collab-team-block";
+
+      var row = document.createElement("label");
+      row.className = "admin-collab-row";
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = m.id;
+      cb.checked = checked;
+      var span = document.createElement("span");
+      span.className = "admin-collab-row__text";
+      span.textContent = m.name + (m.role ? " — " + m.role : "");
+      var sid = document.createElement("span");
+      sid.className = "admin-collab-row__id";
+      sid.textContent = m.id;
+      row.appendChild(cb);
+      row.appendChild(span);
+      row.appendChild(sid);
+
+      var roleWrap = document.createElement("div");
+      roleWrap.className = "admin-collab-team-role";
+      roleWrap.hidden = !checked;
+      var rin = document.createElement("input");
+      rin.type = "text";
+      rin.className = "admin-collab-team-role__input";
+      rin.placeholder = "Role on project (optional)";
+      rin.value = teamPickRoles[m.id] ? teamPickRoles[m.id] : "";
+      rin.setAttribute("aria-label", "Role on project for " + (m.name || m.id));
+      rin.addEventListener("input", function() {
+        var v = rin.value.trim();
+        if (v) teamPickRoles[m.id] = v;
+        else delete teamPickRoles[m.id];
+      });
+
+      roleWrap.appendChild(rin);
+
+      cb.addEventListener("change", function(ev) {
+        var box = ev.target;
+        var id = box.value;
+        if (box.checked) {
+          if (teamPickOrder.indexOf(id) === -1) teamPickOrder.push(id);
+          roleWrap.hidden = false;
+        } else {
+          teamPickOrder = teamPickOrder.filter(function(x) {
+            return x !== id;
+          });
+          delete teamPickRoles[id];
+          rin.value = "";
+          roleWrap.hidden = true;
+        }
+        syncTeamPickHidden();
+      });
+
+      block.appendChild(row);
+      block.appendChild(roleWrap);
+      wrap.appendChild(block);
+    }
+
     function getSelectedTeamIdsFromHidden() {
       var hid = document.getElementById("pf-team-ids");
       if (!hid.value.trim()) return [];
@@ -913,12 +974,27 @@ export function adminTemplate(): string {
       if (h) h.value = teamPickOrder.join(",");
     }
 
-    function applyTeamIdsToCheckboxes(ids) {
+    function hydrateTeamPick(ids, roles) {
       teamPickOrder = (ids || []).slice();
+      teamPickRoles = {};
+      if (roles && typeof roles === "object") {
+        for (var k in roles) {
+          if (!Object.prototype.hasOwnProperty.call(roles, k)) continue;
+          var rv = String(roles[k] || "").trim();
+          if (rv) teamPickRoles[k] = rv;
+        }
+      }
       syncTeamPickHidden();
-      document.querySelectorAll('#collab-picker input[type="checkbox"]').forEach(function(cb) {
-        cb.checked = teamPickOrder.indexOf(cb.value) !== -1;
+      renderCollaboratorPicker(cachedTeamMembers);
+    }
+
+    function collectTeamMemberRolesPayload() {
+      var out = {};
+      teamPickOrder.forEach(function(id) {
+        var v = teamPickRoles[id];
+        if (v && String(v).trim()) out[id] = String(v).trim();
       });
+      return out;
     }
 
     function syncClientPickHidden() {
@@ -1062,25 +1138,7 @@ export function adminTemplate(): string {
         return;
       }
       members.forEach(function(m) {
-        appendCollabStyleRow(
-          wrap,
-          m.id,
-          m.name + (m.role ? " — " + m.role : ""),
-          m.id,
-          teamPickOrder.indexOf(m.id) !== -1,
-          function(ev) {
-            var cb = ev.target;
-            var id = cb.value;
-            if (cb.checked) {
-              if (teamPickOrder.indexOf(id) === -1) teamPickOrder.push(id);
-            } else {
-              teamPickOrder = teamPickOrder.filter(function(x) {
-                return x !== id;
-              });
-            }
-            syncTeamPickHidden();
-          },
-        );
+        appendCollaboratorTeamBlock(wrap, m, teamPickOrder.indexOf(m.id) !== -1);
       });
       syncTeamPickHidden();
     }
@@ -1298,8 +1356,9 @@ export function adminTemplate(): string {
       fillTeamList(team.members || []);
       fillClientsList(clients.clients || []);
       cachedClients = clients.clients || [];
+      cachedTeamMembers = team.members || [];
       renderClientPicker(cachedClients);
-      renderCollaboratorPicker(team.members || []);
+      renderCollaboratorPicker(cachedTeamMembers);
 
       var sel = document.getElementById("proj-select");
       if (sel) {
@@ -1605,12 +1664,10 @@ export function adminTemplate(): string {
         document.getElementById("proj-form").reset();
         clientPickOrder = [];
         viaPickOrder = [];
-        teamPickOrder = [];
         syncClientPickHidden();
         syncViaPickHidden();
-        syncTeamPickHidden();
+        hydrateTeamPick([], {});
         renderClientPicker(cachedClients);
-        applyTeamIdsToCheckboxes([]);
         renderGalleryEditor([]);
         previewPlaceholder();
         return;
@@ -1637,7 +1694,7 @@ export function adminTemplate(): string {
       pruneViaPickAgainstPrimaries();
       syncViaPickHidden();
       renderClientPicker(cachedClients);
-      applyTeamIdsToCheckboxes(p.team_member_ids || []);
+      hydrateTeamPick(p.team_member_ids || [], p.team_member_roles);
       if (pfSort) pfSort.value = p.sort_date || "";
       if (pfPreview) pfPreview.value = p.preview_image || "";
       renderGalleryEditor(p.gallery_images || []);
@@ -1773,6 +1830,7 @@ export function adminTemplate(): string {
         team_member_ids: teamIds,
         gallery_images: collectGalleryFromEditor(),
         body: pfBody ? pfBody.value : "",
+        team_member_roles: collectTeamMemberRolesPayload(),
       };
 
       var st = document.getElementById("proj-save-status");

@@ -138,6 +138,16 @@ async function resolveTeam(env: Env, ids: string[]): Promise<TeamMember[]> {
   return members;
 }
 
+/** Directory roles merged with optional per-project overrides (`team_member_roles`). */
+function mergeProjectTeamRoles(team: TeamMember[], roles: Record<string, string> | undefined): TeamMember[] {
+  if (!roles || !Object.keys(roles).length) return team;
+  return team.map((m) => {
+    const o = roles[m.id]?.trim();
+    if (!o) return m;
+    return { ...m, role: o };
+  });
+}
+
 async function resolveClient(env: Env, id: string | undefined): Promise<Client | undefined> {
   if (!id?.trim()) return undefined;
   const res = await siteStub(env).fetch("https://site/internal/clients/get-batch", {
@@ -227,6 +237,7 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
   const viaIds = data.via_client_ids ?? [];
   const viaClients = await resolveClientsInOrder(env, viaIds);
   const first = refs[0];
+  const mergedTeam = mergeProjectTeamRoles(team, data.team_member_roles);
   return {
     id: data.id,
     title: data.title,
@@ -247,7 +258,10 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
     gallery_images: data.gallery_images,
     preview_image: data.preview_image,
     team_member_ids: data.team_member_ids,
-    ...(team.length ? { team } : {}),
+    ...(data.team_member_roles && Object.keys(data.team_member_roles).length ?
+      { team_member_roles: data.team_member_roles }
+    : {}),
+    ...(mergedTeam.length ? { team: mergedTeam } : {}),
   };
 }
 
@@ -529,6 +543,9 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
       ...(project.preview_image ? [`preview_image: ${JSON.stringify(project.preview_image)}`] : []),
       `gallery_images: ${JSON.stringify(project.gallery_images)}`,
       `team_member_ids: ${JSON.stringify(project.team_member_ids)}`,
+      ...(project.team_member_roles && Object.keys(project.team_member_roles).length ?
+        [`team_member_roles: ${JSON.stringify(project.team_member_roles)}`]
+      : []),
       "---",
       "",
       project.body,
@@ -543,7 +560,10 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
     return Response.json(await toEnvelope(project, team, env), { headers: baseHeaders });
   }
 
-  const team = await resolveTeam(env, project.team_member_ids);
+  const team = mergeProjectTeamRoles(
+    await resolveTeam(env, project.team_member_ids),
+    project.team_member_roles,
+  );
   const primaryRefs = await resolveProjectPrimaryRefs(env, effectiveProjectClientIds(project));
   const viaClients = await resolveClientsInOrder(env, project.via_client_ids ?? []);
   const html = projectPublicPage(project, team, primaryRefs, viaClients);
@@ -604,6 +624,7 @@ async function createProject(request: Request, env: Env): Promise<Response> {
       gallery_images: input.gallery_images,
       preview_image: input.preview_image,
       team_member_ids: input.team_member_ids,
+      team_member_roles: input.team_member_roles,
     }),
   });
 

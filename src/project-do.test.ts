@@ -3,6 +3,7 @@ import {
   normalizeClientIds,
   normalizeGalleryImages,
   normalizeTeamMemberIds,
+  normalizeTeamMemberRoles,
   normalizeViaClientIds,
   ProjectDO,
 } from "./project-do";
@@ -66,6 +67,24 @@ describe("normalizeViaClientIds", () => {
   });
 });
 
+describe("normalizeTeamMemberRoles", () => {
+  it("keeps only ids in allow list and trims", () => {
+    expect(
+      normalizeTeamMemberRoles(["a", "b"], {
+        a: " Lead ",
+        b: "",
+        c: "ignored",
+      }),
+    ).toEqual({ a: "Lead" });
+  });
+
+  it("returns undefined when allow list empty or input invalid", () => {
+    expect(normalizeTeamMemberRoles([], { x: "y" })).toBeUndefined();
+    expect(normalizeTeamMemberRoles(["a"], undefined)).toBeUndefined();
+    expect(normalizeTeamMemberRoles(["a"], [])).toBeUndefined();
+  });
+});
+
 describe("ProjectDO", () => {
   it("create stores extended metadata", async () => {
     const project = makeProjectDO();
@@ -112,5 +131,26 @@ describe("ProjectDO", () => {
     const data = await res.json<{ client_ids?: string[]; via_client_ids?: string[] }>();
     expect(data.client_ids).toEqual(["aaaaaaaa"]);
     expect(data.via_client_ids).toEqual(["bbbbbbbb", "cccccccc"]);
+  });
+
+  it("create stores team_member_roles", async () => {
+    const project = makeProjectDO();
+    const res = await project.fetch(
+      new Request("https://p/internal/create", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "abcdabcd",
+          title: "T",
+          summary: "",
+          tags: [],
+          body: "x",
+          team_member_ids: ["aaaaaaaa", "bbbbbbbb"],
+          team_member_roles: { aaaaaaaa: "Art direction", bbbbbbbb: " ", zzzzzzzz: "skip" },
+        }),
+      }),
+    );
+    expect(res.ok).toBe(true);
+    const data = await res.json<{ team_member_roles?: Record<string, string> }>();
+    expect(data.team_member_roles).toEqual({ aaaaaaaa: "Art direction" });
   });
 });
