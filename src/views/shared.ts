@@ -235,19 +235,19 @@ export function layoutPage(
     }
 
     /* Hero — Swiss display setting.
-       Tight leading (≤1), considered tracking, explicit OT features for kerning
-       and contextual alts. The dek tucks in close so the eye glides without a
-       paragraph break. */
+       Three clear typographic registers: tight display title, a confident lede
+       dek, then the muted micro-meta of the index column. Every layer reads
+       distinctly without leaning on margins. */
     .project__hero-text {
       grid-column: 3 / -1;
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
+      gap: 0.55rem;
     }
     .project__title {
       font-family: var(--font-display);
-      font-size: clamp(1.85rem, 4.2vw, 2.55rem);
+      font-size: clamp(1.95rem, 4.4vw, 2.7rem);
       font-weight: 600;
       letter-spacing: -0.046em;
       line-height: 0.98;
@@ -262,32 +262,34 @@ export function layoutPage(
     }
     .project__dek {
       margin: 0;
-      font-size: clamp(1.0625rem, 1.45vw, 1.22rem);
+      font-family: var(--font-display);
+      font-size: clamp(1.1875rem, 1.8vw, 1.45rem);
       font-weight: 400;
-      letter-spacing: -0.018em;
-      color: color-mix(in srgb, var(--fg-soft) 92%, var(--muted));
-      line-height: 1.32;
-      max-width: 36rem;
+      letter-spacing: -0.022em;
+      color: var(--fg-soft);
+      line-height: 1.3;
+      max-width: 34rem;
       text-wrap: pretty;
       hanging-punctuation: first last;
       font-feature-settings: "kern", "calt", "liga", "ss01", "cv11";
       font-kerning: normal;
     }
 
-    /* Spec sheet — Date / Clients / Via / Tags */
+    /* Spec sheet — Date / Clients / Via / Tags.
+       Brockmann-style: micro mono labels (super quiet), confident values. */
     .project__spec {
       grid-column: 3 / -1;
       display: grid;
       grid-template-columns: repeat(10, minmax(0, 1fr));
       column-gap: var(--grid-gap);
-      row-gap: clamp(0.8rem, 1.5vw, 1.15rem);
+      row-gap: clamp(1.1rem, 2vw, 1.55rem);
       margin: 0;
       padding: 0;
     }
     .spec-cell {
       display: flex;
       flex-direction: column;
-      gap: 0.32rem;
+      gap: 0.45rem;
       min-width: 0;
     }
     .spec-cell--date { grid-column: span 2; }
@@ -299,16 +301,17 @@ export function layoutPage(
       margin: 0;
       font-family: var(--font-mono);
       font-size: var(--text-2xs);
-      letter-spacing: 0.04em;
+      font-weight: 400;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: color-mix(in srgb, var(--muted) 70%, transparent);
+      color: color-mix(in srgb, var(--muted) 60%, transparent);
       line-height: 1.4;
     }
     .spec-cell dd {
       margin: 0;
-      font-size: var(--text-sm);
+      font-size: var(--text-base);
       letter-spacing: var(--tk-small);
-      line-height: 1.55;
+      line-height: 1.45;
       color: var(--fg-soft);
       font-feature-settings: var(--features-text);
     }
@@ -348,10 +351,11 @@ export function layoutPage(
       border-radius: var(--radius-sm);
     }
 
-    /* Article body */
+    /* Article body — keep the measure under control so the eye can scan. */
     .project__body {
       grid-column: 3 / span 7;
       min-width: 0;
+      max-width: 36rem;
     }
 
     /* Why — editorial preamble. Same size as body; tighter rhythm + display family
@@ -1239,13 +1243,15 @@ export function layoutPage(
     /* Markdown body — long-form reading */
     .article-body {
       font-size: var(--text-lg);
-      line-height: var(--lh-loose);
+      line-height: 1.62;
       letter-spacing: var(--tk-body);
       font-weight: 400;
       color: color-mix(in srgb, var(--fg-soft) 96%, var(--muted));
       margin: 0;
       text-wrap: pretty;
       hanging-punctuation: first last;
+      font-feature-settings: var(--features-text);
+      font-kerning: normal;
     }
     .article-body > *:first-child { margin-top: 0; }
     .article-body > *:last-child { margin-bottom: 0; }
@@ -1255,19 +1261,20 @@ export function layoutPage(
     .article-body h4 {
       font-family: var(--font-display);
       color: var(--fg);
-      font-weight: 600;
-      line-height: var(--lh-snug);
-      margin: 2.1rem 0 0.6rem;
+      font-weight: 500;
+      line-height: 1.2;
+      margin: 2.4rem 0 0.65rem;
       text-wrap: balance;
+      letter-spacing: var(--tk-h2);
     }
     .article-body h1 {
-      font-size: var(--text-h1-article);
+      font-size: clamp(1.5rem, 2.4vw, 1.7rem);
       letter-spacing: var(--tk-h1);
-      line-height: 1.12;
-      margin-top: 2.4rem;
+      line-height: 1.14;
+      margin-top: 2.6rem;
     }
     .article-body h2 {
-      font-size: var(--text-h2);
+      font-size: clamp(1.3rem, 2.05vw, 1.45rem);
       letter-spacing: var(--tk-h2);
     }
     .article-body h3 {
@@ -1277,10 +1284,25 @@ export function layoutPage(
     .article-body h4 {
       font-size: var(--text-md);
       letter-spacing: var(--tk-h3);
-      font-weight: 600;
+      font-weight: 500;
     }
-    .article-body p { margin: 0 0 1.1rem; }
-    .article-body strong { font-weight: 600; color: var(--fg); }
+    .article-body h2:first-child,
+    .article-body h3:first-child,
+    .article-body h4:first-child { margin-top: 0; }
+    .article-body p { margin: 0 0 1.25rem; }
+    /* Lede — first paragraph reads as a proper editorial lede so the
+       hierarchy below it (h2 / body) has air to breathe. */
+    .article-body > p:first-of-type {
+      font-size: clamp(1.15rem, 1.6vw, 1.3rem);
+      line-height: 1.4;
+      letter-spacing: -0.014em;
+      color: var(--fg);
+      font-weight: 400;
+      margin-bottom: 1.55rem;
+      max-width: 34rem;
+    }
+    .article-body > p:first-of-type strong { font-weight: 500; }
+    .article-body strong { font-weight: 500; color: var(--fg); }
     .article-body em { font-style: italic; }
     .article-body a {
       color: var(--fg);
