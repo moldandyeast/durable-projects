@@ -434,9 +434,9 @@ export function layoutPage(
       width: 100%;
       margin: 0;
       padding: 0;
-      min-height: 100dvh;
-      height: 100dvh;
-      max-height: 100dvh;
+      /* 100dvh alone can exceed the visible viewport on mobile Safari; cap with svh so the shell never clips the editor. */
+      height: min(100dvh, 100svh);
+      max-height: min(100dvh, 100svh);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -487,6 +487,95 @@ export function layoutPage(
       content: " ↗";
       font-size: 0.85em;
       color: var(--adm-muted);
+    }
+    body.admin-app .admin-header__links {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.5rem;
+    }
+    body.admin-app .admin-header__links-sep {
+      color: var(--adm-line-strong);
+      font-weight: 400;
+      user-select: none;
+    }
+    body.admin-app .admin-header__link-btn {
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: -0.005em;
+      color: var(--adm-muted);
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.18s var(--ease-out-expo), border-color 0.18s var(--ease-out-expo);
+      max-width: none;
+      width: auto;
+    }
+    body.admin-app .admin-header__link-btn:hover {
+      color: var(--adm-fg);
+      border-bottom-color: var(--adm-fg);
+    }
+    body.admin-app .admin-header__link-btn:focus-visible {
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 4px;
+      border-radius: 0;
+    }
+    body.admin-app .admin-api-docs-prose {
+      font-size: 0.875rem;
+      line-height: 1.55;
+      color: var(--adm-fg-soft);
+    }
+    body.admin-app .admin-api-docs-prose p {
+      margin: 0 0 0.65rem;
+    }
+    body.admin-app .admin-api-docs-prose p:last-child {
+      margin-bottom: 0;
+    }
+    body.admin-app .admin-doc-muted {
+      color: var(--adm-muted);
+      font-size: 0.8125rem;
+    }
+    body.admin-app .admin-code-inline {
+      font-family: var(--adm-mono);
+      font-size: 0.8125em;
+      letter-spacing: -0.02em;
+      padding: 0.1em 0.28em;
+      border-radius: var(--radius-sm);
+      background: color-mix(in srgb, var(--adm-muted) 12%, transparent);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-doc-pre {
+      margin: 0.5rem 0 0;
+      padding: 0.65rem 0.75rem;
+      font-family: var(--adm-mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      letter-spacing: -0.02em;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--adm-line);
+      background: color-mix(in srgb, var(--adm-bg-soft) 94%, transparent);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-doc-list {
+      margin: 0.35rem 0 0;
+      padding-left: 1.15rem;
+      color: var(--adm-fg-soft);
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    body.admin-app .admin-doc-list li {
+      margin-bottom: 0.35rem;
+    }
+    body.admin-app .admin-doc-list li:last-child {
+      margin-bottom: 0;
     }
     body.admin-app .admin-nav {
       display: flex;
@@ -1525,6 +1614,56 @@ export function layoutPage(
       font-weight: 400;
       letter-spacing: -0.01em;
     }
+    body.admin-app .admin-list li.admin-list__row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem 1rem;
+    }
+    body.admin-app .admin-list__main {
+      min-width: 0;
+      flex: 1;
+    }
+    body.admin-app .admin-list__line {
+      display: block;
+    }
+    body.admin-app .admin-list__actions {
+      flex-shrink: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+    body.admin-app .admin-list__btn {
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      padding: 0.28rem 0.45rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--adm-line);
+      background: transparent;
+      color: var(--adm-muted);
+      cursor: pointer;
+      transition: color 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+      margin: 0;
+      max-width: none;
+      width: auto;
+    }
+    body.admin-app .admin-list__btn:hover {
+      color: var(--adm-fg);
+      border-color: var(--adm-line-strong);
+      background: var(--adm-scrim);
+    }
+    body.admin-app .admin-list__btn:focus-visible {
+      outline: 1px solid var(--adm-ring);
+      outline-offset: 2px;
+    }
+    body.admin-app .admin-list__btn--danger:hover {
+      color: var(--red);
+      border-color: color-mix(in srgb, var(--red) 45%, var(--adm-line));
+      background: color-mix(in srgb, var(--red) 10%, transparent);
+    }
     body.admin-app .admin-list__meta {
       display: block;
       font-family: var(--adm-mono);
@@ -1968,8 +2107,8 @@ export function layoutPage(
       border-radius: var(--radius-sm);
     }
     body.admin-app .admin-editor-md textarea[name="body"] {
-      flex: 1;
-      min-height: 0;
+      flex: 1 1 auto;
+      min-height: 12rem;
       resize: none;
       font-family: var(--adm-mono);
       font-size: 0.9rem;

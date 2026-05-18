@@ -7,7 +7,19 @@ export function adminTemplate(): string {
   <header class="admin-header">
     <div class="admin-header__row">
       <span class="admin-wordmark">Studio</span>
-      <a href="/" class="admin-header__exit">Public site</a>
+      <div class="admin-header__links">
+        <a href="/" class="admin-header__exit">Public site</a>
+        <span class="admin-header__links-sep" aria-hidden="true">·</span>
+        <button
+          type="button"
+          class="admin-header__link-btn"
+          id="open-api-docs"
+          aria-haspopup="dialog"
+          aria-controls="overlay-api-docs"
+        >
+          API
+        </button>
+      </div>
     </div>
     <nav class="admin-nav" aria-label="Admin sections">
       <button type="button" class="admin-nav__btn is-active" data-view="editor">Editor</button>
@@ -43,7 +55,7 @@ export function adminTemplate(): string {
                 Settings
               </button>
               <div class="admin-editor-toolbar__actions">
-                <button type="submit" id="btn-save" class="admin-btn admin-btn--toolbar-primary">
+                <button type="submit" id="btn-save" formnovalidate class="admin-btn admin-btn--toolbar-primary">
                   <span class="admin-btn__label">Save</span>
                   <kbd class="admin-kbd admin-kbd--inline">⌘S</kbd>
                 </button>
@@ -190,6 +202,72 @@ export function adminTemplate(): string {
     </div>
   </div>
 
+  <div id="overlay-edit-collab" class="admin-overlay" hidden aria-hidden="true">
+    <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
+    <div class="admin-overlay__panel admin-overlay__panel--sheet" role="dialog" aria-modal="true" aria-labelledby="overlay-edit-collab-title">
+      <div class="admin-overlay__head admin-overlay__head--rich">
+        <div class="admin-overlay__title-stack">
+          <p class="admin-overlay__eyebrow">Directory</p>
+          <h2 id="overlay-edit-collab-title" class="admin-overlay__heading">Edit collaborator</h2>
+          <p class="admin-overlay__lede admin-overlay__lede--compact">Id stays fixed; updates apply everywhere this profile is used.</p>
+        </div>
+        <button type="button" class="admin-overlay__close" data-overlay-close="overlay-edit-collab" aria-label="Close">&times;</button>
+      </div>
+      <form id="team-edit-form" class="admin-grid">
+        <input type="hidden" id="tf-edit-id" value="" />
+        <div>
+          <label class="admin-label" for="tf-edit-name">Name</label>
+          <input id="tf-edit-name" name="name" placeholder="" required />
+        </div>
+        <div>
+          <label class="admin-label" for="tf-edit-role">Role</label>
+          <input id="tf-edit-role" name="role" placeholder="Optional" />
+        </div>
+        <div>
+          <label class="admin-label" for="tf-edit-url">URL</label>
+          <input id="tf-edit-url" name="url" placeholder="Optional" />
+        </div>
+        <div class="admin-overlay__actions">
+          <button type="button" class="admin-btn admin-btn--ghost" data-overlay-close="overlay-edit-collab">Cancel</button>
+          <button type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="overlay-edit-client" class="admin-overlay" hidden aria-hidden="true">
+    <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
+    <div class="admin-overlay__panel admin-overlay__panel--sheet" role="dialog" aria-modal="true" aria-labelledby="overlay-edit-client-title">
+      <div class="admin-overlay__head admin-overlay__head--rich">
+        <div class="admin-overlay__title-stack">
+          <p class="admin-overlay__eyebrow">Directory</p>
+          <h2 id="overlay-edit-client-title" class="admin-overlay__heading">Edit client</h2>
+          <p class="admin-overlay__lede admin-overlay__lede--compact">Id stays fixed; changing parent checks for cycles.</p>
+        </div>
+        <button type="button" class="admin-overlay__close" data-overlay-close="overlay-edit-client" aria-label="Close">&times;</button>
+      </div>
+      <form id="client-edit-form" class="admin-grid">
+        <input type="hidden" id="cf-edit-id" value="" />
+        <div>
+          <label class="admin-label" for="cf-edit-name">Name</label>
+          <input id="cf-edit-name" name="name" placeholder="" required />
+        </div>
+        <div>
+          <label class="admin-label" for="cf-edit-parent">Parent client</label>
+          <select id="cf-edit-parent" name="parent_client_id"><option value="">— None —</option></select>
+        </div>
+        <div>
+          <label class="admin-label" for="cf-edit-url">URL</label>
+          <input id="cf-edit-url" name="url" placeholder="Optional" />
+        </div>
+        <div class="admin-overlay__actions">
+          <button type="button" class="admin-btn admin-btn--ghost" data-overlay-close="overlay-edit-client">Cancel</button>
+          <button type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="overlay-project-settings" class="admin-overlay" hidden aria-hidden="true">
     <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
     <div
@@ -311,6 +389,92 @@ export function adminTemplate(): string {
     </div>
   </div>
 
+  <div id="overlay-api-docs" class="admin-overlay" hidden aria-hidden="true">
+    <button type="button" class="admin-overlay__backdrop" tabindex="-1" aria-label="Dismiss"></button>
+    <div
+      class="admin-overlay__panel admin-overlay__panel--settings"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="overlay-api-docs-heading"
+    >
+      <div class="admin-overlay__head admin-overlay__head--rich">
+        <div class="admin-overlay__title-stack">
+          <p class="admin-overlay__eyebrow">Integrations</p>
+          <h2 id="overlay-api-docs-heading" class="admin-overlay__heading">Public HTTP API</h2>
+          <p class="admin-overlay__lede">Read-only JSON for the project index, directory data, and single projects. Use your site origin as the base URL (no separate API host).</p>
+        </div>
+        <button type="button" class="admin-overlay__close" data-overlay-close="overlay-api-docs" aria-label="Close">&times;</button>
+      </div>
+      <div class="admin-overlay__body admin-overlay__body--scroll">
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Overview</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p>All routes below are <strong>GET</strong> unless noted. Responses are JSON with <code class="admin-code-inline">Content-Type: application/json; charset=utf-8</code> unless stated otherwise.</p>
+            <p class="admin-doc-muted">Paths under <code class="admin-code-inline">/api/</code> send CORS headers (<code class="admin-code-inline">Access-Control-Allow-Origin: *</code>) for use from browsers on other origins. Human pages (<code class="admin-code-inline">/</code>, project URLs) are same-origin unless you proxy them.</p>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Project index</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p><code class="admin-code-inline">GET /api/index</code></p>
+            <p>Returns <code class="admin-code-inline">{ "projects": [ … ] }</code>: each index row that is not hidden (ids, titles, tags, client ids, preview URLs, dates, etc.). Same catalog that backs the public home page.</p>
+            <pre class="admin-doc-pre" tabindex="0">curl -sS https://YOUR_ORIGIN/api/index</pre>
+            <p class="admin-doc-muted">Replace <code class="admin-code-inline">YOUR_ORIGIN</code> with this site&apos;s host (no trailing slash).</p>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Team &amp; clients</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p><code class="admin-code-inline">GET /api/team</code> → <code class="admin-code-inline">{ "members": [ … ] }</code></p>
+            <p><code class="admin-code-inline">GET /api/clients</code> → <code class="admin-code-inline">{ "clients": [ … ] }</code></p>
+            <p>Use these to resolve collaborator and client metadata when rendering the index or cards elsewhere.</p>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Single project (JSON)</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p><code class="admin-code-inline">GET /api/projects/&lt;slug&gt;</code></p>
+            <p><code class="admin-code-inline">&lt;slug&gt;</code> is eight characters (<span class="admin-doc-muted">Crockford base32</span>: <code class="admin-code-inline">0-9 a-h j-k m-n p-t v-z</code>, no i/l/o/u).</p>
+            <p>Returns a full public envelope: markdown body, resolved team and client refs, gallery, tags, ETag from <code class="admin-code-inline">edited_at</code>. <strong>404</strong> if unknown, <strong>410</strong> if deleted.</p>
+            <pre class="admin-doc-pre" tabindex="0">curl -sS -H "Accept: application/json" "https://YOUR_ORIGIN/api/projects/xxxxxxxx"</pre>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Project page &amp; markdown</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p><code class="admin-code-inline">GET /&lt;slug&gt;</code> serves HTML by default. With header <code class="admin-code-inline">Accept: application/json</code> you get the same envelope as <code class="admin-code-inline">/api/projects/&lt;slug&gt;</code>.</p>
+            <p><code class="admin-code-inline">GET /&lt;slug&gt;.md</code> (or <code class="admin-code-inline">Accept: text/markdown</code>) returns YAML-front-matter-style headers plus raw markdown body.</p>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Home &amp; filters</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p><code class="admin-code-inline">GET /</code> is HTML. The underlying list is the same as <code class="admin-code-inline">/api/index</code>, filtered server-side by query params:</p>
+            <ul class="admin-doc-list">
+              <li><code class="admin-code-inline">?tag=&lt;tag&gt;</code> — substring match on tags</li>
+              <li><code class="admin-code-inline">?client=&lt;client id&gt;</code> — primary or via client id</li>
+            </ul>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Live views</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p><code class="admin-code-inline">GET /&lt;slug&gt;/live</code> with <code class="admin-code-inline">Upgrade: websocket</code> connects to the project durable object live channel (optional product features).</p>
+          </div>
+        </div>
+        <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Writes</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p class="admin-doc-muted">Creating or editing projects, preview markdown, and directory edits use <code class="admin-code-inline">/admin/api/*</code> and require auth (e.g. Cloudflare Access). They are not part of the public read API.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="admin-overlay__footer">
+        <button type="button" class="admin-btn admin-btn--primary-wide" data-overlay-close="overlay-api-docs">Close</button>
+      </footer>
+    </div>
+  </div>
+
   <script>
     async function j(url, opt) {
       opt = opt || {};
@@ -407,13 +571,13 @@ export function adminTemplate(): string {
 
     function mdImageMarkdown(url, alt) {
       alt = String(alt || "")
-        .replace(/\]/g, "")
-        .replace(/\r?\n/g, " ")
+        .replace(/\\]/g, "")
+        .replace(/\\r?\\n/g, " ")
         .trim();
       url = String(url || "").trim();
       if (!url) return "";
-      var urlPart = url.indexOf(")") >= 0 || /\s/.test(url) ? "<" + url + ">" : url;
-      return "![" + alt + "](" + urlPart + ")\n";
+      var urlPart = url.indexOf(")") >= 0 || /\\s/.test(url) ? "<" + url + ">" : url;
+      return "![" + alt + "](" + urlPart + ")\\n";
     }
 
     function refreshEditorMediaStrip() {
@@ -495,7 +659,7 @@ export function adminTemplate(): string {
           if (!text || text === "gallery") return;
           var t = text.trim();
           if (t.indexOf("![") !== 0) return;
-          insertIntoMarkdown(ta, text.indexOf("\n") >= 0 ? text : text + "\n");
+          insertIntoMarkdown(ta, text.indexOf("\\n") >= 0 ? text : text + "\\n");
         });
       }
       if (pv && !pv.getAttribute("data-strip-refresh")) {
@@ -544,13 +708,18 @@ export function adminTemplate(): string {
     function bindMarkdownTools() {
       var ta = document.getElementById("pf-body");
       if (!ta) return;
-      document.getElementById("md-tool-bold").addEventListener("click", function() {
+      function wireTool(id, fn) {
+        var b = document.getElementById(id);
+        if (!b) return;
+        b.addEventListener("click", fn);
+      }
+      wireTool("md-tool-bold", function() {
         mdWrapDelimiter(ta, "**", "bold");
       });
-      document.getElementById("md-tool-italic").addEventListener("click", function() {
+      wireTool("md-tool-italic", function() {
         mdWrapDelimiter(ta, "*", "italic");
       });
-      document.getElementById("md-tool-link").addEventListener("click", function() {
+      wireTool("md-tool-link", function() {
         mdInsertLink(ta);
       });
       ta.addEventListener("keydown", function(ev) {
@@ -616,7 +785,14 @@ export function adminTemplate(): string {
     var overlayFocusReturn = null;
 
     function syncOverlayScrollLock() {
-      var ids = ["overlay-collab", "overlay-client", "overlay-project-settings"];
+      var ids = [
+        "overlay-collab",
+        "overlay-client",
+        "overlay-edit-collab",
+        "overlay-edit-client",
+        "overlay-project-settings",
+        "overlay-api-docs",
+      ];
       var anyOpen = ids.some(function(id) {
         var el = document.getElementById(id);
         return el && !el.hidden;
@@ -634,6 +810,12 @@ export function adminTemplate(): string {
       var input =
         id === "overlay-project-settings" ?
           document.getElementById("pf-title")
+        : id === "overlay-api-docs" ?
+          document.querySelector("#overlay-api-docs .admin-overlay__close")
+        : id === "overlay-edit-collab" ?
+          document.getElementById("tf-edit-name")
+        : id === "overlay-edit-client" ?
+          document.getElementById("cf-edit-name")
         : el.querySelector("input[name=name], input");
       if (input && typeof input.focus === "function") input.focus();
     }
@@ -661,6 +843,7 @@ export function adminTemplate(): string {
       wireOpen("open-collab-overlay", "overlay-collab");
       wireOpen("open-client-overlay", "overlay-client");
       wireOpen("open-project-settings", "overlay-project-settings");
+      wireOpen("open-api-docs", "overlay-api-docs");
       document.querySelectorAll(".admin-overlay__backdrop").forEach(function(btn) {
         btn.addEventListener("click", function() {
           var overlay = btn.closest(".admin-overlay");
@@ -674,10 +857,16 @@ export function adminTemplate(): string {
       });
       document.addEventListener("keydown", function(ev) {
         if (ev.key === "Escape") {
+          var oapi = document.getElementById("overlay-api-docs");
           var os = document.getElementById("overlay-project-settings");
+          var oecc = document.getElementById("overlay-edit-collab");
+          var oecl = document.getElementById("overlay-edit-client");
           var oc = document.getElementById("overlay-collab");
           var ol = document.getElementById("overlay-client");
-          if (os && !os.hidden) closeOverlay("overlay-project-settings");
+          if (oapi && !oapi.hidden) closeOverlay("overlay-api-docs");
+          else if (os && !os.hidden) closeOverlay("overlay-project-settings");
+          else if (oecc && !oecc.hidden) closeOverlay("overlay-edit-collab");
+          else if (oecl && !oecl.hidden) closeOverlay("overlay-edit-client");
           else if (oc && !oc.hidden) closeOverlay("overlay-collab");
           else if (ol && !ol.hidden) closeOverlay("overlay-client");
           return;
@@ -896,6 +1085,75 @@ export function adminTemplate(): string {
       syncTeamPickHidden();
     }
 
+    function fillCfEditParentSelect(selectedParentId, excludeClientId) {
+      var sel = document.getElementById("cf-edit-parent");
+      if (!sel) return;
+      while (sel.options.length > 1) sel.remove(1);
+      cachedClients.forEach(function(c) {
+        if (c.id === excludeClientId) return;
+        var po = document.createElement("option");
+        po.value = c.id;
+        po.textContent = c.name + " · " + c.id;
+        sel.appendChild(po);
+      });
+      var want = selectedParentId && selectedParentId !== excludeClientId ? selectedParentId : "";
+      var ok = false;
+      if (want) {
+        for (var oi = 0; oi < sel.options.length; oi++) {
+          if (sel.options[oi].value === want) {
+            ok = true;
+            break;
+          }
+        }
+      }
+      sel.value = ok ? want : "";
+    }
+
+    function openEditCollaboratorOverlay(m) {
+      var hid = document.getElementById("tf-edit-id");
+      var nf = document.getElementById("tf-edit-name");
+      var rf = document.getElementById("tf-edit-role");
+      var uf = document.getElementById("tf-edit-url");
+      if (hid) hid.value = m.id;
+      if (nf) nf.value = m.name || "";
+      if (rf) rf.value = m.role || "";
+      if (uf) uf.value = m.url || "";
+      openOverlay("overlay-edit-collab");
+    }
+
+    function openEditClientOverlay(c) {
+      var hid = document.getElementById("cf-edit-id");
+      var nf = document.getElementById("cf-edit-name");
+      var uf = document.getElementById("cf-edit-url");
+      if (hid) hid.value = c.id;
+      if (nf) nf.value = c.name || "";
+      if (uf) uf.value = c.url || "";
+      fillCfEditParentSelect(c.parent_client_id || "", c.id);
+      openOverlay("overlay-edit-client");
+    }
+
+    async function deleteCollaborator(m) {
+      var label = m.name ? '"' + m.name + '"' : m.id;
+      if (!confirm("Remove collaborator " + label + " from the directory? They may still appear on saved projects until you edit those projects.")) return;
+      var r = await j("/admin/api/team/members/" + m.id, { method: "DELETE" });
+      if (!r.ok) {
+        alert("Could not delete collaborator.");
+        return;
+      }
+      await loadLists();
+    }
+
+    async function deleteClient(c) {
+      var label = c.name ? '"' + c.name + '"' : c.id;
+      if (!confirm("Remove client " + label + " from the directory? Projects may still reference this id until you edit them.")) return;
+      var r = await j("/admin/api/clients/" + c.id, { method: "DELETE" });
+      if (!r.ok) {
+        alert("Could not delete client.");
+        return;
+      }
+      await loadLists();
+    }
+
     function fillTeamList(members) {
       var ul = document.getElementById("team-list");
       if (!ul) return;
@@ -909,13 +1167,37 @@ export function adminTemplate(): string {
       }
       members.forEach(function(m) {
         var li = document.createElement("li");
+        li.className = "admin-list__row";
+        var main = document.createElement("div");
+        main.className = "admin-list__main";
         var line = document.createElement("span");
+        line.className = "admin-list__line";
         line.textContent = m.name + (m.role ? " — " + m.role : "");
         var meta = document.createElement("span");
         meta.className = "admin-list__meta";
         meta.textContent = m.id;
-        li.appendChild(line);
-        li.appendChild(meta);
+        main.appendChild(line);
+        main.appendChild(meta);
+        var actions = document.createElement("div");
+        actions.className = "admin-list__actions";
+        var editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "admin-list__btn";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", function() {
+          openEditCollaboratorOverlay(m);
+        });
+        var delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "admin-list__btn admin-list__btn--danger";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", function() {
+          deleteCollaborator(m);
+        });
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+        li.appendChild(main);
+        li.appendChild(actions);
         ul.appendChild(li);
       });
     }
@@ -937,7 +1219,11 @@ export function adminTemplate(): string {
       }
       clients.forEach(function(c) {
         var li = document.createElement("li");
+        li.className = "admin-list__row";
+        var main = document.createElement("div");
+        main.className = "admin-list__main";
         var line = document.createElement("span");
+        line.className = "admin-list__line";
         line.textContent = c.name;
         var meta = document.createElement("span");
         meta.className = "admin-list__meta";
@@ -947,21 +1233,67 @@ export function adminTemplate(): string {
         }
         parts.push(c.id);
         meta.textContent = parts.join(" · ");
-        li.appendChild(line);
-        li.appendChild(meta);
+        main.appendChild(line);
+        main.appendChild(meta);
+        var actions = document.createElement("div");
+        actions.className = "admin-list__actions";
+        var editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "admin-list__btn";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", function() {
+          openEditClientOverlay(c);
+        });
+        var delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "admin-list__btn admin-list__btn--danger";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", function() {
+          deleteClient(c);
+        });
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+        li.appendChild(main);
+        li.appendChild(actions);
         ul.appendChild(li);
       });
     }
 
     async function loadLists() {
-      const [tm, cl, pr] = await Promise.all([
-        j("/admin/api/team/members"),
-        j("/admin/api/clients"),
-        j("/admin/api/projects"),
-      ]);
-      const team = await tm.json();
-      const clients = await cl.json();
-      const projects = await pr.json();
+      var tm;
+      var cl;
+      var pr;
+      try {
+        var batch = await Promise.all([
+          j("/admin/api/team/members"),
+          j("/admin/api/clients"),
+          j("/admin/api/projects"),
+        ]);
+        tm = batch[0];
+        cl = batch[1];
+        pr = batch[2];
+      } catch (err) {
+        console.error("loadLists fetch failed", err);
+        setProjSaveStatus("error", "Could not load directory — refresh or check your connection.");
+        return false;
+      }
+      if (!tm.ok || !cl.ok || !pr.ok) {
+        console.error("loadLists bad status", tm.status, cl.status, pr.status);
+        setProjSaveStatus("error", "Could not load projects (" + pr.status + "). Try refreshing.");
+        return false;
+      }
+      var team;
+      var clients;
+      var projects;
+      try {
+        team = await tm.json();
+        clients = await cl.json();
+        projects = await pr.json();
+      } catch (err2) {
+        console.error("loadLists JSON failed", err2);
+        setProjSaveStatus("error", "Invalid response from server.");
+        return false;
+      }
 
       fillTeamList(team.members || []);
       fillClientsList(clients.clients || []);
@@ -990,6 +1322,7 @@ export function adminTemplate(): string {
           cfParent.appendChild(po);
         });
       }
+      return true;
     }
 
     function collectGalleryFromEditor() {
@@ -1283,11 +1616,20 @@ export function adminTemplate(): string {
         return;
       }
       var r = await j("/admin/api/projects/" + id);
+      if (!r.ok) {
+        setProjSaveStatus("error", "Could not load project (" + r.status + ").");
+        return;
+      }
       var p = await r.json();
-      var f = document.getElementById("proj-form");
-      f.title.value = p.title || "";
-      f.summary.value = p.summary || "";
-      f.tags.value = (p.tags || []).join(", ");
+      var pfTitle = document.getElementById("pf-title");
+      var pfSummary = document.getElementById("pf-summary");
+      var pfTags = document.getElementById("pf-tags");
+      var pfSort = document.getElementById("pf-sort");
+      var pfPreview = document.getElementById("pf-preview");
+      var pfBody = document.getElementById("pf-body");
+      if (pfTitle) pfTitle.value = p.title || "";
+      if (pfSummary) pfSummary.value = p.summary || "";
+      if (pfTags) pfTags.value = (p.tags || []).join(", ");
       var cids = (p.client_ids && p.client_ids.length) ? p.client_ids.slice() : (p.client_id ? [p.client_id] : []);
       clientPickOrder = cids.slice();
       syncClientPickHidden();
@@ -1296,10 +1638,10 @@ export function adminTemplate(): string {
       syncViaPickHidden();
       renderClientPicker(cachedClients);
       applyTeamIdsToCheckboxes(p.team_member_ids || []);
-      f.sort_date.value = p.sort_date || "";
-      f.preview_image.value = p.preview_image || "";
+      if (pfSort) pfSort.value = p.sort_date || "";
+      if (pfPreview) pfPreview.value = p.preview_image || "";
       renderGalleryEditor(p.gallery_images || []);
-      f.body.value = p.body || "";
+      if (pfBody) pfBody.value = p.body || "";
       schedulePreview();
     }
 
@@ -1313,56 +1655,124 @@ export function adminTemplate(): string {
 
     document.getElementById("team-form").addEventListener("submit", async function(ev) {
       ev.preventDefault();
-      var f = ev.target;
+      var nf = document.getElementById("tf-name");
+      var rf = document.getElementById("tf-role");
+      var uf = document.getElementById("tf-url");
       var r = await j("/admin/api/team/members", {
         method: "POST",
-        body: JSON.stringify({ name: f.name.value, role: f.role.value || undefined, url: f.url.value || undefined }),
+        body: JSON.stringify({
+          name: nf ? nf.value : "",
+          role: rf && rf.value ? rf.value : undefined,
+          url: uf && uf.value ? uf.value : undefined,
+        }),
       });
       if (!r.ok) return;
-      f.reset();
-      await loadLists();
+      ev.target.reset();
+      if (!(await loadLists())) return;
       closeOverlay("overlay-collab");
     });
 
     document.getElementById("client-form").addEventListener("submit", async function(ev) {
       ev.preventDefault();
-      var f = ev.target;
+      var cn = document.getElementById("cf-name");
+      var curl = document.getElementById("cf-url");
+      var cp = document.getElementById("cf-parent");
       var r = await j("/admin/api/clients", {
         method: "POST",
         body: JSON.stringify({
-          name: f.name.value,
-          url: f.url.value || undefined,
-          parent_client_id: f.parent_client_id.value || undefined,
+          name: cn ? cn.value : "",
+          url: curl && curl.value ? curl.value : undefined,
+          parent_client_id: cp && cp.value ? cp.value : undefined,
         }),
       });
       if (!r.ok) return;
-      f.reset();
-      await loadLists();
+      ev.target.reset();
+      if (!(await loadLists())) return;
       closeOverlay("overlay-client");
+    });
+
+    document.getElementById("team-edit-form").addEventListener("submit", async function(ev) {
+      ev.preventDefault();
+      var hid = document.getElementById("tf-edit-id");
+      var editId = hid ? hid.value : "";
+      if (!editId) return;
+      var nf = document.getElementById("tf-edit-name");
+      var rf = document.getElementById("tf-edit-role");
+      var uf = document.getElementById("tf-edit-url");
+      var r = await j("/admin/api/team/members/" + editId, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: nf ? nf.value.trim() : "",
+          role: rf ? rf.value : "",
+          url: uf ? uf.value : "",
+        }),
+      });
+      if (!r.ok) return;
+      if (!(await loadLists())) return;
+      closeOverlay("overlay-edit-collab");
+    });
+
+    document.getElementById("client-edit-form").addEventListener("submit", async function(ev) {
+      ev.preventDefault();
+      var hid = document.getElementById("cf-edit-id");
+      var editId = hid ? hid.value : "";
+      if (!editId) return;
+      var cn = document.getElementById("cf-edit-name");
+      var curl = document.getElementById("cf-edit-url");
+      var cp = document.getElementById("cf-edit-parent");
+      var r = await j("/admin/api/clients/" + editId, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: cn ? cn.value.trim() : "",
+          url: curl ? curl.value.trim() : "",
+          parent_client_id: cp ? cp.value : "",
+        }),
+      });
+      if (!r.ok) return;
+      if (!(await loadLists())) return;
+      closeOverlay("overlay-edit-client");
     });
 
     document.getElementById("proj-form").addEventListener("submit", async function(ev) {
       ev.preventDefault();
-      var f = ev.target;
       var btn = document.getElementById("btn-save");
-      var id = document.getElementById("proj-select").value;
-      var tags = f.tags.value.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+      var selEl = document.getElementById("proj-select");
+      var id = selEl ? selEl.value : "";
+      var pfTitle = document.getElementById("pf-title");
+      var pfSummary = document.getElementById("pf-summary");
+      var pfTags = document.getElementById("pf-tags");
+      var pfSort = document.getElementById("pf-sort");
+      var pfPreview = document.getElementById("pf-preview");
+      var pfBody = document.getElementById("pf-body");
+      var titleVal = pfTitle ? String(pfTitle.value || "").trim() : "";
+      if (!titleVal) {
+        setProjSaveStatus("error", "Add a title in Settings, then save.");
+        openOverlay("overlay-project-settings");
+        return;
+      }
+      var tagsRaw = pfTags ? pfTags.value : "";
+      var tags = String(tagsRaw || "")
+        .split(",")
+        .map(function(s) {
+          return s.trim();
+        })
+        .filter(Boolean);
       syncTeamPickHidden();
       var teamIds = teamPickOrder.slice();
       syncClientPickHidden();
       var clientIds = clientPickOrder.slice();
       var viaIds = computeViaIds();
       var payload = {
-        title: f.title.value,
-        summary: f.summary.value,
+        title: titleVal,
+        summary: pfSummary ? pfSummary.value : "",
         tags: tags,
         client_ids: clientIds,
         via_client_ids: viaIds,
-        sort_date: f.sort_date.value || undefined,
-        preview_image: f.preview_image.value || undefined,
+        sort_date: pfSort && pfSort.value ? pfSort.value : undefined,
+        preview_image: pfPreview && pfPreview.value ? pfPreview.value : undefined,
         team_member_ids: teamIds,
         gallery_images: collectGalleryFromEditor(),
-        body: f.body.value,
+        body: pfBody ? pfBody.value : "",
       };
 
       var st = document.getElementById("proj-save-status");
@@ -1371,7 +1781,7 @@ export function adminTemplate(): string {
         st.classList.remove("is-success", "is-error");
         st.textContent = "Saving…";
       }
-      btn.disabled = true;
+      if (btn) btn.disabled = true;
 
       try {
         var r = id
@@ -1402,18 +1812,19 @@ export function adminTemplate(): string {
           saved = await r.json();
         } catch (e3) {}
 
-        await loadLists();
+        if (!(await loadLists())) return;
+
         var sel = document.getElementById("proj-select");
         var nextId = id || (saved && saved.id ? saved.id : "");
-        if (nextId) sel.value = nextId;
-        await loadProject(sel.value || "");
+        if (sel && nextId) sel.value = nextId;
+        await loadProject(sel && sel.value ? sel.value : "");
 
         var timeStr = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", second: "2-digit" });
         setProjSaveStatus("success", "Saved · " + timeStr);
       } catch (err) {
         setProjSaveStatus("error", "Network error — try again.");
       } finally {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
       }
     });
 
@@ -1428,7 +1839,7 @@ export function adminTemplate(): string {
       if (!id || !confirm("Archive this project?")) return;
       await j("/admin/api/projects/" + id, { method: "DELETE" });
       document.getElementById("proj-select").value = "";
-      await loadLists();
+      if (!(await loadLists())) return;
       loadProject("");
     });
 
@@ -1440,7 +1851,8 @@ export function adminTemplate(): string {
 
     initEditorMediaRail();
 
-    loadLists().then(function() {
+    loadLists().then(function(ok) {
+      if (!ok) return;
       var sel = document.getElementById("proj-select");
       return loadProject(sel && sel.value ? sel.value : "");
     });
