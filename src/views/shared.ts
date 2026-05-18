@@ -130,13 +130,13 @@ export function layoutPage(
       align-items: baseline;
       gap: 0 0.35rem;
       row-gap: 0.35rem;
-      margin: 0 0 0.85rem;
+      margin: 0 0 0.5rem;
       max-width: 48rem;
-      font-size: 1.05rem;
-      line-height: 1.55;
-      letter-spacing: -0.01em;
+      font-size: 0.9375rem;
+      line-height: 1.52;
+      letter-spacing: -0.013em;
       font-weight: 400;
-      color: color-mix(in srgb, var(--muted) 55%, var(--fg-soft));
+      color: color-mix(in srgb, var(--muted) 52%, var(--fg-soft));
     }
     .project-header-date-clients__muted {
       color: color-mix(in srgb, var(--muted) 72%, transparent);
@@ -330,20 +330,24 @@ export function layoutPage(
       text-decoration: none;
     }
     .back-row a:hover { color: var(--accent); }
-    .project-header { margin-bottom: 2.25rem; }
+    .project-header { margin-bottom: clamp(2rem, 4vw, 2.75rem); }
     .project-header h1 {
       font-family: var(--font-display);
-      font-size: clamp(1.85rem, 4.5vw, 2.65rem);
+      font-size: clamp(1.9rem, 4.4vw, 2.72rem);
       font-weight: 700;
-      letter-spacing: -0.035em;
-      line-height: 1.12;
-      margin: 0 0 0.65rem;
+      letter-spacing: -0.042em;
+      line-height: 1.06;
+      margin: 0 0 0.72rem;
+      color: var(--fg);
+      text-wrap: balance;
     }
     .project-header .dek {
-      font-size: 1.18rem;
-      color: var(--fg-soft);
-      line-height: 1.45;
-      margin: 0 0 1rem;
+      font-size: clamp(1.04rem, 2.15vw, 1.22rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: color-mix(in srgb, var(--fg-soft) 94%, var(--muted));
+      line-height: 1.52;
+      margin: 0 0 1.05rem;
       max-width: 42rem;
     }
     .section-title {
@@ -355,13 +359,55 @@ export function layoutPage(
       margin: 0 0 1rem;
     }
 
-    /* Project gallery — aligned column, stable media slots, card plates */
+    .project-jump {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.45rem 0.55rem;
+      margin: 0.65rem 0 0;
+      max-width: 48rem;
+    }
+    .project-jump__link {
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: color-mix(in srgb, var(--muted) 75%, var(--fg-soft));
+      border-bottom: 1px solid transparent;
+      padding-bottom: 0.1em;
+      transition: color 0.18s var(--ease-out-expo), border-color 0.18s ease;
+    }
+    .project-jump__link:hover {
+      color: var(--fg-soft);
+      border-bottom-color: color-mix(in srgb, var(--muted) 50%, transparent);
+    }
+    .project-jump__link:focus-visible {
+      outline: 1px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 2px;
+      border-bottom-color: transparent;
+    }
+    .project-jump__sep {
+      font-size: 0.625rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: color-mix(in srgb, var(--muted) 62%, transparent);
+      user-select: none;
+    }
+
+    #article-body,
+    #project-gallery {
+      scroll-margin-top: 1.5rem;
+    }
+
+    /* Project gallery — prose ↔ media via anchors; no block heading */
     .project-gallery {
       margin: clamp(2.75rem, 7vw, 4rem) 0;
     }
-    .project-gallery__head {
+    .project-gallery__top {
       max-width: var(--max);
-      margin: 0 auto clamp(1.35rem, 3.5vw, 2.25rem);
+      margin: 0 auto clamp(1.15rem, 2.8vw, 1.85rem);
       padding: 0 clamp(1rem, 4vw, 2rem);
     }
     .gallery-strip {
@@ -431,10 +477,6 @@ export function layoutPage(
     .gallery-strip .gallery-thumb {
       overflow: hidden;
       border-radius: clamp(7px, 1.1vw, 12px);
-      aspect-ratio: 16 / 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       background: color-mix(in srgb, var(--bg-elevated) 82%, var(--fg) 18%);
     }
     .gallery-strip .gallery-figure:has(.gallery-figcaption) .gallery-thumb {
@@ -447,11 +489,8 @@ export function layoutPage(
       border-radius: clamp(8px, 1.25vw, 14px) clamp(8px, 1.25vw, 14px) 0 0;
     }
     .gallery-strip .gallery-thumb img {
-      width: auto;
+      width: 100%;
       height: auto;
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
       vertical-align: middle;
       display: block;
       transition: opacity 0.35s var(--ease-out-expo);
@@ -727,18 +766,21 @@ export function layoutPage(
     /* Markdown body */
     .article-body {
       max-width: 48rem;
-      font-size: 1.02rem;
-      line-height: 1.65;
-      color: var(--fg-soft);
+      font-size: 1.045rem;
+      line-height: 1.68;
+      letter-spacing: -0.012em;
+      font-weight: 400;
+      color: color-mix(in srgb, var(--fg-soft) 97%, var(--muted));
       margin-bottom: 2.5rem;
     }
     .article-body > *:first-child { margin-top: 0; }
     .article-body h1, .article-body h2, .article-body h3, .article-body h4 {
       font-family: var(--font-display);
       color: var(--fg);
-      letter-spacing: -0.02em;
-      margin: 1.75rem 0 0.65rem;
-      line-height: 1.25;
+      letter-spacing: -0.026em;
+      font-weight: 600;
+      margin: 1.85rem 0 0.62rem;
+      line-height: 1.22;
     }
     .article-body h1 { font-size: 1.65rem; }
     .article-body h2 { font-size: 1.35rem; }
