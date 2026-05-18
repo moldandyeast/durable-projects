@@ -13,11 +13,107 @@ function safeDownloadBasename(title: string, id: string): string {
   return raw || id;
 }
 
+/** "001 / Article" — monospace index label sitting in the left margin of the grid. */
+function indexLabel(num: string, label: string): string {
+  return `<span class="project__index" aria-hidden="true"><span class="project__index-num">${escapeHtml(num)}</span><span class="project__index-sep"> / </span><span class="project__index-label">${escapeHtml(label)}</span></span>`;
+}
+
+function rule(): string {
+  return `<hr class="project__rule" aria-hidden="true"/>`;
+}
+
+function clientNameLink(c: { name: string; url?: string }): string {
+  const name = escapeHtml(c.name);
+  const u = c.url?.trim();
+  if (!u) return name;
+  return `<a href="${escapeHtml(u)}" rel="noopener noreferrer" class="project-client-link">${name}</a>`;
+}
+
+function specClientsValue(refs: ProjectClientRef[]): string {
+  return refs
+    .map((ref) => {
+      const c = ref.client;
+      const dirVia = ref.parent_client ?
+        ` <span class="spec-cell__inline-muted">via</span> ${clientNameLink(ref.parent_client)}`
+      : "";
+      return `<span class="spec-cell__client">${clientNameLink(c)}${dirVia}</span>`;
+    })
+    .join('<span class="spec-cell__sep" aria-hidden="true"> · </span>');
+}
+
+function specViaValue(viaClients: Client[]): string {
+  return viaClients
+    .map((c) => `<span class="spec-cell__client">${clientNameLink(c)}</span>`)
+    .join('<span class="spec-cell__sep" aria-hidden="true"> · </span>');
+}
+
+function specSheet(
+  project: ProjectData,
+  primaryRefs: ProjectClientRef[],
+  viaClients: Client[],
+  tags: string[],
+): string {
+  const cells: string[] = [];
+  const date = project.sort_date?.trim();
+  if (date) {
+    cells.push(
+      `<div class="spec-cell spec-cell--date"><dt>Date</dt><dd>${escapeHtml(date)}</dd></div>`,
+    );
+  }
+  if (primaryRefs.length) {
+    cells.push(
+      `<div class="spec-cell spec-cell--clients"><dt>${primaryRefs.length > 1 ? "Clients" : "Client"}</dt><dd>${specClientsValue(primaryRefs)}</dd></div>`,
+    );
+  }
+  if (viaClients.length) {
+    cells.push(
+      `<div class="spec-cell spec-cell--via"><dt>Via</dt><dd>${specViaValue(viaClients)}</dd></div>`,
+    );
+  }
+  if (tags.length) {
+    const list = tags
+      .map((t) => `<span class="spec-cell__tag">${escapeHtml(String(t).trim())}</span>`)
+      .join('<span class="spec-cell__sep" aria-hidden="true"> · </span>');
+    cells.push(`<div class="spec-cell spec-cell--tags"><dt>Tags</dt><dd>${list}</dd></div>`);
+  }
+  if (!cells.length) return "";
+  return `${rule()}
+<section class="project__row project__row--spec" aria-label="Project specification">
+  ${indexLabel("002", "Spec")}
+  <dl class="project__spec">${cells.join("\n    ")}</dl>
+</section>`;
+}
+
+function articleSection(project: ProjectData): string {
+  return `${rule()}
+<section class="project__row project__row--article" aria-label="Article">
+  ${indexLabel("003", "Article")}
+  <div class="project__body article-body" id="article-body">${project.rendered_html}</div>
+</section>`;
+}
+
+function linksSection(links: ProjectLink[] | undefined): string {
+  const list = links ?? [];
+  if (!list.length) return "";
+  const items = list
+    .map((l, i) => {
+      const num = String(i + 1).padStart(2, "0");
+      return `<li><span class="project-links__num">${num}</span><a href="${escapeHtml(l.url)}" rel="noopener noreferrer">${escapeHtml(l.label)}</a></li>`;
+    })
+    .join("\n");
+  return `${rule()}
+<section class="project__row project__row--links" aria-label="Links">
+  ${indexLabel("004", "Links")}
+  <ol class="project__links">${items}</ol>
+</section>`;
+}
+
 function gallerySection(images: GalleryImage[], mode: "interactive" | "static"): string {
   if (!images.length) return "";
   const n = images.length;
+  let figures: string;
   if (mode === "static") {
-    const figures = images
+    figures = images
       .map((img, i) => {
         const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
         const alt = escapeHtml(img.alt ?? "");
@@ -29,23 +125,54 @@ function gallerySection(images: GalleryImage[], mode: "interactive" | "static"):
         return `<figure class="gallery-figure gallery-figure--export${heroClass}"><img class="gallery-export-img" src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/>${capHtml}</figure>`;
       })
       .join("\n");
-    return `<section id="project-gallery" class="project-gallery" aria-label="Selected work"><div class="gallery-strip">${figures}</div></section>`;
+  } else {
+    figures = images
+      .map((img, i) => {
+        const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
+        const alt = escapeHtml(img.alt ?? "");
+        const capEscaped = escapeHtml(rawCaption);
+        const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
+        const aria = escapeHtml(`Open image ${i + 1} of ${n} larger`);
+        const heroClass = i === 0 ? " gallery-figure--hero" : "";
+        const loadAttrs =
+          i === 0 ? `loading="eager" decoding="async" fetchpriority="high"` : `loading="lazy" decoding="async"`;
+        return `<figure class="gallery-figure${heroClass}"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/></button>${capHtml}</figure>`;
+      })
+      .join("\n");
   }
+  const stripAttrs = mode === "interactive" ? ` data-gallery-strip` : "";
+  return `${rule()}
+<section id="project-gallery" class="project__row project__row--gallery" aria-label="Selected work">
+  ${indexLabel("005", "Plates")}
+  <div class="gallery-strip"${stripAttrs}>${figures}</div>
+</section>`;
+}
 
-  const figures = images
-    .map((img, i) => {
-      const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
-      const alt = escapeHtml(img.alt ?? "");
-      const capEscaped = escapeHtml(rawCaption);
-      const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
-      const aria = escapeHtml(`Open image ${i + 1} of ${n} larger`);
-      const heroClass = i === 0 ? " gallery-figure--hero" : "";
-      const loadAttrs =
-        i === 0 ? `loading="eager" decoding="async" fetchpriority="high"` : `loading="lazy" decoding="async"`;
-      return `<figure class="gallery-figure${heroClass}"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/></button>${capHtml}</figure>`;
+function creditsSection(team: TeamMember[]): string {
+  if (!team.length) return "";
+  const rows = team
+    .map((m) => {
+      const nameHtml = m.url ?
+        `<a href="${escapeHtml(m.url)}" rel="noopener noreferrer">${escapeHtml(m.name)}</a>`
+      : escapeHtml(m.name);
+      const role = m.role ? escapeHtml(m.role) : "";
+      return `<div class="project__team-row"><dt>${nameHtml}</dt><dd>${role}</dd></div>`;
     })
     .join("\n");
-  return `<section id="project-gallery" class="project-gallery" aria-label="Selected work"><div class="gallery-strip" data-gallery-strip>${figures}</div></section>`;
+  return `${rule()}
+<section class="project__row project__row--credits" aria-label="Credits">
+  ${indexLabel("006", "Credits")}
+  <dl class="project__team">${rows}</dl>
+</section>`;
+}
+
+function colophonSection(editedAt: string): string {
+  const day = editedAt.slice(0, 10);
+  return `${rule()}
+<footer class="project__row project__row--colophon">
+  ${indexLabel("000", "Colophon")}
+  <p class="project__updated">Updated <time datetime="${escapeHtml(editedAt)}">${escapeHtml(day)}</time></p>
+</footer>`;
 }
 
 /** Modal shell only; runtime loads once via `/project-runtime.js` on every project page. */
@@ -65,97 +192,6 @@ function galleryLightboxDialog(): string {
 </dialog>`;
 }
 
-function linksSection(links: ProjectLink[] | undefined): string {
-  const list = links ?? [];
-  if (!list.length) return "";
-  const items = list
-    .map((l) => {
-      return `<li><a href="${escapeHtml(l.url)}" rel="noopener noreferrer">${escapeHtml(l.label)}</a></li>`;
-    })
-    .join("\n");
-  return `<section><ul class="project-links">${items}</ul></section>`;
-}
-
-/** Compact team block — label column + flowing credits (editorial rhythm). */
-function teamFooterMinimal(team: TeamMember[]): string {
-  if (!team.length) return "";
-  const chunks = team.map((m) => {
-    const nameHtml = m.url
-      ? `<a href="${escapeHtml(m.url)}" rel="noopener noreferrer" class="project-team-min__name">${escapeHtml(m.name)}</a>`
-      : `<span class="project-team-min__name">${escapeHtml(m.name)}</span>`;
-    const roleHtml = m.role ? `<span class="project-team-min__role">${escapeHtml(m.role)}</span>` : "";
-    const inner = roleHtml ? `${nameHtml}\u200a\u200a${roleHtml}` : nameHtml;
-    return `<span class="project-team-min__member">${inner}</span>`;
-  });
-  return `<div class="project-team-min"><span class="project-team-min__tag">Team</span><div class="project-team-min__body">${chunks.join('<span class="project-team-min__sep" aria-hidden="true"> · </span>')}</div></div>`;
-}
-
-/** Tags and last-updated on one line at the bottom: `tags | Updated …`. */
-function tagsAndUpdatedFooter(tags: string[], editedAt: string): string {
-  const list = Array.isArray(tags) ? tags.filter((t) => String(t).trim()) : [];
-  const updatedHtml = `<time datetime="${escapeHtml(editedAt)}">Updated ${escapeHtml(editedAt.slice(0, 10))}</time>`;
-  if (!list.length) {
-    return `<p class="project-footer-meta">${updatedHtml}</p>`;
-  }
-  const tagSpans = list
-    .map((t) => `<span class="project-footer-meta__tag">${escapeHtml(String(t).trim())}</span>`)
-    .join('<span class="project-footer-meta__tagsep"> · </span>');
-  return `<p class="project-footer-meta"><span class="project-footer-meta__tags">${tagSpans}</span><span class="project-footer-meta__sep" aria-hidden="true"> | </span>${updatedHtml}</p>`;
-}
-
-function clientNameLink(c: { name: string; url?: string }): string {
-  const name = escapeHtml(c.name);
-  const u = c.url?.trim();
-  if (!u) return name;
-  return `<a href="${escapeHtml(u)}" rel="noopener noreferrer" class="project-client-link">${name}</a>`;
-}
-
-function projectViaSuffix(viaClients: Client[]): string {
-  let s = "";
-  for (const vc of viaClients) {
-    s += `<span class="project-header-date-clients__muted"> · </span><span class="project-header-date-clients__value">via ${clientNameLink(vc)}</span>`;
-  }
-  return s;
-}
-
-function primaryClientSegments(refs: ProjectClientRef[]): string {
-  const mutedDot = '<span class="project-header-date-clients__muted"> · </span>';
-  return refs
-    .map((ref) => {
-      const c = ref.client;
-      const dirVia = ref.parent_client ?
-        `${mutedDot}<span class="project-header-date-clients__value">via ${clientNameLink(ref.parent_client)}</span>`
-      : "";
-      return `<span class="project-header-date-clients__value">${clientNameLink(c)}</span>${dirVia}`;
-    })
-    .join(mutedDot);
-}
-
-function buildDateClientsRow(
-  project: ProjectData,
-  primaryRefs: ProjectClientRef[],
-  viaClients: Client[],
-): string {
-  const clientsInner =
-    primaryRefs.length ?
-      `${primaryClientSegments(primaryRefs)}${projectViaSuffix(viaClients)}`
-    : "";
-
-  const sortRaw = project.sort_date?.trim();
-  const dateSpan = sortRaw ?
-    `<span class="project-header-date-clients__date"><span class="project-header-date-clients__muted">Date : </span><span class="project-header-date-clients__value">${escapeHtml(sortRaw)}</span></span>`
-  : "";
-
-  if (dateSpan && clientsInner) {
-    return `<div class="project-header-date-clients">${dateSpan}<span class="project-header-date-clients__sep" aria-hidden="true"> | </span><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
-  }
-  if (dateSpan) return `<div class="project-header-date-clients">${dateSpan}</div>`;
-  if (clientsInner) {
-    return `<div class="project-header-date-clients"><span class="project-header-date-clients__clients">${clientsInner}</span></div>`;
-  }
-  return "";
-}
-
 /** Article markup shared by the live page and standalone HTML export. */
 export function projectArticleInnerHtml(
   project: ProjectData,
@@ -164,19 +200,23 @@ export function projectArticleInnerHtml(
   viaClients: Client[],
   galleryMode: "interactive" | "static",
 ): string {
-  const dateClientsRow = buildDateClientsRow(project, primaryRefs, viaClients);
-  return `<article>
-    <header class="project-header">
-      <h1 id="project-heading">${escapeHtml(project.title)}</h1>
-      ${project.summary ? `<p class="dek">${escapeHtml(project.summary)}</p>` : ""}
-      ${dateClientsRow}
-    </header>
-    <div id="article-body" class="article-body">${project.rendered_html}</div>
-    ${linksSection(project.project_links)}
-    ${gallerySection(project.gallery_images, galleryMode)}
-    ${teamFooterMinimal(team)}
-    ${tagsAndUpdatedFooter(project.tags ?? [], project.edited_at)}
-  </article>`;
+  const tags = Array.isArray(project.tags) ? project.tags.filter((t) => String(t).trim()) : [];
+  return `<article class="project">
+  ${rule()}
+  <header class="project__row project__hero">
+    ${indexLabel("001", "Project")}
+    <div class="project__hero-text">
+      <h1 class="project__title" id="project-heading">${escapeHtml(project.title)}</h1>
+      ${project.summary ? `<p class="project__dek">${escapeHtml(project.summary)}</p>` : ""}
+    </div>
+  </header>
+  ${specSheet(project, primaryRefs, viaClients, tags)}
+  ${articleSection(project)}
+  ${linksSection(project.project_links)}
+  ${gallerySection(project.gallery_images, galleryMode)}
+  ${creditsSection(team)}
+  ${colophonSection(project.edited_at)}
+</article>`;
 }
 
 function projectToolbarHeader(project: ProjectData): string {
