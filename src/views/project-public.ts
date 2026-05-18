@@ -44,20 +44,23 @@ function tagsAndUpdatedFooter(tags: string[], editedAt: string): string {
   if (!list.length) {
     return `<p class="project-footer-meta">${updatedHtml}</p>`;
   }
-  const tagSpans = list.map((t) => `<span class="tag">${escapeHtml(String(t).trim())}</span>`).join("");
+  const tagSpans = list
+    .map((t) => `<span class="project-footer-meta__tag">${escapeHtml(String(t).trim())}</span>`)
+    .join('<span class="project-footer-meta__tagsep"> · </span>');
   return `<p class="project-footer-meta"><span class="project-footer-meta__tags">${tagSpans}</span><span class="project-footer-meta__sep" aria-hidden="true"> | </span>${updatedHtml}</p>`;
 }
 
-function sortDateDisplay(sort_date: string | undefined): string {
-  if (!sort_date?.trim()) return "";
-  const y = sort_date.slice(0, 4);
-  return y.length === 4 ? y : sort_date.trim();
+function clientNameLink(c: { name: string; url?: string }): string {
+  const name = escapeHtml(c.name);
+  const u = c.url?.trim();
+  if (!u) return name;
+  return `<a href="${escapeHtml(u)}" rel="noopener noreferrer" class="project-client-link">${name}</a>`;
 }
 
 function projectViaSuffix(viaClients: Client[]): string {
   let s = "";
   for (const vc of viaClients) {
-    s += ` <span class="client-via">· via ${escapeHtml(vc.name)}</span>`;
+    s += ` <span class="client-via">· via ${clientNameLink(vc)}</span>`;
   }
   return s;
 }
@@ -67,12 +70,9 @@ function primaryClientSegments(refs: ProjectClientRef[]): string {
     .map((ref) => {
       const c = ref.client;
       const dirVia = ref.parent_client ?
-        ` <span class="client-via">· via ${escapeHtml(ref.parent_client.name)}</span>`
+        ` <span class="client-via">· via ${clientNameLink(ref.parent_client)}</span>`
       : "";
-      if (c.url) {
-        return `${escapeHtml(c.name)} · <a href="${escapeHtml(c.url)}">${escapeHtml(c.url.replace(/^https?:\/\//, ""))}</a>${dirVia}`;
-      }
-      return `${escapeHtml(c.name)}${dirVia}`;
+      return `${clientNameLink(c)}${dirVia}`;
     })
     .join(" · ");
 }
@@ -88,10 +88,9 @@ export function projectPublicPage(
       `<p class="muted">${primaryClientSegments(primaryRefs)}${projectViaSuffix(viaClients)}</p>`
     : "";
 
-  const sd = sortDateDisplay(project.sort_date);
-
+  const sortRaw = project.sort_date?.trim();
   const metaParts: string[] = [];
-  if (sd) metaParts.push(`<span><strong>Sort</strong> ${escapeHtml(sd)}</span>`);
+  if (sortRaw) metaParts.push(`<span class="meta-row__date">Date : ${escapeHtml(sortRaw)}</span>`);
   const metaRow = metaParts.length ? `<div class="meta-row">${metaParts.join("")}</div>` : "";
 
   const inner = `

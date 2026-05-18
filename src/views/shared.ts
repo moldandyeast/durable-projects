@@ -123,6 +123,21 @@ export function layoutPage(
     }
     .muted { color: var(--muted); font-size: 0.92rem; }
     .client-via { color: var(--muted); font-weight: 400; white-space: nowrap; }
+    .muted a.project-client-link {
+      color: inherit;
+      font-weight: inherit;
+      text-decoration: none;
+    }
+    .muted a.project-client-link:hover {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+    }
+    .muted a.project-client-link:focus-visible {
+      outline: 1px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
 
     /* Nav */
     .site-nav {
@@ -297,6 +312,9 @@ export function layoutPage(
       color: var(--muted);
     }
     .meta-row strong { color: var(--fg-soft); font-weight: 600; }
+    .meta-row__date {
+      font-variant-numeric: tabular-nums;
+    }
     .section-title {
       font-size: 0.72rem;
       font-weight: 700;
@@ -383,13 +401,18 @@ export function layoutPage(
     .project-footer-meta__tags {
       display: inline-flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 0.25rem 0.35rem;
+      align-items: baseline;
+      gap: 0;
     }
-    .project-footer-meta .tag {
-      margin: 0;
-      font-size: 0.62rem;
-      padding: 0.12rem 0.45rem;
+    .project-footer-meta__tag {
+      font-weight: 500;
+      color: inherit;
+      text-transform: lowercase;
+    }
+    .project-footer-meta__tagsep {
+      font-weight: 400;
+      color: color-mix(in srgb, var(--muted) 72%, transparent);
+      user-select: none;
     }
     .project-footer-meta__sep {
       color: color-mix(in srgb, var(--muted) 70%, transparent);
