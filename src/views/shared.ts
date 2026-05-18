@@ -948,6 +948,50 @@ export function layoutPage(
     .index__row--flip .index__body { grid-column: 9 / span 4; grid-row: 1; }
     .index__row--flip .index__media { grid-column: 3 / span 6; grid-row: 1; }
 
+    /* Hero row — first project gets full-bleed cinematic image, headline below. */
+    .index__row--hero {
+      padding: clamp(0.4rem, 1vw, 1rem) 0 clamp(3.2rem, 5.5vw, 4.6rem);
+    }
+    .index__row--hero .index__media {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      aspect-ratio: 16 / 9;
+      margin-bottom: clamp(1.4rem, 2.4vw, 2.1rem);
+    }
+    .index__row--hero .index__num {
+      grid-column: 1 / span 2;
+      grid-row: 2;
+      padding-top: 0.05em;
+    }
+    .index__row--hero .index__body {
+      grid-column: 3 / span 9;
+      grid-row: 2;
+      gap: 0.85rem;
+    }
+    .index__row--hero .index__title {
+      font-size: clamp(2.6rem, 6.4vw, 5.2rem);
+      letter-spacing: -0.038em;
+      line-height: 0.98;
+      max-width: 16ch;
+    }
+    .index__row--hero .index__dek {
+      font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+      letter-spacing: var(--tk-body);
+      line-height: 1.42;
+      max-width: 38rem;
+      color: color-mix(in srgb, var(--fg-soft) 92%, var(--muted));
+    }
+    .index__row--hero .index__clients {
+      margin-top: 0.55rem;
+      font-size: var(--text-xs);
+    }
+    .index__row--hero .index__media img {
+      transition: transform 0.7s var(--ease-out-expo);
+    }
+    .index__row:hover.index__row--hero .index__media img {
+      transform: scale(1.015);
+    }
+
     .index__empty {
       grid-column: 3 / -1;
       padding: 3rem 0;
@@ -962,24 +1006,32 @@ export function layoutPage(
       .index__media { grid-column: 7 / span 6; }
       .index__row--flip .index__body { grid-column: 9 / span 4; grid-row: 1; }
       .index__row--flip .index__media { grid-column: 3 / span 6; grid-row: 1; }
+      .index__row--hero .index__media { grid-column: 1 / -1; grid-row: 1; aspect-ratio: 16 / 9; }
+      .index__row--hero .index__num { grid-column: 1 / span 2; grid-row: 2; }
+      .index__row--hero .index__body { grid-column: 3 / span 9; grid-row: 2; }
     }
     @media (max-width: 720px) {
       .index { grid-template-columns: 1fr; column-gap: 0; }
       .index__hero { grid-template-columns: 1fr; row-gap: 0.45rem; }
       .index__list { grid-template-columns: 1fr; }
       .index__row,
-      .index__row--flip {
+      .index__row--flip,
+      .index__row--hero {
         grid-template-columns: 1fr;
         row-gap: 0.95rem;
         padding: clamp(1.6rem, 4vw, 2.2rem) 0;
       }
       .index__row .index__num,
-      .index__row--flip .index__num { grid-column: 1; grid-row: auto; padding-top: 0; order: 1; }
+      .index__row--flip .index__num,
+      .index__row--hero .index__num { grid-column: 1; grid-row: auto; padding-top: 0; order: 1; }
       .index__row .index__media,
-      .index__row--flip .index__media { grid-column: 1; grid-row: auto; aspect-ratio: 16 / 10; order: 2; }
+      .index__row--flip .index__media,
+      .index__row--hero .index__media { grid-column: 1; grid-row: auto; aspect-ratio: 16 / 10; order: 2; margin-bottom: 0; }
       .index__row .index__body,
-      .index__row--flip .index__body { grid-column: 1; grid-row: auto; order: 3; }
+      .index__row--flip .index__body,
+      .index__row--hero .index__body { grid-column: 1; grid-row: auto; order: 3; }
       .index__title { font-size: clamp(1.7rem, 7vw, 2.4rem); }
+      .index__row--hero .index__title { font-size: clamp(2rem, 9vw, 3rem); }
     }
 
     /* Project detail anchors */

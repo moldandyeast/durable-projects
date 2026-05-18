@@ -56,9 +56,12 @@ function indexRow(entry: IndexEntry, idx: number, clientLabels: Map<string, stri
     entry.summary.length > 200 ? `${escapeHtml(entry.summary.slice(0, 200))}…` : escapeHtml(entry.summary);
   const dek = summary ? `<p class="index__dek">${summary}</p>` : "";
   const media = renderIndexMedia(entry.preview_image);
-  // Alternate body/media side every other row for a Gerstner-style rhythm.
-  const flipClass = idx % 2 === 1 ? " index__row--flip" : "";
-  return `<a class="index__row${flipClass}" href="/${escapeHtml(entry.id)}">
+  // First row gets a cinematic hero treatment; thereafter alternate
+  // body/media side for a Gerstner-style rhythm.
+  let mod = "";
+  if (idx === 0) mod = " index__row--hero";
+  else if (idx % 2 === 1) mod = " index__row--flip";
+  return `<a class="index__row${mod}" href="/${escapeHtml(entry.id)}">
   ${indexNumber(idx + 1, entry.sort_date ?? "")}
   <div class="index__body">
     <h2 class="index__title">${escapeHtml(entry.title)}</h2>
