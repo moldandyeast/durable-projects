@@ -2,6 +2,7 @@
  * Offline-friendly project HTML: embed remote images as data URIs where fetch succeeds.
  */
 import type { Client, GalleryImage, ProjectClientRef, ProjectData, TeamMember } from "./types";
+import { detectMediaKind } from "./views/media";
 import { escapeHtml } from "./views/shared";
 import { projectArticleInnerHtml } from "./views/project-public";
 
@@ -21,12 +22,13 @@ export function absolutizeImageUrl(href: string, origin: string): string | null 
   }
 }
 
-/** Collect absolute URLs from gallery + <img src="..."> in HTML. */
+/** Collect absolute URLs from gallery + <img src="..."> in HTML (videos excluded). */
 export function collectImageUrlsForEmbed(html: string, gallery: GalleryImage[], origin: string): string[] {
   const out = new Set<string>();
   for (const g of gallery) {
     const u = typeof g.url === "string" ? g.url.trim() : "";
     if (!u) continue;
+    if (detectMediaKind(u) !== "image") continue;
     const abs = absolutizeImageUrl(u, origin);
     if (abs) out.add(abs);
   }
@@ -161,6 +163,9 @@ a{color:inherit}
 .gallery-figure{margin:0;padding:clamp(4px,.65vw,7px);border:1px solid var(--hairline);background:color-mix(in srgb,var(--fg) 4%,var(--bg))}
 .gallery-figure--hero{padding:clamp(5px,.85vw,9px)}
 .gallery-export-img{display:block;width:100%;height:auto}
+.gallery-figure--video .gallery-video{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
+.gallery-video__iframe,.gallery-video__el{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.gallery-video__el{object-fit:contain;background:#000}
 .gallery-figcaption{padding:.5rem .4rem 0;font-size:var(--text-2xs);color:var(--muted);text-align:left;line-height:1.4;letter-spacing:.02em;font-family:var(--font-mono);text-transform:uppercase}
 .project__team{grid-column:3/-1;margin:0;padding:0;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));column-gap:var(--grid-gap);row-gap:0}
 .project__team-row{grid-column:span 5;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:.65rem;align-items:baseline;padding:.42rem 0;border-bottom:1px solid var(--hairline)}

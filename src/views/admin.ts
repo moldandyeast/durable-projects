@@ -1455,6 +1455,27 @@ export function adminTemplate(): string {
       }
     }
 
+    // Returns the URL to display as a static <img> preview for the given media URL.
+    // For Cloudflare Stream URLs we swap to the auto-thumbnail; for direct video
+    // files we return null (callers will fall back to the placeholder).
+    function thumbForMediaUrl(url) {
+      var t = String(url || "").trim();
+      if (!t) return "";
+      var m = t.match(/^(https?:\\/\\/customer-[a-z0-9]+\\.cloudflarestream\\.com\\/[a-f0-9]{32})\\b/i)
+        || t.match(/^(https?:\\/\\/videodelivery\\.net\\/[a-f0-9]{32})\\b/i);
+      if (m) return m[1] + "/thumbnails/thumbnail.jpg?height=240";
+      if (/\\.(?:mp4|webm|mov|m4v|ogv)(?:[?#]|$)/i.test(t)) return null;
+      return t;
+    }
+    function isMediaUrlVideo(url) {
+      var t = String(url || "").trim();
+      if (!t) return false;
+      if (/^https?:\\/\\/customer-[a-z0-9]+\\.cloudflarestream\\.com\\//i.test(t)) return true;
+      if (/^https?:\\/\\/videodelivery\\.net\\//i.test(t)) return true;
+      if (/\\.(?:mp4|webm|mov|m4v|ogv)(?:[?#]|$)/i.test(t)) return true;
+      return false;
+    }
+
     function syncGalleryRowThumb(row) {
       var urlInp = row.querySelector(".admin-gallery-url");
       var img = row.querySelector(".admin-gallery-thumb-img");
@@ -1465,12 +1486,24 @@ export function adminTemplate(): string {
         img.removeAttribute("src");
         img.hidden = true;
         ph.hidden = false;
+        ph.textContent = "";
+        row.classList.remove("admin-gallery-row--video");
         return;
       }
-      img.hidden = false;
-      ph.hidden = true;
-      img.alt = "";
-      img.src = url;
+      var isVid = isMediaUrlVideo(url);
+      row.classList.toggle("admin-gallery-row--video", isVid);
+      var src = thumbForMediaUrl(url);
+      if (src) {
+        img.hidden = false;
+        ph.hidden = true;
+        img.alt = "";
+        img.src = src;
+      } else {
+        img.removeAttribute("src");
+        img.hidden = true;
+        ph.hidden = false;
+        ph.textContent = "VIDEO";
+      }
     }
 
     function refreshGalleryLivePreview() {
@@ -1487,16 +1520,26 @@ export function adminTemplate(): string {
       emptyEl.hidden = true;
       items.forEach(function(it) {
         var fig = document.createElement("figure");
-        var img = document.createElement("img");
-        img.src = it.url;
-        img.alt = it.alt || "";
-        img.loading = "lazy";
-        img.referrerPolicy = "no-referrer";
-        img.addEventListener("error", function() {
-          img.alt = "Could not load";
-          img.style.opacity = "0.35";
-        });
-        fig.appendChild(img);
+        var thumbSrc = thumbForMediaUrl(it.url);
+        if (thumbSrc) {
+          var img = document.createElement("img");
+          img.src = thumbSrc;
+          img.alt = it.alt || "";
+          img.loading = "lazy";
+          img.referrerPolicy = "no-referrer";
+          img.addEventListener("error", function() {
+            img.alt = "Could not load";
+            img.style.opacity = "0.35";
+          });
+          fig.appendChild(img);
+        } else {
+          var ph = document.createElement("div");
+          ph.className = "admin-gallery-live-ph";
+          ph.textContent = "VIDEO";
+          ph.setAttribute("aria-label", "Video preview");
+          fig.appendChild(ph);
+        }
+        if (isMediaUrlVideo(it.url)) fig.classList.add("admin-gallery-live--video");
         if (it.caption) {
           var fc = document.createElement("figcaption");
           fc.textContent = it.caption;

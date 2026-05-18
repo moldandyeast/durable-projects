@@ -877,6 +877,7 @@ export function layoutPage(
       padding: 0 0.18em;
     }
     .index__media {
+      position: relative;
       grid-column: 9 / span 3;
       aspect-ratio: 16 / 10;
       overflow: hidden;
@@ -892,6 +893,22 @@ export function layoutPage(
     }
     .index__row:hover .index__media img {
       transform: scale(1.02);
+    }
+    .index__media--video {
+      background: #000;
+    }
+    .index__media-iframe,
+    .index__media-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      pointer-events: none;
+    }
+    .index__media-video {
+      object-fit: cover;
     }
     .index__media--empty {
       background:
@@ -1033,6 +1050,32 @@ export function layoutPage(
       .gallery-strip .gallery-thumb:hover img {
         opacity: 0.92;
       }
+    }
+
+    /* Gallery video — Cloudflare Stream iframe or HTML5 <video> */
+    .gallery-figure--video .gallery-video {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      overflow: hidden;
+      border-radius: var(--radius-sm);
+    }
+    .gallery-strip .gallery-figure--video:has(.gallery-figcaption) .gallery-video {
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    }
+    .gallery-video__iframe,
+    .gallery-video__el {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    .gallery-video__el {
+      object-fit: contain;
+      background: #000;
     }
     .gallery-strip .gallery-figcaption {
       margin: 0;
@@ -2484,6 +2527,72 @@ export function layoutPage(
       height: 58%;
       border: 1px dashed color-mix(in srgb, var(--adm-muted) 55%, transparent);
       border-radius: var(--radius-sm);
+    }
+    body.admin-app .admin-gallery-thumb-ph:not(:empty) {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--adm-muted);
+      background: color-mix(in srgb, var(--adm-fg) 4%, transparent);
+    }
+    body.admin-app .admin-gallery-thumb-ph:not(:empty)::before {
+      display: none;
+    }
+    body.admin-app .admin-gallery-row--video .admin-gallery-thumb::after {
+      content: "VIDEO";
+      position: absolute;
+      left: 4px;
+      bottom: 4px;
+      padding: 2px 5px;
+      font-family: var(--font-mono);
+      font-size: 0.56rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+    body.admin-app .admin-gallery-thumb {
+      position: relative;
+    }
+    body.admin-app .admin-gallery-live-ph {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: color-mix(in srgb, var(--adm-fg) 5%, transparent);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--adm-muted);
+    }
+    body.admin-app .admin-gallery-live--video {
+      position: relative;
+    }
+    body.admin-app .admin-gallery-live--video img,
+    body.admin-app .admin-gallery-live--video .admin-gallery-live-ph {
+      position: relative;
+    }
+    body.admin-app .admin-gallery-live--video::after {
+      content: "VIDEO";
+      position: absolute;
+      left: 6px;
+      bottom: 6px;
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-size: 0.58rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 1px;
+      pointer-events: none;
+      z-index: 2;
     }
     body.admin-app .admin-gallery-row__main {
       display: flex;

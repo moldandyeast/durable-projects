@@ -1,4 +1,5 @@
 import type { IndexEntry } from "../types";
+import { detectMediaKind, parseStreamUrl, streamIframeUrl } from "./media";
 import { escapeHtml, layoutPage } from "./shared";
 
 /** Supports legacy index rows with only `client_id`. */
@@ -29,6 +30,22 @@ function indexNumber(idx: number, year: string): string {
   return `<span class="index__num" aria-hidden="true"><span class="index__num-n">${n}</span>${yearPart}</span>`;
 }
 
+function renderIndexMedia(url: string | undefined): string {
+  if (!url) return `<div class="index__media index__media--empty" aria-hidden="true"></div>`;
+  const kind = detectMediaKind(url);
+  if (kind === "video-stream") {
+    const ref = parseStreamUrl(url);
+    if (ref) {
+      const src = streamIframeUrl(ref, { loop: true });
+      return `<div class="index__media index__media--video"><iframe class="index__media-iframe" src="${escapeHtml(src)}" title="" aria-hidden="true" tabindex="-1" loading="lazy" allow="autoplay; encrypted-media" referrerpolicy="origin"></iframe></div>`;
+    }
+  }
+  if (kind === "video-file") {
+    return `<div class="index__media index__media--video"><video class="index__media-video" src="${escapeHtml(url)}" autoplay loop muted playsinline preload="metadata" aria-hidden="true"></video></div>`;
+  }
+  return `<div class="index__media"><img src="${escapeHtml(url)}" alt="" loading="lazy" decoding="async"/></div>`;
+}
+
 function indexRow(entry: IndexEntry, idx: number, clientLabels: Map<string, string>): string {
   const ids = effectiveEntryClientIds(entry).filter((cid) => clientLabels.has(cid));
   const clientLabel = ids
@@ -38,10 +55,7 @@ function indexRow(entry: IndexEntry, idx: number, clientLabels: Map<string, stri
   const summary =
     entry.summary.length > 200 ? `${escapeHtml(entry.summary.slice(0, 200))}…` : escapeHtml(entry.summary);
   const dek = summary ? `<p class="index__dek">${summary}</p>` : "";
-  const media =
-    entry.preview_image ?
-      `<div class="index__media"><img src="${escapeHtml(entry.preview_image)}" alt="" loading="lazy" decoding="async"/></div>`
-    : `<div class="index__media index__media--empty" aria-hidden="true"></div>`;
+  const media = renderIndexMedia(entry.preview_image);
   return `<a class="index__row" href="/${escapeHtml(entry.id)}">
   ${indexNumber(idx + 1, entry.sort_date ?? "")}
   <div class="index__body">

@@ -1,4 +1,5 @@
 import type { Client, GalleryImage, ProjectClientRef, ProjectData, ProjectLink, TeamMember } from "../types";
+import { detectMediaKind, parseStreamUrl, streamIframeUrl } from "./media";
 import { escapeHtml, layoutPage } from "./shared";
 
 /** ASCII-ish filename for download= attributes (matches server export basename rules). */
@@ -114,38 +115,58 @@ function linksSection(links: ProjectLink[] | undefined): string {
 </section>`;
 }
 
+function galleryItem(
+  img: GalleryImage,
+  i: number,
+  total: number,
+  mode: "interactive" | "static",
+): string {
+  const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
+  const altText = img.alt ?? "";
+  const alt = escapeHtml(altText);
+  const capEscaped = escapeHtml(rawCaption);
+  const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
+  const heroClass = i === 0 ? " gallery-figure--hero" : "";
+  const kind = detectMediaKind(img.url);
+
+  // Cloudflare Stream — embed the official iframe player
+  if (kind === "video-stream") {
+    const ref = parseStreamUrl(img.url);
+    if (ref) {
+      const src = streamIframeUrl(ref);
+      const titleAttr = escapeHtml(altText || `Video ${i + 1} of ${total}`);
+      return `<figure class="gallery-figure gallery-figure--video${heroClass}">
+  <div class="gallery-video">
+    <iframe class="gallery-video__iframe" src="${escapeHtml(src)}" loading="lazy" title="${titleAttr}" allow="accelerometer; gyroscope; encrypted-media; picture-in-picture;" allowfullscreen></iframe>
+  </div>
+  ${capHtml}
+</figure>`;
+    }
+  }
+
+  // Direct .mp4/.webm/… — native <video> element with controls
+  if (kind === "video-file") {
+    return `<figure class="gallery-figure gallery-figure--video${heroClass}">
+  <div class="gallery-video">
+    <video class="gallery-video__el" src="${escapeHtml(img.url)}" controls preload="metadata" playsinline></video>
+  </div>
+  ${capHtml}
+</figure>`;
+  }
+
+  // Image branch
+  const loadAttrs =
+    i === 0 ? `loading="eager" decoding="async" fetchpriority="high"` : `loading="lazy" decoding="async"`;
+  if (mode === "static") {
+    return `<figure class="gallery-figure gallery-figure--export${heroClass}"><img class="gallery-export-img" src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/>${capHtml}</figure>`;
+  }
+  const aria = escapeHtml(`Open image ${i + 1} of ${total} larger`);
+  return `<figure class="gallery-figure${heroClass}"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/></button>${capHtml}</figure>`;
+}
+
 function gallerySection(images: GalleryImage[], mode: "interactive" | "static"): string {
   if (!images.length) return "";
-  const n = images.length;
-  let figures: string;
-  if (mode === "static") {
-    figures = images
-      .map((img, i) => {
-        const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
-        const alt = escapeHtml(img.alt ?? "");
-        const capEscaped = escapeHtml(rawCaption);
-        const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
-        const heroClass = i === 0 ? " gallery-figure--hero" : "";
-        const loadAttrs =
-          i === 0 ? `loading="eager" decoding="async" fetchpriority="high"` : `loading="lazy" decoding="async"`;
-        return `<figure class="gallery-figure gallery-figure--export${heroClass}"><img class="gallery-export-img" src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/>${capHtml}</figure>`;
-      })
-      .join("\n");
-  } else {
-    figures = images
-      .map((img, i) => {
-        const rawCaption = typeof img.caption === "string" ? img.caption.trim() : "";
-        const alt = escapeHtml(img.alt ?? "");
-        const capEscaped = escapeHtml(rawCaption);
-        const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
-        const aria = escapeHtml(`Open image ${i + 1} of ${n} larger`);
-        const heroClass = i === 0 ? " gallery-figure--hero" : "";
-        const loadAttrs =
-          i === 0 ? `loading="eager" decoding="async" fetchpriority="high"` : `loading="lazy" decoding="async"`;
-        return `<figure class="gallery-figure${heroClass}"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" ${loadAttrs}/></button>${capHtml}</figure>`;
-      })
-      .join("\n");
-  }
+  const figures = images.map((img, i) => galleryItem(img, i, images.length, mode)).join("\n");
   const stripAttrs = mode === "interactive" ? ` data-gallery-strip` : "";
   return `${rule()}
 <section id="project-gallery" class="project__row project__row--gallery" aria-label="Selected work">
