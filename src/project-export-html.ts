@@ -140,8 +140,8 @@ a{color:inherit}
 .spec-cell__inline-muted{color:color-mix(in srgb,var(--muted) 65%,transparent)}
 .spec-cell a,.project-client-link{color:inherit;text-decoration:none}
 .project__body{grid-column:3/span 7;min-width:0;margin:0}
-.project__why{grid-column:3/span 7;min-width:0;max-width:38rem;margin:0}
-.project__why-p{margin:0 0 .85em;font-family:var(--font-display);font-size:var(--text-dek);font-weight:400;letter-spacing:var(--tk-dek);line-height:1.45;color:color-mix(in srgb,var(--fg) 88%,var(--muted));text-wrap:pretty}
+.project__why{grid-column:3/span 7;min-width:0;max-width:36rem;margin:0}
+.project__why-p{margin:0 0 .9em;font-family:var(--font-display);font-size:var(--text-lg);font-weight:400;letter-spacing:var(--tk-body);line-height:1.55;color:color-mix(in srgb,var(--fg) 92%,var(--muted));text-wrap:pretty;hanging-punctuation:first last;font-feature-settings:var(--features-text)}
 .project__why-p:last-child{margin-bottom:0}
 .article-body{font-size:var(--text-lg);line-height:1.68;letter-spacing:var(--tk-body);color:color-mix(in srgb,var(--fg-soft) 96%,var(--muted));margin:0;text-wrap:pretty}
 .article-body h1,.article-body h2,.article-body h3,.article-body h4{color:var(--fg);font-weight:600;margin:1.8rem 0 .55rem;line-height:1.2;letter-spacing:var(--tk-display);font-family:var(--font-display)}

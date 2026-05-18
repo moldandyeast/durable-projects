@@ -66,10 +66,10 @@ function syncTextBlockMinHeight(el: HTMLElement, rawText: string, lineHeightFall
 }
 
 function initProjectDekLayout(): void {
-  const dek = document.querySelector(".project-header .dek");
+  const dek = document.querySelector(".project__dek");
   if (!(dek instanceof HTMLElement)) return;
 
-  const ratio = 1.52;
+  const ratio = 1.42;
   const run = (): void => syncTextBlockMinHeight(dek, dek.textContent ?? "", ratio);
 
   run();
@@ -80,6 +80,26 @@ function initProjectDekLayout(): void {
     raf = requestAnimationFrame(() => {
       syncTextBlockMinHeight(dek, dek.textContent ?? "", ratio);
     });
+  });
+}
+
+function initProjectWhyLayout(): void {
+  const nodes = Array.prototype.slice.call(
+    document.querySelectorAll(".project__why-p"),
+  ) as HTMLElement[];
+  if (!nodes.length) return;
+
+  const ratio = 1.55;
+  const measureAll = (): void => {
+    nodes.forEach((p) => syncTextBlockMinHeight(p, p.textContent ?? "", ratio));
+  };
+
+  measureAll();
+
+  let raf = 0;
+  window.addEventListener("resize", () => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(measureAll);
   });
 }
 
@@ -218,6 +238,7 @@ function boot(): void {
     initProjectShare();
   }
   initProjectDekLayout();
+  initProjectWhyLayout();
   initGalleryLightbox();
 }
 

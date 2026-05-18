@@ -341,22 +341,25 @@ export function layoutPage(
       min-width: 0;
     }
 
-    /* Why — editorial preamble */
+    /* Why — editorial preamble. Same size as body; tighter rhythm + display family
+       give it editorial gravity without breaking the reading hierarchy. */
     .project__why {
       grid-column: 3 / span 7;
       min-width: 0;
-      max-width: 38rem;
+      max-width: 36rem;
       margin: 0;
     }
     .project__why-p {
-      margin: 0 0 0.85em;
+      margin: 0 0 0.9em;
       font-family: var(--font-display);
-      font-size: var(--text-dek);
+      font-size: var(--text-lg);
       font-weight: 400;
-      letter-spacing: var(--tk-dek);
-      line-height: 1.45;
-      color: color-mix(in srgb, var(--fg) 88%, var(--muted));
+      letter-spacing: var(--tk-body);
+      line-height: 1.55;
+      color: color-mix(in srgb, var(--fg) 92%, var(--muted));
       text-wrap: pretty;
+      hanging-punctuation: first last;
+      font-feature-settings: var(--features-text);
     }
     .project__why-p:last-child { margin-bottom: 0; }
 
