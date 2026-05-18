@@ -229,8 +229,18 @@ export function layoutPage(
     .hero p.lede {
       margin: 0;
       font-size: 1.08rem;
+      font-weight: 500;
+      letter-spacing: -0.022em;
       color: var(--fg-soft);
       line-height: 1.45;
+    }
+    .hero .hero-hint {
+      margin: 0.7rem 0 0;
+      max-width: 38rem;
+      line-height: 1.45;
+    }
+    .hero .hero-hint code {
+      font-size: 0.88em;
     }
     .card-grid {
       display: grid;
