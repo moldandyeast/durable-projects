@@ -330,20 +330,75 @@ export function layoutPage(
       color: var(--muted);
       line-height: 1.35;
     }
-    .team-list {
+    .project-team-min {
+      margin: 2.75rem 0 0;
+      padding-top: 1.25rem;
+      border-top: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+      font-size: 0.78rem;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 48rem;
+    }
+    .project-team-min__tag {
+      display: inline-block;
+      margin-right: 0.35rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--muted) 92%, transparent);
+      vertical-align: baseline;
+    }
+    .project-team-min__name {
+      font-weight: 500;
+      color: var(--fg-soft);
+      text-decoration: none;
+    }
+    a.project-team-min__name:hover {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+    .project-team-min__role {
+      font-weight: 400;
+      font-size: 0.72rem;
+      color: color-mix(in srgb, var(--muted) 95%, transparent);
+    }
+    .project-team-min__role::before {
+      content: "— ";
+    }
+
+    .project-updated-last {
+      margin: 1rem 0 0;
+      padding: 0;
+      font-size: 0.68rem;
+      letter-spacing: 0.02em;
+      color: color-mix(in srgb, var(--muted) 88%, transparent);
+      max-width: 48rem;
+    }
+    .project-updated-last time {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .project-links {
       list-style: none;
       margin: 0 0 2.5rem;
       padding: 0;
       display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
     }
-    .team-list li {
-      padding: 0.55rem 0;
-      border-bottom: 1px solid var(--border);
+    .project-links a {
       font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--fg);
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+      text-decoration-thickness: 1px;
     }
-    .team-list li:last-child { border-bottom: none; }
+    .project-links a:hover {
+      color: var(--muted);
+    }
 
     /* Markdown body */
     .article-body {
@@ -1366,6 +1421,92 @@ export function layoutPage(
       border-radius: var(--radius-sm);
       background: transparent;
       color: var(--adm-fg);
+    }
+    body.admin-app .admin-links-block .admin-field-hint {
+      margin-bottom: 0.65rem;
+    }
+    body.admin-app .admin-links-composer {
+      display: grid;
+      grid-template-columns: minmax(6.5rem, 0.32fr) minmax(0, 1fr) auto;
+      align-items: stretch;
+      border: 1px solid var(--adm-line-strong);
+      border-radius: var(--radius-sm);
+      background: var(--adm-bg-soft);
+      overflow: hidden;
+      transition: border-color 0.16s ease, background 0.16s ease;
+    }
+    body.admin-app .admin-links-composer:focus-within {
+      border-color: var(--adm-fg);
+      background: var(--adm-field-bg);
+    }
+    body.admin-app .admin-links-composer-label,
+    body.admin-app .admin-links-composer-url {
+      margin: 0;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      padding: 0.55rem 0.65rem !important;
+      font-family: var(--adm-mono);
+      font-size: 0.8125rem;
+      letter-spacing: -0.01em;
+      background: transparent !important;
+      min-width: 0;
+    }
+    body.admin-app .admin-links-composer-label {
+      border-right: 1px solid var(--adm-line) !important;
+    }
+    body.admin-app .admin-links-composer-url {
+      border-right: 1px solid var(--adm-line) !important;
+    }
+    body.admin-app .admin-links-composer-label:focus,
+    body.admin-app .admin-links-composer-url:focus {
+      outline: none !important;
+    }
+    body.admin-app .admin-links-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 0.65rem;
+    }
+    body.admin-app .admin-link-row {
+      display: grid;
+      grid-template-columns: auto minmax(5rem, 0.3fr) minmax(0, 1fr) auto;
+      gap: 0;
+      align-items: stretch;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--adm-line) 94%, transparent);
+      transition: opacity 0.15s ease;
+    }
+    body.admin-app .admin-link-row:last-child {
+      border-bottom: none;
+    }
+    body.admin-app .admin-link-row .admin-gallery-grip {
+      align-self: center;
+      border-right: 1px solid color-mix(in srgb, var(--adm-line) 88%, transparent);
+      margin-right: 0.35rem;
+      padding-right: 0.35rem;
+    }
+    body.admin-app .admin-link-row--dragging {
+      opacity: 0.45;
+    }
+    body.admin-app .admin-link-label,
+    body.admin-app .admin-link-url {
+      margin: 0;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 0.45rem 0.55rem !important;
+      font-family: var(--adm-mono);
+      font-size: 0.78rem;
+      letter-spacing: -0.01em;
+      background: transparent !important;
+      min-width: 0;
+      box-shadow: none !important;
+    }
+    body.admin-app .admin-link-label {
+      border-right: 1px solid color-mix(in srgb, var(--adm-line) 88%, transparent) !important;
+    }
+    body.admin-app .admin-link-url {
+      border-right: 1px solid color-mix(in srgb, var(--adm-line) 88%, transparent) !important;
     }
     body.admin-app .admin-gallery-list-shell {
       position: relative;

@@ -256,6 +256,7 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
     ...(viaClients.length ? { via_clients: viaClients } : {}),
     sort_date: data.sort_date,
     gallery_images: data.gallery_images,
+    ...(data.project_links?.length ? { project_links: data.project_links } : {}),
     preview_image: data.preview_image,
     team_member_ids: data.team_member_ids,
     ...(data.team_member_roles && Object.keys(data.team_member_roles).length ?
@@ -542,6 +543,9 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
       ...(project.sort_date ? [`sort_date: ${JSON.stringify(project.sort_date)}`] : []),
       ...(project.preview_image ? [`preview_image: ${JSON.stringify(project.preview_image)}`] : []),
       `gallery_images: ${JSON.stringify(project.gallery_images)}`,
+      ...(project.project_links?.length ?
+        [`project_links: ${JSON.stringify(project.project_links)}`]
+      : []),
       `team_member_ids: ${JSON.stringify(project.team_member_ids)}`,
       ...(project.team_member_roles && Object.keys(project.team_member_roles).length ?
         [`team_member_roles: ${JSON.stringify(project.team_member_roles)}`]
@@ -625,6 +629,7 @@ async function createProject(request: Request, env: Env): Promise<Response> {
       preview_image: input.preview_image,
       team_member_ids: input.team_member_ids,
       team_member_roles: input.team_member_roles,
+      project_links: input.project_links,
     }),
   });
 

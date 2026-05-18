@@ -1,4 +1,4 @@
-import type { Client, GalleryImage, ProjectClientRef, ProjectData, TeamMember } from "../types";
+import type { Client, GalleryImage, ProjectClientRef, ProjectData, ProjectLink, TeamMember } from "../types";
 import { escapeHtml, layoutPage } from "./shared";
 
 function gallerySection(images: GalleryImage[]): string {
@@ -13,18 +13,32 @@ function gallerySection(images: GalleryImage[]): string {
   return `<section><h2 class="section-title">Gallery</h2><div class="gallery-grid">${figures}</div></section>`;
 }
 
-function teamSection(team: TeamMember[]): string {
-  if (!team.length) return "";
-  const items = team
-    .map((m) => {
-      const role = m.role ? ` <span class="muted">— ${escapeHtml(m.role)}</span>` : "";
-      const link = m.url
-        ? `<a href="${escapeHtml(m.url)}" rel="noopener noreferrer">${escapeHtml(m.name)}</a>${role}`
-        : `<strong>${escapeHtml(m.name)}</strong>${role}`;
-      return `<li>${link}</li>`;
+function linksSection(links: ProjectLink[] | undefined): string {
+  const list = links ?? [];
+  if (!list.length) return "";
+  const items = list
+    .map((l) => {
+      return `<li><a href="${escapeHtml(l.url)}" rel="noopener noreferrer">${escapeHtml(l.label)}</a></li>`;
     })
-    .join("");
-  return `<section><h2 class="section-title">Team</h2><ul class="team-list">${items}</ul></section>`;
+    .join("\n");
+  return `<section><h2 class="section-title">Links</h2><ul class="project-links">${items}</ul></section>`;
+}
+
+/** Compact team line at the bottom of the article (after body). */
+function teamFooterMinimal(team: TeamMember[]): string {
+  if (!team.length) return "";
+  const chunks = team.map((m) => {
+    const nameHtml = m.url
+      ? `<a href="${escapeHtml(m.url)}" rel="noopener noreferrer" class="project-team-min__name">${escapeHtml(m.name)}</a>`
+      : `<span class="project-team-min__name">${escapeHtml(m.name)}</span>`;
+    const roleHtml = m.role ? `<span class="project-team-min__role">${escapeHtml(m.role)}</span>` : "";
+    return roleHtml ? `${nameHtml}\u00a0${roleHtml}` : nameHtml;
+  });
+  return `<div class="project-team-min"><span class="project-team-min__tag">Team</span> ${chunks.join(" · ")}</div>`;
+}
+
+function lastUpdatedFooter(editedAt: string): string {
+  return `<p class="project-updated-last"><time datetime="${escapeHtml(editedAt)}">Updated ${escapeHtml(editedAt.slice(0, 10))}</time></p>`;
 }
 
 function sortDateDisplay(sort_date: string | undefined): string {
@@ -76,10 +90,7 @@ export function projectPublicPage(
 
   const metaParts: string[] = [];
   if (sd) metaParts.push(`<span><strong>Sort</strong> ${escapeHtml(sd)}</span>`);
-  metaParts.push(
-    `<span><strong>Updated</strong> <time datetime="${escapeHtml(project.edited_at)}">${escapeHtml(project.edited_at.slice(0, 10))}</time></span>`,
-  );
-  const metaRow = `<div class="meta-row">${metaParts.join("")}</div>`;
+  const metaRow = metaParts.length ? `<div class="meta-row">${metaParts.join("")}</div>` : "";
 
   const inner = `
 <header class="site-nav">
@@ -96,8 +107,10 @@ export function projectPublicPage(
       ${metaRow}
     </header>
     ${gallerySection(project.gallery_images)}
-    ${teamSection(team)}
+    ${linksSection(project.project_links)}
     <div class="article-body">${project.rendered_html}</div>
+    ${teamFooterMinimal(team)}
+    ${lastUpdatedFooter(project.edited_at)}
   </article>
 </main>`;
 

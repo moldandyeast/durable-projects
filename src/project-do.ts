@@ -1,4 +1,4 @@
-import type { Env, GalleryImage, ProjectData } from "./types";
+import type { Env, GalleryImage, ProjectData, ProjectLink } from "./types";
 import { renderMarkdown } from "./markdown";
 
 function normalizePreviewUrl(url: string | undefined): string | undefined {
@@ -27,6 +27,54 @@ export function normalizeGalleryImages(raw: unknown): GalleryImage[] {
     if (typeof caption === "string" && caption.trim()) row.caption = caption.trim();
     if (typeof alt === "string" && alt.trim()) row.alt = alt.trim();
     out.push(row);
+  }
+  return out;
+}
+
+function sanitizeProjectLinkUrl(raw: string): string | undefined {
+  const t = raw.trim();
+  if (!t) return undefined;
+  try {
+    const u = new URL(t);
+    const p = u.protocol.toLowerCase();
+    if (p === "http:" || p === "https:" || p === "mailto:") return u.toString();
+  } catch {
+    /* ignore */
+  }
+  return undefined;
+}
+
+function defaultProjectLinkLabel(url: string, requested: string): string {
+  const q = requested.trim();
+  if (q) return q;
+  try {
+    const u = new URL(url);
+    if (u.protocol === "mailto:") {
+      const path = u.pathname;
+      const at = path.indexOf("@");
+      const domain = at >= 0 ? path.slice(at + 1) : path;
+      return domain || "Email";
+    }
+    const h = u.hostname.replace(/^www\./i, "");
+    return h || "Link";
+  } catch {
+    return "Link";
+  }
+}
+
+/** Ordered links with safe URLs only (`http`, `https`, `mailto`). */
+export function normalizeProjectLinks(raw: unknown): ProjectLink[] {
+  if (!Array.isArray(raw)) return [];
+  const out: ProjectLink[] = [];
+  const max = 48;
+  for (const item of raw) {
+    if (out.length >= max) break;
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const safeUrl = sanitizeProjectLinkUrl(String(o.url ?? ""));
+    if (!safeUrl) continue;
+    const label = defaultProjectLinkLabel(safeUrl, typeof o.label === "string" ? o.label : "");
+    out.push({ label, url: safeUrl });
   }
   return out;
 }
@@ -168,6 +216,9 @@ export class ProjectDO {
     const team_member_ids = normalizeTeamMemberIds(input.team_member_ids);
     const team_member_roles = normalizeTeamMemberRoles(team_member_ids, input.team_member_roles);
 
+    const gallery_images = normalizeGalleryImages(input.gallery_images);
+    const project_links = normalizeProjectLinks(input.project_links);
+
     const data: ProjectData = {
       id: input.id!,
       title: input.title ?? "Untitled",
@@ -182,7 +233,8 @@ export class ProjectDO {
       ...(client_ids.length ? { client_ids } : {}),
       ...(via_client_ids.length ? { via_client_ids } : {}),
       ...(sort_date ? { sort_date } : {}),
-      gallery_images: normalizeGalleryImages(input.gallery_images),
+      gallery_images,
+      ...(project_links.length ? { project_links } : {}),
       team_member_ids,
       ...(team_member_roles ? { team_member_roles } : {}),
       ...(preview ? { preview_image: preview } : {}),
@@ -259,6 +311,12 @@ export class ProjectDO {
 
     if (input.gallery_images !== undefined) {
       data.gallery_images = normalizeGalleryImages(input.gallery_images);
+    }
+
+    if (input.project_links !== undefined) {
+      const next = normalizeProjectLinks(input.project_links);
+      if (next.length) data.project_links = next;
+      else delete data.project_links;
     }
 
     if (input.team_member_ids !== undefined) {

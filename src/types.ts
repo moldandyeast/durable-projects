@@ -8,6 +8,12 @@ export interface GalleryImage {
   alt?: string;
 }
 
+/** External references on a project (case study, repo, demo, etc.). */
+export interface ProjectLink {
+  label: string;
+  url: string;
+}
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -52,6 +58,8 @@ export interface ProjectData {
   via_client_ids?: string[];
   sort_date?: string;
   gallery_images: GalleryImage[];
+  /** Ordered outbound links (case study, repo, demo); omit or empty when none. */
+  project_links?: ProjectLink[];
   preview_image?: string;
   team_member_ids: string[];
   /** Optional display role per collaborator id for this project only (overrides directory role when set). */
@@ -101,6 +109,8 @@ export interface ProjectEnvelope {
   via_clients?: Client[];
   sort_date?: string;
   gallery_images: GalleryImage[];
+  /** Omitted when empty. */
+  project_links?: ProjectLink[];
   preview_image?: string;
   team_member_ids: string[];
   /** Same keys as stored on the project; omitted when empty. */

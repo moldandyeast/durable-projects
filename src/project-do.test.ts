@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   normalizeClientIds,
   normalizeGalleryImages,
+  normalizeProjectLinks,
   normalizeTeamMemberIds,
   normalizeTeamMemberRoles,
   normalizeViaClientIds,
@@ -64,6 +65,27 @@ describe("normalizeViaClientIds", () => {
   it("drops primary clients if repeated in via list", () => {
     expect(normalizeViaClientIds(["bb", "aa", "cc"], ["aa"])).toEqual(["bb", "cc"]);
     expect(normalizeViaClientIds(["aa", "bb", "cc"], ["aa", "bb"])).toEqual(["cc"]);
+  });
+});
+
+describe("normalizeProjectLinks", () => {
+  it("keeps http(s)/mailto, trims labels, drops junk protocols", () => {
+    expect(
+      normalizeProjectLinks([
+        { label: "", url: "https://example.com/path" },
+        { label: "Mail", url: "mailto:a@b.com" },
+        { label: "X", url: "javascript:alert(1)" },
+        { label: "Bad", url: "ftp://x" },
+      ]),
+    ).toEqual([
+      { label: "example.com", url: "https://example.com/path" },
+      { label: "Mail", url: "mailto:a@b.com" },
+    ]);
+  });
+
+  it("caps length", () => {
+    const raw = Array.from({ length: 60 }, (_, i) => ({ label: "L", url: `https://e.test/${i}` }));
+    expect(normalizeProjectLinks(raw)).toHaveLength(48);
   });
 });
 
@@ -152,5 +174,31 @@ describe("ProjectDO", () => {
     expect(res.ok).toBe(true);
     const data = await res.json<{ team_member_roles?: Record<string, string> }>();
     expect(data.team_member_roles).toEqual({ aaaaaaaa: "Art direction" });
+  });
+
+  it("update clears project_links when empty array sent", async () => {
+    const project = makeProjectDO();
+    const createReq = new Request("https://p/internal/create", {
+      method: "POST",
+      body: JSON.stringify({
+        id: "abcdabcd",
+        title: "T",
+        summary: "",
+        tags: [],
+        body: "x",
+        team_member_ids: [],
+        project_links: [{ label: "A", url: "https://a.test" }],
+      }),
+    });
+    expect((await project.fetch(createReq)).ok).toBe(true);
+    const upd = await project.fetch(
+      new Request("https://p/internal/update", {
+        method: "POST",
+        body: JSON.stringify({ project_links: [] }),
+      }),
+    );
+    expect(upd.ok).toBe(true);
+    const data = await upd.json<{ project_links?: unknown[] }>();
+    expect(data.project_links).toBeUndefined();
   });
 });

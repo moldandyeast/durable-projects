@@ -342,6 +342,39 @@ export function adminTemplate(): string {
           </div>
         </div>
         <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Links</h3>
+          <div class="admin-settings-section__fields">
+            <div class="admin-links-block">
+              <p class="admin-field-hint">Case study, repo, demo, or article. Only <code class="admin-code-inline">https://</code>, <code class="admin-code-inline">http://</code>, and <code class="admin-code-inline">mailto:</code> URLs are kept.</p>
+              <div class="admin-links-composer">
+                <input
+                  type="text"
+                  id="link-label-input"
+                  class="admin-links-composer-label"
+                  placeholder="Label"
+                  autocomplete="off"
+                  aria-label="New link label"
+                />
+                <input
+                  type="text"
+                  id="link-url-input"
+                  class="admin-links-composer-url"
+                  placeholder="https://… or mailto:…"
+                  autocomplete="off"
+                  inputmode="url"
+                  aria-label="New link URL"
+                />
+                <button type="button" class="admin-gallery-composer-add" id="link-add-from-input">Add</button>
+              </div>
+              <p id="links-composer-hint" class="admin-gallery-composer-hint"><kbd>Enter</kbd> in URL field to add · drag rows to reorder</p>
+              <div class="admin-gallery-list-shell">
+                <p id="links-list-empty" class="admin-gallery-list-empty">No links yet.</p>
+                <div id="link-rows" class="admin-links-rows" role="list" aria-label="Project links"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-settings-section">
           <h3 class="admin-settings-section__label">Media</h3>
           <div class="admin-settings-section__fields">
             <div>
@@ -435,7 +468,7 @@ export function adminTemplate(): string {
           <div class="admin-settings-section__fields admin-api-docs-prose">
             <p><code class="admin-code-inline">GET /api/projects/&lt;slug&gt;</code></p>
             <p><code class="admin-code-inline">&lt;slug&gt;</code> is eight characters (<span class="admin-doc-muted">Crockford base32</span>: <code class="admin-code-inline">0-9 a-h j-k m-n p-t v-z</code>, no i/l/o/u).</p>
-            <p>Returns a full public envelope: markdown body, resolved team and client refs, gallery, tags, ETag from <code class="admin-code-inline">edited_at</code>. <strong>404</strong> if unknown, <strong>410</strong> if deleted.</p>
+            <p>Returns a full public envelope: markdown body, resolved team and client refs, gallery, optional links, tags, ETag from <code class="admin-code-inline">edited_at</code>. <strong>404</strong> if unknown, <strong>410</strong> if deleted.</p>
             <pre class="admin-doc-pre" tabindex="0">curl -sS -H "Accept: application/json" "https://YOUR_ORIGIN/api/projects/xxxxxxxx"</pre>
           </div>
         </div>
@@ -1480,6 +1513,173 @@ export function adminTemplate(): string {
     }
 
     var galleryDragRow = null;
+    var linksDragRow = null;
+
+    function collectLinksFromEditor() {
+      var wrap = document.getElementById("link-rows");
+      if (!wrap) return [];
+      var out = [];
+      wrap.querySelectorAll(".admin-link-row").forEach(function(row) {
+        var lEl = row.querySelector(".admin-link-label");
+        var uEl = row.querySelector(".admin-link-url");
+        var url = uEl ? String(uEl.value || "").trim() : "";
+        if (!url) return;
+        var label = lEl ? String(lEl.value || "").trim() : "";
+        out.push({ label: label, url: url });
+      });
+      return out;
+    }
+
+    function updateLinksChrome() {
+      var wrap = document.getElementById("link-rows");
+      var empty = document.getElementById("links-list-empty");
+      if (!wrap || !empty) return;
+      var n = wrap.querySelectorAll(".admin-link-row").length;
+      empty.hidden = n > 0;
+    }
+
+    function linkDragAfterElement(container, y) {
+      var els = [].slice.call(container.querySelectorAll(".admin-link-row:not(.admin-link-row--dragging)"));
+      var closest = els.reduce(
+        function(acc, child) {
+          var box = child.getBoundingClientRect();
+          var offset = y - box.top - box.height / 2;
+          if (offset < 0 && offset > acc.offset) {
+            return { offset: offset, element: child };
+          }
+          return acc;
+        },
+        { offset: Number.NEGATIVE_INFINITY, element: undefined },
+      );
+      return closest.element;
+    }
+
+    function initLinksDnD() {
+      var wrap = document.getElementById("link-rows");
+      if (!wrap || wrap.getAttribute("data-links-dnd") === "1") return;
+      wrap.setAttribute("data-links-dnd", "1");
+      wrap.addEventListener("dragover", function(ev) {
+        ev.preventDefault();
+        if (!linksDragRow) return;
+        ev.dataTransfer.dropEffect = "move";
+        var after = linkDragAfterElement(wrap, ev.clientY);
+        if (after == null) wrap.appendChild(linksDragRow);
+        else wrap.insertBefore(linksDragRow, after);
+      });
+    }
+
+    function bindLinkRowGrip(row, grip) {
+      grip.addEventListener("dragstart", function(ev) {
+        linksDragRow = row;
+        row.classList.add("admin-link-row--dragging");
+        grip.setAttribute("aria-grabbed", "true");
+        ev.dataTransfer.effectAllowed = "move";
+        ev.dataTransfer.setData("text/plain", "links");
+      });
+      grip.addEventListener("dragend", function() {
+        row.classList.remove("admin-link-row--dragging");
+        grip.setAttribute("aria-grabbed", "false");
+        linksDragRow = null;
+        updateLinksChrome();
+      });
+    }
+
+    function bindLinkRowInputs(row) {
+      row.querySelectorAll(".admin-link-label, .admin-link-url").forEach(function(inp) {
+        inp.addEventListener("input", updateLinksChrome);
+      });
+    }
+
+    function appendLinkRow(item, skipChrome) {
+      item = item || {};
+      var wrap = document.getElementById("link-rows");
+      if (!wrap) return;
+
+      var row = document.createElement("div");
+      row.className = "admin-link-row";
+      row.setAttribute("role", "listitem");
+
+      var grip = document.createElement("button");
+      grip.type = "button";
+      grip.className = "admin-gallery-grip";
+      grip.draggable = true;
+      grip.setAttribute("aria-label", "Drag to reorder link");
+      grip.setAttribute("aria-grabbed", "false");
+      grip.innerHTML =
+        '<span class="admin-gallery-grip__bars" aria-hidden="true"></span><span class="admin-gallery-grip__bars" aria-hidden="true"></span>';
+      bindLinkRowGrip(row, grip);
+
+      var labInp = document.createElement("input");
+      labInp.type = "text";
+      labInp.className = "admin-link-label";
+      labInp.placeholder = "Label";
+      labInp.autocomplete = "off";
+      labInp.value = item.label || "";
+
+      var urlInp = document.createElement("input");
+      urlInp.type = "text";
+      urlInp.className = "admin-link-url";
+      urlInp.placeholder = "URL";
+      urlInp.autocomplete = "off";
+      urlInp.inputMode = "url";
+      urlInp.value = item.url || "";
+
+      var rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "admin-gallery-remove";
+      rm.setAttribute("aria-label", "Remove link");
+      rm.innerHTML = "&times;";
+      rm.addEventListener("click", function() {
+        row.remove();
+        updateLinksChrome();
+      });
+
+      row.appendChild(grip);
+      row.appendChild(labInp);
+      row.appendChild(urlInp);
+      row.appendChild(rm);
+      wrap.appendChild(row);
+
+      bindLinkRowInputs(row);
+      updateLinksChrome();
+    }
+
+    function renderLinksEditor(items) {
+      var wrap = document.getElementById("link-rows");
+      if (!wrap) return;
+      wrap.textContent = "";
+      var arr = Array.isArray(items) ? items : [];
+      arr.forEach(function(it) {
+        appendLinkRow(it, true);
+      });
+      updateLinksChrome();
+    }
+
+    function tryAddLinkFromComposer() {
+      var lu = document.getElementById("link-url-input");
+      var ll = document.getElementById("link-label-input");
+      var url = lu ? String(lu.value || "").trim() : "";
+      if (!url) return;
+      appendLinkRow({ label: ll ? ll.value : "", url: url }, false);
+      lu.value = "";
+      if (ll) ll.value = "";
+      lu.focus();
+    }
+
+    function initLinksComposerAndDnD() {
+      initLinksDnD();
+      var lu = document.getElementById("link-url-input");
+      var btn = document.getElementById("link-add-from-input");
+      if (lu && btn) {
+        btn.addEventListener("click", tryAddLinkFromComposer);
+        lu.addEventListener("keydown", function(ev) {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            tryAddLinkFromComposer();
+          }
+        });
+      }
+    }
 
     function galleryDragAfterElement(container, y) {
       var els = [].slice.call(container.querySelectorAll(".admin-gallery-row:not(.admin-gallery-row--dragging)"));
@@ -1669,6 +1869,7 @@ export function adminTemplate(): string {
         hydrateTeamPick([], {});
         renderClientPicker(cachedClients);
         renderGalleryEditor([]);
+        renderLinksEditor([]);
         previewPlaceholder();
         return;
       }
@@ -1698,6 +1899,7 @@ export function adminTemplate(): string {
       if (pfSort) pfSort.value = p.sort_date || "";
       if (pfPreview) pfPreview.value = p.preview_image || "";
       renderGalleryEditor(p.gallery_images || []);
+      renderLinksEditor(p.project_links || []);
       if (pfBody) pfBody.value = p.body || "";
       schedulePreview();
     }
@@ -1829,6 +2031,7 @@ export function adminTemplate(): string {
         preview_image: pfPreview && pfPreview.value ? pfPreview.value : undefined,
         team_member_ids: teamIds,
         gallery_images: collectGalleryFromEditor(),
+        project_links: collectLinksFromEditor(),
         body: pfBody ? pfBody.value : "",
         team_member_roles: collectTeamMemberRolesPayload(),
       };
@@ -1906,6 +2109,8 @@ export function adminTemplate(): string {
     bindMarkdownTools();
 
     initGalleryComposerAndDnD();
+
+    initLinksComposerAndDnD();
 
     initEditorMediaRail();
 
