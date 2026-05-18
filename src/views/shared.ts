@@ -345,7 +345,7 @@ export function layoutPage(
       margin: 0 0 1rem;
     }
 
-    /* Full-bleed project gallery (editorial strip, Rauno-ish) */
+    /* Project gallery: same readable width as body copy */
     .project-gallery {
       margin: 2.5rem 0;
     }
@@ -355,12 +355,11 @@ export function layoutPage(
       padding: 0 clamp(1rem, 4vw, 2rem);
     }
     .gallery-strip {
-      width: 100vw;
-      max-width: 100vw;
-      margin-left: calc(50% - 50vw);
-      margin-right: calc(50% - 50vw);
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
+      box-sizing: border-box;
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 clamp(1rem, 4vw, 2rem);
       display: flex;
       flex-direction: column;
       gap: 0;
@@ -389,6 +388,9 @@ export function layoutPage(
       outline: 2px solid var(--accent);
       outline-offset: -2px;
     }
+    .gallery-strip .gallery-thumb {
+      overflow: hidden;
+    }
     .gallery-thumb img {
       width: 100%;
       height: auto;
@@ -412,6 +414,23 @@ export function layoutPage(
     }
     .gallery-figure:last-child .gallery-figcaption {
       padding-bottom: 0;
+    }
+
+    /* Scroll-linked drift (view timeline only — no scroll listeners / jacking) */
+    @keyframes gallery-view-drift {
+      from {
+        transform: translate3d(0, 0.55rem, 0) scale(1.048);
+      }
+      to {
+        transform: translate3d(0, -0.55rem, 0) scale(1.048);
+      }
+    }
+    @supports (animation-timeline: view()) {
+      .gallery-strip .gallery-thumb img {
+        animation: gallery-view-drift linear both;
+        animation-timeline: view(block);
+        animation-range: entry cover exit cover;
+      }
     }
 
     .gallery-lightbox {
@@ -554,6 +573,9 @@ export function layoutPage(
     @media (prefers-reduced-motion: reduce) {
       .gallery-thumb img {
         transition: none;
+      }
+      .gallery-strip .gallery-thumb img {
+        animation: none !important;
       }
       .gallery-lightbox::backdrop {
         backdrop-filter: none;
