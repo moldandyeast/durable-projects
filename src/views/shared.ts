@@ -355,13 +355,13 @@ export function layoutPage(
       margin: 0 0 1rem;
     }
 
-    /* Project gallery: same readable width as body copy */
+    /* Project gallery — editorial feed: rhythm, air, discrete plates */
     .project-gallery {
-      margin: 2.5rem 0;
+      margin: clamp(2.75rem, 7vw, 4rem) 0;
     }
     .project-gallery__head {
       max-width: var(--max);
-      margin: 0 auto 1rem;
+      margin: 0 auto clamp(1.35rem, 3.5vw, 2.25rem);
       padding: 0 clamp(1rem, 4vw, 2rem);
     }
     .gallery-strip {
@@ -372,15 +372,65 @@ export function layoutPage(
       padding: 0 clamp(1rem, 4vw, 2rem);
       display: flex;
       flex-direction: column;
-      gap: 0;
+      gap: clamp(2rem, 5vw, 3.75rem);
     }
     .gallery-figure {
       margin: 0;
-      padding: 0;
-      border: none;
-      border-radius: 0;
+      padding: clamp(4px, 0.65vw, 7px);
+      border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+      border-radius: clamp(10px, 1.5vw, 16px);
       overflow: hidden;
-      background: var(--bg-elevated);
+      background: color-mix(in srgb, var(--bg-elevated) 96%, var(--fg) 4%);
+      box-shadow:
+        0 1px 0 color-mix(in srgb, var(--fg) 3%, transparent),
+        0 20px 44px color-mix(in srgb, var(--fg) 4.5%, transparent);
+    }
+    /* First plate reads larger — radius, mat, shadow */
+    .gallery-strip .gallery-figure--hero {
+      padding: clamp(5px, 0.85vw, 9px);
+      border-radius: clamp(12px, 1.85vw, 20px);
+      box-shadow:
+        0 1px 0 color-mix(in srgb, var(--fg) 4%, transparent),
+        0 28px 56px color-mix(in srgb, var(--fg) 6%, transparent);
+    }
+    @media (prefers-color-scheme: dark) {
+      .gallery-strip .gallery-figure--hero {
+        box-shadow:
+          0 1px 0 color-mix(in srgb, var(--fg) 6%, transparent),
+          0 34px 78px rgba(0, 0, 0, 0.42);
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      .gallery-figure {
+        border-color: var(--border);
+        background: var(--bg-elevated);
+        box-shadow:
+          0 1px 0 color-mix(in srgb, var(--fg) 5%, transparent),
+          0 26px 64px rgba(0, 0, 0, 0.36);
+      }
+      .gallery-strip .gallery-figcaption {
+        background: color-mix(in srgb, var(--bg-elevated) 88%, var(--fg) 12%);
+        border-top-color: color-mix(in srgb, var(--border) 80%, transparent);
+        color: color-mix(in srgb, var(--muted) 88%, var(--fg-soft));
+      }
+    }
+    /* Asymmetric breakout into main horizontal padding (Rauno-style bleed) */
+    @media (min-width: 720px) {
+      .gallery-strip .gallery-figure:nth-child(odd) {
+        --gallery-pull: min(5vw, 3.75rem);
+        width: calc(100% + var(--gallery-pull));
+        margin-inline-start: calc(-1 * var(--gallery-pull));
+        margin-inline-end: 0;
+      }
+      .gallery-strip .gallery-figure:nth-child(even) {
+        --gallery-pull: min(5vw, 3.75rem);
+        width: calc(100% + var(--gallery-pull));
+        margin-inline-end: calc(-1 * var(--gallery-pull));
+        margin-inline-start: 0;
+      }
+      .gallery-strip .gallery-figure--hero:nth-child(odd) {
+        --gallery-pull: min(8.25vw, 6.25rem);
+      }
     }
     .gallery-thumb {
       display: block;
@@ -388,18 +438,28 @@ export function layoutPage(
       padding: 0;
       margin: 0;
       border: none;
-      background: transparent;
+      background: color-mix(in srgb, var(--bg-elevated) 88%, var(--fg) 12%);
       cursor: zoom-in;
       color: inherit;
       font: inherit;
       line-height: 0;
     }
     .gallery-thumb:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: -2px;
+      outline: none;
+      box-shadow: inset 0 0 0 2px var(--accent);
     }
     .gallery-strip .gallery-thumb {
       overflow: hidden;
+      border-radius: clamp(7px, 1.1vw, 12px);
+    }
+    .gallery-strip .gallery-figure:has(.gallery-figcaption) .gallery-thumb {
+      border-radius: clamp(7px, 1.1vw, 12px) clamp(7px, 1.1vw, 12px) 0 0;
+    }
+    .gallery-strip .gallery-figure--hero .gallery-thumb {
+      border-radius: clamp(8px, 1.25vw, 14px);
+    }
+    .gallery-strip .gallery-figure--hero:has(.gallery-figcaption) .gallery-thumb {
+      border-radius: clamp(8px, 1.25vw, 14px) clamp(8px, 1.25vw, 14px) 0 0;
     }
     .gallery-thumb img {
       width: 100%;
@@ -414,16 +474,18 @@ export function layoutPage(
       }
     }
     .gallery-strip .gallery-figcaption {
-      max-width: var(--max);
-      margin: 0 auto;
-      padding: 0.55rem clamp(1rem, 4vw, 2rem) 0.15rem;
-      font-size: 0.8rem;
-      color: var(--muted);
-      line-height: 1.45;
-      letter-spacing: -0.01em;
+      margin: 0;
+      padding: 0.75rem clamp(0.85rem, 2.8vw, 1.35rem) 0.65rem;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      color: color-mix(in srgb, var(--muted) 82%, var(--fg-soft));
+      line-height: 1.5;
+      letter-spacing: -0.014em;
+      border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+      background: color-mix(in srgb, var(--bg-elevated) 91%, var(--fg) 9%);
     }
     .gallery-figure:last-child .gallery-figcaption {
-      padding-bottom: 0;
+      padding-bottom: 0.5rem;
     }
 
     /* Scroll-linked drift (view timeline only — no scroll listeners / jacking) */

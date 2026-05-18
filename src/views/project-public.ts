@@ -11,7 +11,8 @@ function gallerySection(images: GalleryImage[]): string {
       const capEscaped = escapeHtml(rawCaption);
       const capHtml = rawCaption ? `<figcaption class="gallery-figcaption">${capEscaped}</figcaption>` : "";
       const aria = escapeHtml(`Open image ${i + 1} of ${n} larger`);
-      return `<figure class="gallery-figure"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" loading="lazy" decoding="async"/></button>${capHtml}</figure>`;
+      const heroClass = i === 0 ? " gallery-figure--hero" : "";
+      return `<figure class="gallery-figure${heroClass}"><button type="button" class="gallery-thumb" aria-label="${aria}" data-gallery-src="${escapeHtml(img.url)}" data-gallery-alt="${alt}" data-gallery-caption="${capEscaped}"><img src="${escapeHtml(img.url)}" alt="${alt}" loading="lazy" decoding="async"/></button>${capHtml}</figure>`;
     })
     .join("\n");
   return `<section class="project-gallery" aria-label="Gallery"><div class="project-gallery__head"><h2 class="section-title">Gallery</h2></div><div class="gallery-strip" data-gallery-strip>${figures}</div></section>`;
