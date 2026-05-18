@@ -355,7 +355,7 @@ export function layoutPage(
       margin: 0 0 1rem;
     }
 
-    /* Project gallery — editorial feed: rhythm, air, discrete plates */
+    /* Project gallery — aligned column, stable media slots, card plates */
     .project-gallery {
       margin: clamp(2.75rem, 7vw, 4rem) 0;
     }
@@ -394,13 +394,6 @@ export function layoutPage(
         0 28px 56px color-mix(in srgb, var(--fg) 6%, transparent);
     }
     @media (prefers-color-scheme: dark) {
-      .gallery-strip .gallery-figure--hero {
-        box-shadow:
-          0 1px 0 color-mix(in srgb, var(--fg) 6%, transparent),
-          0 34px 78px rgba(0, 0, 0, 0.42);
-      }
-    }
-    @media (prefers-color-scheme: dark) {
       .gallery-figure {
         border-color: var(--border);
         background: var(--bg-elevated);
@@ -408,28 +401,15 @@ export function layoutPage(
           0 1px 0 color-mix(in srgb, var(--fg) 5%, transparent),
           0 26px 64px rgba(0, 0, 0, 0.36);
       }
+      .gallery-strip .gallery-figure--hero {
+        box-shadow:
+          0 1px 0 color-mix(in srgb, var(--fg) 6%, transparent),
+          0 34px 78px rgba(0, 0, 0, 0.42);
+      }
       .gallery-strip .gallery-figcaption {
         background: color-mix(in srgb, var(--bg-elevated) 88%, var(--fg) 12%);
         border-top-color: color-mix(in srgb, var(--border) 80%, transparent);
         color: color-mix(in srgb, var(--muted) 88%, var(--fg-soft));
-      }
-    }
-    /* Asymmetric breakout into main horizontal padding (Rauno-style bleed) */
-    @media (min-width: 720px) {
-      .gallery-strip .gallery-figure:nth-child(odd) {
-        --gallery-pull: min(5vw, 3.75rem);
-        width: calc(100% + var(--gallery-pull));
-        margin-inline-start: calc(-1 * var(--gallery-pull));
-        margin-inline-end: 0;
-      }
-      .gallery-strip .gallery-figure:nth-child(even) {
-        --gallery-pull: min(5vw, 3.75rem);
-        width: calc(100% + var(--gallery-pull));
-        margin-inline-end: calc(-1 * var(--gallery-pull));
-        margin-inline-start: 0;
-      }
-      .gallery-strip .gallery-figure--hero:nth-child(odd) {
-        --gallery-pull: min(8.25vw, 6.25rem);
       }
     }
     .gallery-thumb {
@@ -438,7 +418,7 @@ export function layoutPage(
       padding: 0;
       margin: 0;
       border: none;
-      background: color-mix(in srgb, var(--bg-elevated) 88%, var(--fg) 12%);
+      background: transparent;
       cursor: zoom-in;
       color: inherit;
       font: inherit;
@@ -451,6 +431,11 @@ export function layoutPage(
     .gallery-strip .gallery-thumb {
       overflow: hidden;
       border-radius: clamp(7px, 1.1vw, 12px);
+      aspect-ratio: 16 / 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: color-mix(in srgb, var(--bg-elevated) 82%, var(--fg) 18%);
     }
     .gallery-strip .gallery-figure:has(.gallery-figcaption) .gallery-thumb {
       border-radius: clamp(7px, 1.1vw, 12px) clamp(7px, 1.1vw, 12px) 0 0;
@@ -461,15 +446,18 @@ export function layoutPage(
     .gallery-strip .gallery-figure--hero:has(.gallery-figcaption) .gallery-thumb {
       border-radius: clamp(8px, 1.25vw, 14px) clamp(8px, 1.25vw, 14px) 0 0;
     }
-    .gallery-thumb img {
-      width: 100%;
+    .gallery-strip .gallery-thumb img {
+      width: auto;
       height: auto;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
       vertical-align: middle;
       display: block;
       transition: opacity 0.35s var(--ease-out-expo);
     }
     @media (hover: hover) {
-      .gallery-thumb:hover img {
+      .gallery-strip .gallery-thumb:hover img {
         opacity: 0.92;
       }
     }
@@ -486,23 +474,6 @@ export function layoutPage(
     }
     .gallery-figure:last-child .gallery-figcaption {
       padding-bottom: 0.5rem;
-    }
-
-    /* Scroll-linked drift (view timeline only — no scroll listeners / jacking) */
-    @keyframes gallery-view-drift {
-      from {
-        transform: translate3d(0, 0.55rem, 0) scale(1.048);
-      }
-      to {
-        transform: translate3d(0, -0.55rem, 0) scale(1.048);
-      }
-    }
-    @supports (animation-timeline: view()) {
-      .gallery-strip .gallery-thumb img {
-        animation: gallery-view-drift linear both;
-        animation-timeline: view(block);
-        animation-range: entry cover exit cover;
-      }
     }
 
     .gallery-lightbox {
@@ -645,9 +616,6 @@ export function layoutPage(
     @media (prefers-reduced-motion: reduce) {
       .gallery-thumb img {
         transition: none;
-      }
-      .gallery-strip .gallery-thumb img {
-        animation: none !important;
       }
       .gallery-lightbox::backdrop {
         backdrop-filter: none;
