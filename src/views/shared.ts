@@ -3090,6 +3090,37 @@ export function layoutPage(
         color-mix(in srgb, var(--adm-line) 55%, transparent) 6px
       );
     }
+    body.admin-app .admin-editor-media-card__ph {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      aspect-ratio: 1;
+      background: color-mix(in srgb, var(--adm-fg) 5%, transparent);
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--adm-muted);
+    }
+    body.admin-app .admin-editor-media-card--video {
+      position: relative;
+    }
+    body.admin-app .admin-editor-media-card--video::after {
+      content: "VIDEO";
+      position: absolute;
+      left: 4px;
+      bottom: 4px;
+      padding: 1px 4px;
+      font-family: var(--font-mono);
+      font-size: 0.52rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 1px;
+      pointer-events: none;
+    }
     body.admin-app .admin-editor-layout {
       display: grid;
       grid-template-columns: minmax(6.75rem, 9rem) minmax(0, 1fr) minmax(14rem, 38vw);

@@ -383,8 +383,9 @@ export function adminTemplate(): string {
           <h3 class="admin-settings-section__label">Media</h3>
           <div class="admin-settings-section__fields">
             <div>
-              <label class="admin-label" for="pf-preview">Preview image URL</label>
-              <input form="proj-form" id="pf-preview" name="preview_image" placeholder="" />
+              <label class="admin-label" for="pf-preview">Preview · image or video</label>
+              <input form="proj-form" id="pf-preview" name="preview_image" placeholder="Image URL or Cloudflare Stream watch URL" />
+              <p class="admin-field-hint">Cloudflare Stream URLs auto-loop muted on the index. Direct .mp4/.webm work too.</p>
             </div>
             <div class="admin-gallery-block">
               <div class="admin-gallery-head">
@@ -396,16 +397,16 @@ export function adminTemplate(): string {
                   type="text"
                   id="gallery-url-input"
                   class="admin-gallery-composer-input"
-                  placeholder="Paste image URL…"
+                  placeholder="Paste image or video URL…"
                   autocomplete="off"
                   inputmode="url"
                   aria-describedby="gallery-composer-hint"
                 />
                 <button type="button" class="admin-gallery-composer-add" id="gallery-add-from-input">Add</button>
               </div>
-              <p id="gallery-composer-hint" class="admin-gallery-composer-hint">HTTPS recommended · <kbd>Enter</kbd> to add · drag rows to reorder</p>
+              <p id="gallery-composer-hint" class="admin-gallery-composer-hint">Image, Cloudflare Stream, or direct video URL · <kbd>Enter</kbd> to add · drag rows to reorder · <strong>remember to Save</strong></p>
               <div class="admin-gallery-list-shell">
-                <p id="gallery-list-empty" class="admin-gallery-list-empty">No images yet — paste a URL above.</p>
+                <p id="gallery-list-empty" class="admin-gallery-list-empty">No media yet — paste an image or video URL above.</p>
                 <div id="gallery-rows" class="admin-gallery-rows" role="list" aria-labelledby="gallery-editor-label"></div>
               </div>
               <div class="admin-gallery-preview-block">
@@ -643,22 +644,32 @@ export function adminTemplate(): string {
         card.type = "button";
         card.className = "admin-editor-media-card";
         card.draggable = true;
-        card.setAttribute("aria-label", "Insert image from " + ent.tag + " into markdown");
-        var img = document.createElement("img");
-        img.src = ent.url;
-        img.alt = "";
-        img.loading = "lazy";
-        img.draggable = false;
-        img.referrerPolicy = "no-referrer";
-        img.addEventListener("error", function() {
-          img.hidden = true;
-          card.classList.add("admin-editor-media-card--broken");
-        });
+        var isVid = isMediaUrlVideo(ent.url);
+        if (isVid) card.classList.add("admin-editor-media-card--video");
+        card.setAttribute("aria-label", "Insert " + (isVid ? "video" : "image") + " from " + ent.tag + " into markdown");
+        var thumbSrc = thumbForMediaUrl(ent.url);
+        if (thumbSrc) {
+          var img = document.createElement("img");
+          img.src = thumbSrc;
+          img.alt = "";
+          img.loading = "lazy";
+          img.draggable = false;
+          img.referrerPolicy = "no-referrer";
+          img.addEventListener("error", function() {
+            img.hidden = true;
+            card.classList.add("admin-editor-media-card--broken");
+          });
+          card.appendChild(img);
+        } else {
+          var ph = document.createElement("span");
+          ph.className = "admin-editor-media-card__ph";
+          ph.textContent = "VIDEO";
+          card.appendChild(ph);
+        }
         var tag = document.createElement("span");
         tag.className = "admin-editor-media-card__tag";
         tag.textContent = ent.tag;
         card.appendChild(tag);
-        card.appendChild(img);
         card.addEventListener("dragstart", function(ev) {
           ev.dataTransfer.setData("text/plain", snippet);
           ev.dataTransfer.effectAllowed = "copy";
@@ -1819,7 +1830,7 @@ export function adminTemplate(): string {
       var urlInp = document.createElement("input");
       urlInp.type = "text";
       urlInp.className = "admin-gallery-url";
-      urlInp.placeholder = "Image URL";
+      urlInp.placeholder = "Image or video URL";
       urlInp.autocomplete = "off";
       urlInp.inputMode = "url";
       urlInp.value = item.url || "";
