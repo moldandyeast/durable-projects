@@ -19,7 +19,7 @@ This codebase is intended to be **public**. The following are **not** in git and
 
 | Control | Behaviour |
 |---------|-----------|
-| **Security headers** | `X-Content-Type-Options: nosniff`, `Referrer-Policy`, restrictive `Permissions-Policy`, **CSP** on HTML (public pages: `script-src 'none'` so injected markdown cannot run scripts; `/admin` allows inline script only for the authoring shell). |
+| **Security headers** | `X-Content-Type-Options: nosniff`, `Referrer-Policy`, restrictive `Permissions-Policy`, **CSP** on HTML (public pages: **`script-src 'self'`** — gallery loads **`/gallery-lightbox.js`** only; **inline** scripts remain blocked so markdown cannot execute script; **`style-src`** allows **`https://fonts.googleapis.com`** for Onest; `/admin` allows inline script only for the authoring shell). |
 | **HSTS** | `Strict-Transport-Security` only on **`work.moldandyeast.com`** (not on `*.workers.dev`). |
 | **Admin JSON** | `Content-Type` must include **`application/json`**; body size capped (**512 KiB** project payloads, **64 KiB** team/client payloads). |
 | **Public verbs** | `/`, `/api/*` document routes return **405** for non-GET where applicable. |
@@ -27,7 +27,7 @@ This codebase is intended to be **public**. The following are **not** in git and
 | **Rate limits** | Existing Cloudflare Rate Limit bindings on read/write/API/index/WebSocket paths. |
 | **Authoring** | Still relies on **Cloudflare Access** JWT + optional `DEV_BYPASS_AUTH` for local dev only. |
 
-Trusted-author markdown may still embed **iframes** (`frame-src https:`) and remote images; it cannot execute script on public pages due to CSP.
+Trusted-author markdown may still embed **iframes** (`frame-src https:`) and remote images; **inline** script and third-party script URLs remain blocked on public pages (`script-src 'self'`).
 
 ## Operational checklist
 

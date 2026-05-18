@@ -5,8 +5,8 @@
 
 const CSP_PUBLIC = [
   "default-src 'self'",
-  "script-src 'none'",
-  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' https: data:",
   "media-src https:",
   "font-src 'self' https:",

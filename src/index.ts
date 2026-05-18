@@ -11,6 +11,7 @@ import { canAuthor, forbidden } from "./auth";
 import { generateSlug, isValidSlug } from "./slug";
 import { BodyTooLargeError, readBoundedText, readJsonBody } from "./request-body";
 import { applySecurityHeaders } from "./security-headers";
+import { GALLERY_LIGHTBOX_JS } from "./gallery-lightbox-script";
 import { adminTemplate } from "./views/admin";
 import { homePage, sortEntries } from "./views/home";
 import { projectPublicPage } from "./views/project-public";
@@ -285,6 +286,16 @@ function methodNotAllowed(allow: string): Response {
 
 async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Response> {
   const ip = request.headers.get("CF-Connecting-IP") ?? "anon";
+
+  if (url.pathname === "/gallery-lightbox.js") {
+    if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
+    return new Response(GALLERY_LIGHTBOX_JS, {
+      headers: {
+        "Content-Type": "application/javascript; charset=utf-8",
+        "Cache-Control": "public, max-age=86400",
+      },
+    });
+  }
 
   if (url.pathname === "/" && request.method !== "GET") {
     return methodNotAllowed("GET");
