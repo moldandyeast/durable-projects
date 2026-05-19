@@ -98,9 +98,11 @@ export function adminTemplate(): string {
                 <p id="editor-media-empty" class="admin-editor-media-empty">Preview or gallery URLs from settings appear here.</p>
               </div>
             </aside>
-            <div class="admin-editor-md">
+            <div class="admin-editor-main">
+              <div class="admin-editor-pair">
+                <div class="admin-editor-md">
               <div class="admin-md-head">
-                <label class="admin-label" for="pf-body">Markdown</label>
+                <label class="admin-label" for="pf-body">About</label>
                 <div class="admin-md-tools" role="toolbar" aria-label="Insert markdown">
                   <button type="button" class="admin-md-tool" id="md-tool-bold" aria-label="Bold" title="Bold (⌘B / Ctrl+B)">
                     <span class="admin-md-tool__glyph admin-md-tool__b" aria-hidden="true">B</span>
@@ -119,9 +121,23 @@ export function adminTemplate(): string {
               <textarea id="pf-body" name="body" placeholder="#" spellcheck="false"></textarea>
             </div>
             <aside class="admin-editor-preview">
-              <div class="admin-label" id="preview-label">Preview</div>
+              <div class="admin-label" id="preview-label">About preview</div>
               <div id="md-preview" class="admin-preview-pane article-body" aria-labelledby="preview-label" aria-live="polite"></div>
             </aside>
+              </div>
+              <div class="admin-editor-pair admin-editor-pair--why">
+                <div class="admin-editor-md admin-editor-md--why">
+                  <div class="admin-md-head">
+                    <label class="admin-label" for="pf-why">Why</label>
+                  </div>
+                  <textarea id="pf-why" name="why" placeholder="Why I wanted to work with them — blank line between paragraphs." spellcheck="false"></textarea>
+                </div>
+                <aside class="admin-editor-preview">
+                  <div class="admin-label" id="why-preview-label">Why preview</div>
+                  <div id="why-preview" class="admin-preview-pane admin-preview-pane--why" aria-labelledby="why-preview-label" aria-live="polite"></div>
+                </aside>
+              </div>
+            </div>
           </div>
         </form>
       </section>
@@ -321,11 +337,6 @@ export function adminTemplate(): string {
               <label class="admin-label" for="pf-my-role">My role</label>
               <input form="proj-form" id="pf-my-role" name="my_role" placeholder="e.g. Design Lead" />
               <p class="admin-field-hint">Your role on this engagement — shown in the public spec sheet.</p>
-            </div>
-            <div>
-              <label class="admin-label" for="pf-why">Why</label>
-              <textarea form="proj-form" id="pf-why" name="why" rows="4" placeholder="Why I wanted to work with them — one or two short paragraphs."></textarea>
-              <p class="admin-field-hint">Editorial preamble. Plain text; leave a blank line between paragraphs.</p>
             </div>
           </div>
         </div>
@@ -545,6 +556,7 @@ export function adminTemplate(): string {
     }
 
     var previewTimer;
+    var whyPreviewTimer;
     var previewAbort;
     var projSaveStatusTimer;
     var cachedClients = [];
@@ -675,6 +687,49 @@ export function adminTemplate(): string {
     function schedulePreview() {
       clearTimeout(previewTimer);
       previewTimer = setTimeout(refreshPreview, 240);
+    }
+
+    function escapePreviewText(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function whyPreviewPlaceholder() {
+      var pane = document.getElementById("why-preview");
+      if (!pane) return;
+      pane.innerHTML = '<p class="admin-preview-placeholder">Why preview — plain text, blank line between paragraphs</p>';
+    }
+
+    function refreshWhyPreview() {
+      var ta = document.getElementById("pf-why");
+      var pane = document.getElementById("why-preview");
+      if (!ta || !pane) return;
+      var raw = String(ta.value || "").trim();
+      if (!raw) {
+        whyPreviewPlaceholder();
+        return;
+      }
+      var parts = raw.split(/\\n\\s*\\n/).map(function(p) {
+        return p.trim();
+      }).filter(Boolean);
+      if (!parts.length) {
+        whyPreviewPlaceholder();
+        return;
+      }
+      var html = parts
+        .map(function(p) {
+          return '<p class="project__why-p">' + escapePreviewText(p).replace(/\\n/g, "<br/>") + "</p>";
+        })
+        .join("");
+      pane.innerHTML = '<div class="project__why">' + html + "</div>";
+    }
+
+    function scheduleWhyPreview() {
+      clearTimeout(whyPreviewTimer);
+      whyPreviewTimer = setTimeout(refreshWhyPreview, 120);
     }
 
     function insertIntoMarkdown(ta, text) {
@@ -891,7 +946,10 @@ export function adminTemplate(): string {
       try {
         window.scrollTo(0, 0);
       } catch (e2) {}
-      if (name === "editor") schedulePreview();
+      if (name === "editor") {
+        schedulePreview();
+        scheduleWhyPreview();
+      }
     }
 
     function viewFromHash() {
@@ -2009,6 +2067,7 @@ export function adminTemplate(): string {
         renderGalleryEditor([]);
         renderLinksEditor([]);
         previewPlaceholder();
+        whyPreviewPlaceholder();
         setEditorDocHeader("", "");
         return;
       }
@@ -2046,6 +2105,7 @@ export function adminTemplate(): string {
       renderLinksEditor(p.project_links || []);
       if (pfBody) pfBody.value = p.body || "";
       schedulePreview();
+      scheduleWhyPreview();
     }
 
     bindNav();
@@ -2279,6 +2339,9 @@ export function adminTemplate(): string {
 
     document.getElementById("pf-body").addEventListener("input", schedulePreview);
 
+    var pfWhyInput = document.getElementById("pf-why");
+    if (pfWhyInput) pfWhyInput.addEventListener("input", scheduleWhyPreview);
+
     bindMarkdownTools();
 
     initGalleryComposerAndDnD();
@@ -2293,6 +2356,7 @@ export function adminTemplate(): string {
       return loadProject(sel && sel.value ? sel.value : "");
     });
     previewPlaceholder();
+    whyPreviewPlaceholder();
   </script>`;
 
   return layoutPage("Admin", inner, { bodyClass: "admin-app" });

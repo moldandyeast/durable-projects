@@ -3199,7 +3199,7 @@ export function layoutPage(
     }
     body.admin-app .admin-editor-layout {
       display: grid;
-      grid-template-columns: minmax(6.75rem, 9rem) minmax(0, 1fr) minmax(14rem, 38vw);
+      grid-template-columns: minmax(6.75rem, 9rem) minmax(0, 1fr);
       grid-template-rows: minmax(0, 1fr);
       gap: 0;
       align-items: stretch;
@@ -3208,12 +3208,40 @@ export function layoutPage(
       margin-top: 0;
       border-top: none;
     }
+    body.admin-app .admin-editor-rail {
+      grid-row: 1;
+    }
+    body.admin-app .admin-editor-main {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      min-width: 0;
+    }
+    body.admin-app .admin-editor-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(14rem, 38vw);
+      grid-template-rows: minmax(0, 1fr);
+      flex: 1 1 50%;
+      min-height: 0;
+      border-bottom: 1px solid var(--adm-line);
+    }
+    body.admin-app .admin-editor-pair:last-child {
+      border-bottom: none;
+    }
     @media (max-width: 60rem) {
       body.admin-app .admin-editor-layout {
         grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(16rem, 42vh) minmax(12rem, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
         flex: 1;
         min-height: 0;
+      }
+      body.admin-app .admin-editor-main {
+        min-height: 0;
+      }
+      body.admin-app .admin-editor-pair {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(12rem, 32vh) minmax(8rem, 28vh);
+        flex: 1 1 auto;
       }
       body.admin-app .admin-editor-rail {
         flex-direction: row;
@@ -3368,6 +3396,43 @@ export function layoutPage(
     body.admin-app .admin-editor-md textarea[name="body"]:focus {
       border-color: var(--adm-fg);
       background: var(--adm-field-bg);
+    }
+    body.admin-app .admin-editor-md--why textarea[name="why"] {
+      flex: 1 1 auto;
+      min-height: 8rem;
+      resize: none;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      line-height: 1.55;
+      letter-spacing: -0.011em;
+      max-width: none;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      box-shadow: none;
+      background: var(--adm-bg-soft);
+      color: var(--adm-fg);
+    }
+    body.admin-app .admin-editor-md--why textarea[name="why"]:focus {
+      border-color: var(--adm-fg);
+      background: var(--adm-field-bg);
+    }
+    body.admin-app .admin-preview-pane--why .project__why {
+      margin: 0;
+      max-width: 36rem;
+    }
+    body.admin-app .admin-preview-pane--why .project__why-p {
+      margin: 0 0 0.9em;
+      font-family: var(--font-display);
+      font-size: 1.0625rem;
+      font-weight: 400;
+      letter-spacing: -0.011em;
+      line-height: 1.55;
+      color: color-mix(in srgb, var(--adm-fg) 92%, var(--adm-muted));
+      text-wrap: pretty;
+    }
+    body.admin-app .admin-preview-pane--why .project__why-p:last-child {
+      margin-bottom: 0;
     }
     body.admin-app .admin-editor-preview {
       padding: 1.25rem 0 1.5rem 1.75rem;
