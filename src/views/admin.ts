@@ -464,19 +464,24 @@ export function adminTemplate(): string {
       </div>
       <div class="admin-overlay__body admin-overlay__body--scroll">
         <div class="admin-settings-section">
+          <h3 class="admin-settings-section__label">Documentation</h3>
+          <div class="admin-settings-section__fields admin-api-docs-prose">
+            <p>Full reference: <a href="/api/docs" target="_blank" rel="noopener noreferrer">/api/docs</a> · <a href="/api/openapi.json" target="_blank" rel="noopener noreferrer">/api/openapi.json</a> · <code class="admin-code-inline">docs/API.md</code></p>
+          </div>
+        </div>
+        <div class="admin-settings-section">
           <h3 class="admin-settings-section__label">Overview</h3>
           <div class="admin-settings-section__fields admin-api-docs-prose">
-            <p>All routes below are <strong>GET</strong> unless noted. Responses are JSON with <code class="admin-code-inline">Content-Type: application/json; charset=utf-8</code> unless stated otherwise.</p>
-            <p class="admin-doc-muted">Paths under <code class="admin-code-inline">/api/</code> send CORS headers (<code class="admin-code-inline">Access-Control-Allow-Origin: *</code>) for use from browsers on other origins. Human pages (<code class="admin-code-inline">/</code>, project URLs) are same-origin unless you proxy them.</p>
+            <p>Public read API: <strong>GET</strong> and <strong>HEAD</strong> only. Archived projects omitted from index.</p>
+            <p class="admin-doc-muted"><strong>CORS</strong> on <code class="admin-code-inline">/api/*</code> and <code class="admin-code-inline">/{slug}</code>: <code class="admin-code-inline">Allow-Origin: *</code>; methods <code class="admin-code-inline">GET, HEAD, OPTIONS</code>; headers <code class="admin-code-inline">Accept, Content-Type, If-None-Match</code>; expose <code class="admin-code-inline">ETag, Cache-Control, Content-Type</code>.</p>
           </div>
         </div>
         <div class="admin-settings-section">
           <h3 class="admin-settings-section__label">Project index</h3>
           <div class="admin-settings-section__fields admin-api-docs-prose">
-            <p><code class="admin-code-inline">GET /api/index</code></p>
-            <p>Returns <code class="admin-code-inline">{ "projects": [ … ] }</code>: each index row that is not hidden (ids, titles, tags, client ids, preview URLs, dates, etc.). Same catalog that backs the public home page.</p>
-            <pre class="admin-doc-pre" tabindex="0">curl -sS https://YOUR_ORIGIN/api/index</pre>
-            <p class="admin-doc-muted">Replace <code class="admin-code-inline">YOUR_ORIGIN</code> with this site&apos;s host (no trailing slash).</p>
+            <p><code class="admin-code-inline">GET /api/index</code> → <code class="admin-code-inline">{ "projects": [IndexEntry…] }</code></p>
+            <p>Query: <code class="admin-code-inline">?tag=&lt;tag&gt;</code>, <code class="admin-code-inline">?client=&lt;id&gt;</code> (same as <code class="admin-code-inline">GET /</code>).</p>
+            <pre class="admin-doc-pre" tabindex="0">curl -sS "https://YOUR_ORIGIN/api/index?tag=Strategy"</pre>
           </div>
         </div>
         <div class="admin-settings-section">

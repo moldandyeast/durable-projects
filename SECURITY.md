@@ -23,7 +23,7 @@ This codebase is intended to be **public**. The following are **not** in git and
 | **HSTS** | `Strict-Transport-Security` only on **`work.moldandyeast.com`** (not on `*.workers.dev`). |
 | **Admin JSON** | `Content-Type` must include **`application/json`**; body size capped (**512 KiB** project payloads, **64 KiB** team/client payloads). |
 | **Public verbs** | `/`, `/api/*` document routes return **405** for non-GET where applicable. |
-| **CORS** | Public APIs: `GET, HEAD, OPTIONS` only; allowed headers **`Accept, Content-Type`** (no wildcard `*`). |
+| **CORS** | Public read surface: `/api/*` and `/{slug}` (incl. `.md`). Methods `GET, HEAD, OPTIONS`; request headers `Accept, Content-Type, If-None-Match`; expose `ETag, Cache-Control, Content-Type`. `Allow-Origin: *`. Admin and `export.html` excluded. |
 | **Rate limits** | Existing Cloudflare Rate Limit bindings on read/write/API/index/WebSocket paths. |
 | **Authoring** | Still relies on **Cloudflare Access** JWT + optional `DEV_BYPASS_AUTH` for local dev only. |
 

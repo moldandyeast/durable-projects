@@ -18,6 +18,10 @@ import { homePage, sortEntries } from "./views/home";
 import { projectPublicPage } from "./views/project-public";
 import { renderMarkdown } from "./markdown";
 import { normalizeClientIds, normalizeViaClientIds } from "./project-do";
+import { apiDocsPage } from "./api-docs-page";
+import { effectiveEntryClientIds, filterIndexEntries } from "./index-filter";
+import { buildOpenApiSpec } from "./openapi";
+import { corsPreflightResponse, isPublicCorsPath, withPublicCors } from "./public-api-cors";
 
 export { ProjectDO } from "./project-do";
 export { IndexDO } from "./index-do";
@@ -33,36 +37,6 @@ const MAX_PROJECT_PAYLOAD = 512 * 1024;
 const MAX_ADMIN_ENTITY_JSON = 64 * 1024;
 /** Max JSON for POST /admin/api/preview ({ body: markdown }). */
 const MAX_PREVIEW_JSON = 512 * 1024;
-
-function isPublicApiPath(pathname: string): boolean {
-  return pathname.startsWith("/api/");
-}
-
-function corsPreflightPublicApi(): Response {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Headers": "Accept, Content-Type",
-      "Access-Control-Max-Age": "86400",
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
-}
-
-function withPublicApiCors(pathname: string, response: Response): Response {
-  if (!isPublicApiPath(pathname)) return response;
-  const headers = new Headers(response.headers);
-  headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "Accept, Content-Type");
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
 
 /** Authoring APIs expect JSON bodies. */
 function requireJsonContentType(request: Request): Response | null {
@@ -195,12 +169,6 @@ function effectiveProjectClientIds(p: ProjectData): string[] {
   return [];
 }
 
-function effectiveEntryClientIds(e: IndexEntry): string[] {
-  if (e.client_ids?.length) return e.client_ids;
-  if (e.client_id) return [e.client_id];
-  return [];
-}
-
 async function resolveProjectPrimaryRefs(env: Env, ids: string[]): Promise<ProjectClientRef[]> {
   const out: ProjectClientRef[] = [];
   for (const id of ids) {
@@ -268,16 +236,6 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
     : {}),
     ...(mergedTeam.length ? { team: mergedTeam } : {}),
   };
-}
-
-function tagMatches(entry: IndexEntry, tag: string): boolean {
-  const t = tag.trim().toLowerCase();
-  return entry.tags.some((x) => x.toLowerCase() === t);
-}
-
-function entryMatchesClient(entry: IndexEntry, clientFilter: string): boolean {
-  if (effectiveEntryClientIds(entry).includes(clientFilter)) return true;
-  return (entry.via_client_ids ?? []).includes(clientFilter);
 }
 
 function methodNotAllowed(allow: string): Response {
@@ -445,15 +403,45 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
     return home(env, url);
   }
 
+  if (url.pathname === "/api/openapi.json" && request.method === "GET") {
+    if (!(await allow(env.API_LIMIT, ip))) return rateLimited();
+    const origin = url.origin;
+    return Response.json(buildOpenApiSpec(origin), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+      },
+    });
+  }
+
+  if (url.pathname === "/api/docs" && request.method === "GET") {
+    if (!(await allow(env.API_LIMIT, ip))) return rateLimited();
+    return new Response(apiDocsPage(url.origin), {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=600",
+      },
+    });
+  }
+
   if (url.pathname === "/api/index" && request.method === "GET") {
     if (!(await allow(env.API_LIMIT, ip))) return rateLimited();
     const res = await indexStub(env).fetch("https://idx/internal/list");
-    return new Response(await res.text(), {
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30",
-      },
+    const { projects } = await res.json<{ projects: IndexEntry[] }>();
+    const filtered = filterIndexEntries(projects, {
+      tag: url.searchParams.get("tag"),
+      client: url.searchParams.get("client"),
     });
+    const sorted = sortEntries(filtered);
+    return Response.json(
+      { projects: sorted },
+      {
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=30",
+        },
+      },
+    );
   }
 
   if (url.pathname === "/api/team" && request.method === "GET") {
@@ -518,12 +506,10 @@ async function getProjectExportHtml(id: string, request: Request, env: Env): Pro
 async function home(env: Env, url: URL): Promise<Response> {
   const res = await indexStub(env).fetch("https://idx/internal/list");
   const { projects } = await res.json<{ projects: IndexEntry[] }>();
-  let filtered = projects;
-  const tag = url.searchParams.get("tag")?.trim();
-  if (tag) filtered = filtered.filter((p) => tagMatches(p, tag));
-  const clientFilter = url.searchParams.get("client")?.trim();
-  if (clientFilter) filtered = filtered.filter((p) => entryMatchesClient(p, clientFilter));
-
+  const filtered = filterIndexEntries(projects, {
+    tag: url.searchParams.get("tag"),
+    client: url.searchParams.get("client"),
+  });
   const sorted = sortEntries(filtered);
   const ids = [
     ...new Set(
@@ -562,6 +548,7 @@ async function apiGetProject(id: string, env: Env): Promise<Response> {
     headers: {
       "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
       ETag: etag,
+      Vary: "Accept",
     },
   });
 }
@@ -578,6 +565,7 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
   const baseHeaders: Record<string, string> = {
     "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
     ETag: etag,
+    Vary: "Accept",
   };
 
   if (asMarkdown || accept.includes("text/markdown")) {
@@ -999,11 +987,11 @@ async function adminPutClient(id: string, request: Request, env: Env): Promise<R
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (request.method === "OPTIONS" && isPublicApiPath(url.pathname)) {
-      return applySecurityHeaders(corsPreflightPublicApi(), request);
+    if (request.method === "OPTIONS" && isPublicCorsPath(url.pathname)) {
+      return applySecurityHeaders(corsPreflightResponse(), request);
     }
     const response = await dispatchRequest(request, env, url);
-    const corsed = withPublicApiCors(url.pathname, response);
+    const corsed = withPublicCors(url.pathname, response);
     const adminHtml =
       url.pathname === "/admin" &&
       corsed.status === 200 &&
