@@ -58,8 +58,8 @@ export function layoutPage(
       --border: rgba(27, 27, 27, 0.075);
       --line: rgba(27, 27, 27, 0.11);
       --hairline: rgba(27, 27, 27, 0.045);
-      --accent: #3d87c4;
-      --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+      --accent: var(--fg);
+      --accent-soft: color-mix(in srgb, var(--fg) 7%, transparent);
       --on-accent: #fafafa;
       --radius: 1px;
       --radius-sm: 1px;
@@ -121,8 +121,6 @@ export function layoutPage(
         --border: rgba(243, 243, 243, 0.06);
         --line: rgba(243, 243, 243, 0.075);
         --hairline: rgba(243, 243, 243, 0.035);
-        --accent: var(--blue);
-        --accent-soft: color-mix(in srgb, var(--blue) 18%, transparent);
         --on-accent: #141414;
         --shadow: 0 1px 0 rgba(0, 0, 0, 0.35), 0 16px 48px rgba(0, 0, 0, 0.42);
         --shadow-hover: 0 1px 0 rgba(0, 0, 0, 0.45), 0 22px 56px rgba(0, 0, 0, 0.52);
@@ -155,20 +153,20 @@ export function layoutPage(
       text-rendering: optimizeLegibility;
     }
     a {
-      color: var(--accent);
+      color: var(--fg-soft);
       text-decoration-thickness: 1px;
       text-underline-offset: 0.22em;
-      text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+      text-decoration-color: color-mix(in srgb, var(--muted) 50%, transparent);
       transition:
         color var(--dur-fast) var(--ease-standard),
         text-decoration-color var(--dur-fast) var(--ease-standard);
     }
     a:hover {
-      color: color-mix(in srgb, var(--accent) 90%, var(--fg));
+      color: var(--fg);
       text-decoration-color: currentColor;
     }
     a:focus-visible {
-      outline: 1.5px solid var(--accent);
+      outline: 1.5px solid color-mix(in srgb, var(--fg) 40%, transparent);
       outline-offset: 3px;
       border-radius: var(--radius-sm);
     }
@@ -435,10 +433,11 @@ export function layoutPage(
         color var(--dur-fast) var(--ease-standard);
     }
     .project__links a:hover {
-      color: var(--accent);
+      color: var(--fg);
+      box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--muted) 45%, transparent);
     }
     .project__links a:hover::after {
-      color: var(--accent);
+      color: color-mix(in srgb, var(--fg) 70%, var(--muted));
       transform: translateX(2px);
     }
 
@@ -602,7 +601,7 @@ export function layoutPage(
       transition: color var(--dur-fast) var(--ease-standard);
     }
     .site-nav a.brand:hover {
-      color: var(--accent);
+      color: color-mix(in srgb, var(--fg) 72%, var(--muted));
     }
     /* Home masthead: brand in cols 1-2, meta on right */
     .site-nav:not(.site-nav--project) .site-nav__inner > .brand {
@@ -903,7 +902,7 @@ export function layoutPage(
       transition: color var(--dur-fast) var(--ease-standard);
     }
     .index__row:hover .index__title {
-      color: var(--accent);
+      color: color-mix(in srgb, var(--fg) 78%, var(--muted));
     }
     .index__meta {
       margin: 0;
@@ -1366,7 +1365,7 @@ export function layoutPage(
         box-shadow var(--dur-fast) var(--ease-standard);
     }
     .article-body a:hover {
-      color: var(--accent);
+      color: var(--fg);
       box-shadow: inset 0 -1px 0 0 currentColor;
     }
     .article-body ul,

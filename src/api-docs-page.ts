@@ -9,13 +9,14 @@ export function apiDocsPage(origin: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>API — Durable Projects</title>
   <style>
-    :root { --fg:#1b1b1b; --muted:#5d5c5c; --line:rgba(27,27,27,.1); --accent:#3d87c4; --mono:ui-monospace,Menlo,monospace; --sans:system-ui,sans-serif; }
-    @media (prefers-color-scheme:dark){ :root{ --fg:#f3f3f3; --muted:#9a9999; --line:rgba(243,243,243,.12); --accent:#82c7f5; } }
+    :root { --fg:#1b1b1b; --fg-soft:#353535; --muted:#5d5c5c; --line:rgba(27,27,27,.1); --mono:ui-monospace,Menlo,monospace; --sans:system-ui,sans-serif; }
+    @media (prefers-color-scheme:dark){ :root{ --fg:#f3f3f3; --fg-soft:#d8d8d8; --muted:#9a9999; --line:rgba(243,243,243,.12); } }
     body{ margin:0; font:400 1rem/1.55 var(--sans); color:var(--fg); background:color-mix(in srgb,var(--fg) 3%,#fff); padding:2rem clamp(1rem,4vw,2.5rem) 4rem; max-width:46rem; }
     h1{ font-size:1.65rem; letter-spacing:-.03em; margin:0 0 .35rem; }
     h2{ font-size:1.05rem; margin:2rem 0 .65rem; letter-spacing:-.02em; }
     p,li{ color:color-mix(in srgb,var(--fg) 88%,var(--muted)); }
-    a{ color:var(--accent); }
+    a{ color:var(--fg-soft); text-decoration-color:color-mix(in srgb,var(--muted) 50%,transparent); }
+    a:hover{ color:var(--fg); }
     code,pre{ font-family:var(--mono); font-size:.88em; }
     pre{ overflow:auto; padding:.85rem 1rem; border:1px solid var(--line); background:color-mix(in srgb,var(--fg) 4%,transparent); margin:.65rem 0; }
     .muted{ color:var(--muted); font-size:.92rem; }
