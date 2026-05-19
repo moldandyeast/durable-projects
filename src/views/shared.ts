@@ -795,7 +795,7 @@ export function layoutPage(
     /* ───────── Index (home) — numbered table-of-contents on the Swiss grid ───────── */
     main.page--index {
       max-width: var(--grid-max);
-      padding-top: 1.6rem;
+      padding-top: clamp(1.75rem, 3vw, 2.5rem);
     }
     .index {
       display: grid;
@@ -808,20 +808,59 @@ export function layoutPage(
       display: grid;
       grid-template-columns: subgrid;
       column-gap: var(--grid-gap);
-      align-items: baseline;
+      align-items: start;
+      padding-block: clamp(2.75rem, 6.5vw, 5rem) clamp(2.5rem, 5vw, 4rem);
     }
-    .index__hero .project__dek code {
-      font-family: var(--font-mono);
-      font-size: 0.86em;
-      letter-spacing: 0;
-      padding: 0.06rem 0.32rem;
-      background: color-mix(in srgb, var(--fg) 5%, transparent);
+    .index__hero .project__index {
+      padding-top: 0.35em;
+      align-self: start;
+    }
+    .index__intro {
+      gap: 0;
+    }
+    .index__display {
+      font-size: clamp(2.65rem, 6.8vw, 4.85rem);
+      font-weight: 500;
+      letter-spacing: -0.052em;
+      line-height: 0.94;
+      max-width: 12ch;
+      margin-bottom: clamp(1.35rem, 3.2vw, 2.25rem);
+    }
+    .index__lede {
+      margin: 0;
+      padding-top: clamp(0.35rem, 1vw, 0.65rem);
+      font-family: var(--font-sans);
+      font-size: clamp(1rem, 1.45vw, 1.1875rem);
+      font-weight: 400;
+      letter-spacing: var(--tk-body);
+      line-height: var(--lh-loose);
+      color: color-mix(in srgb, var(--fg-soft) 90%, var(--muted));
+      max-width: 46ch;
+      text-wrap: pretty;
+      hanging-punctuation: first last;
+    }
+    .page--index .index__lede a {
+      color: var(--fg-soft);
+      text-decoration: none;
+      border-bottom: 1px solid color-mix(in srgb, var(--muted) 55%, transparent);
+      padding-bottom: 0.08em;
+      transition:
+        color var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard);
+    }
+    .page--index .index__lede a:hover {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom-color: color-mix(in srgb, var(--fg) 55%, transparent);
+    }
+    .page--index .index__lede a:focus-visible {
+      color: var(--fg);
+      outline: 1.5px solid color-mix(in srgb, var(--fg) 40%, transparent);
+      outline-offset: 3px;
       border-radius: var(--radius-sm);
     }
-    .index__hero-meta {
-      display: inline;
-      color: color-mix(in srgb, var(--muted) 90%, transparent);
-      font-size: 0.86em;
+    .index__hero + .project__rule {
+      margin-bottom: clamp(2.75rem, 5.5vw, 4rem);
     }
     /* Two-column image grid — image leads, type is a quiet caption.
        Tight 10px gutter between the plates, generous row gap below. */
@@ -943,7 +982,20 @@ export function layoutPage(
     }
     @media (max-width: 720px) {
       .index { grid-template-columns: 1fr; column-gap: 0; }
-      .index__hero { grid-template-columns: 1fr; row-gap: 0.45rem; }
+      .index__hero {
+        grid-template-columns: 1fr;
+        row-gap: 0.65rem;
+        padding-block: 2rem 1.75rem;
+      }
+      .index__display {
+        font-size: clamp(2.15rem, 11vw, 2.85rem);
+        max-width: none;
+        margin-bottom: 1.25rem;
+      }
+      .index__lede {
+        line-height: 1.75;
+        max-width: none;
+      }
       .index__list {
         grid-template-columns: 1fr;
         row-gap: 40px;

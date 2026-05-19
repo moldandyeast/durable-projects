@@ -66,7 +66,7 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
   const inner = `<header class="site-nav">
   <div class="site-nav__inner">
     <a class="brand" href="/">Work</a>
-    <span class="site-nav__meta">Selected · ${countLabel}</span>
+    <span class="site-nav__meta">${countLabel}</span>
   </div>
 </header>
 <main class="page page--index">
@@ -74,9 +74,9 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
     <hr class="project__rule" aria-hidden="true"/>
     <header class="project__row index__hero">
       <span class="project__index" aria-hidden="true"><span class="project__index-num">000</span><span class="project__index-sep"> / </span><span class="project__index-label">Index</span></span>
-      <div class="project__hero-text">
-        <h1 class="project__title">Hello there.</h1>
-        <p class="project__dek">Below is a selection of some of my work of the last few years. For more please reach out to <a href="mailto:hej@ramonmarc.com">hej@ramonmarc.com</a> or <a href="https://twitter.com/nilsedison" rel="noopener noreferrer">Twitter (@nilsedison)</a>.</p>
+      <div class="project__hero-text index__intro">
+        <h1 class="project__title index__display">Hello there.</h1>
+        <p class="index__lede">Below is a selection of some of my work of the last few years. For more please reach out to <a href="mailto:hej@ramonmarc.com">hej@ramonmarc.com</a> or <a href="https://twitter.com/nilsedison" rel="noopener noreferrer">@nilsedison</a>.</p>
       </div>
     </header>
     <hr class="project__rule" aria-hidden="true"/>
