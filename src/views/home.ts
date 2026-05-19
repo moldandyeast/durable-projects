@@ -75,8 +75,8 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
     <header class="project__row index__hero">
       <span class="project__index" aria-hidden="true"><span class="project__index-num">000</span><span class="project__index-sep"> / </span><span class="project__index-label">Index</span></span>
       <div class="project__hero-text">
-        <h1 class="project__title">Selected work</h1>
-        <p class="project__dek">10× design, engineered. <span class="index__hero-meta">Filter via <code>?tag=</code> or <code>?client=&lt;id&gt;</code>.</span></p>
+        <h1 class="project__title">Hello there.</h1>
+        <p class="project__dek">Below is a selection of some of my work of the last few years. For more please reach out to <a href="mailto:hej@ramonmarc.com">hej@ramonmarc.com</a> or <a href="https://twitter.com/nilsedison" rel="noopener noreferrer">Twitter (@nilsedison)</a>.</p>
       </div>
     </header>
     <hr class="project__rule" aria-hidden="true"/>
