@@ -59,6 +59,10 @@ export function adminTemplate(): string {
                   </select>
                 </div>
               </div>
+              <label class="admin-editor-toolbar__index-toggle" title="When off, project stays live but hidden from the home index. Still in /api/index.">
+                <input type="checkbox" id="pf-listed" form="proj-form" checked />
+                <span class="admin-editor-toolbar__index-toggle-text">On index</span>
+              </label>
               <div class="admin-editor-toolbar__actions" role="group" aria-label="Project actions">
                 <button
                   type="button"
@@ -2068,6 +2072,8 @@ export function adminTemplate(): string {
         renderLinksEditor([]);
         previewPlaceholder();
         whyPreviewPlaceholder();
+        var pfListedReset = document.getElementById("pf-listed");
+        if (pfListedReset) pfListedReset.checked = true;
         setEditorDocHeader("", "");
         return;
       }
@@ -2091,6 +2097,8 @@ export function adminTemplate(): string {
       if (pfTags) pfTags.value = (p.tags || []).join(", ");
       if (pfMyRole) pfMyRole.value = p.my_role || "";
       if (pfWhy) pfWhy.value = p.why || "";
+      var pfListed = document.getElementById("pf-listed");
+      if (pfListed) pfListed.checked = !p.unlisted;
       var cids = (p.client_ids && p.client_ids.length) ? p.client_ids.slice() : (p.client_id ? [p.client_id] : []);
       clientPickOrder = cids.slice();
       syncClientPickHidden();
@@ -2251,6 +2259,7 @@ export function adminTemplate(): string {
       var viaIds = computeViaIds();
       var pfMyRoleField = document.getElementById("pf-my-role");
       var pfWhyField = document.getElementById("pf-why");
+      var pfListedField = document.getElementById("pf-listed");
       var payload = {
         title: titleVal,
         summary: pfSummary ? pfSummary.value : "",
@@ -2266,6 +2275,7 @@ export function adminTemplate(): string {
         project_links: collectLinksFromEditor(),
         body: pfBody ? pfBody.value : "",
         team_member_roles: collectTeamMemberRolesPayload(),
+        unlisted: pfListedField ? !pfListedField.checked : false,
       };
 
       var st = document.getElementById("proj-save-status");
@@ -2339,8 +2349,11 @@ export function adminTemplate(): string {
 
     document.getElementById("pf-body").addEventListener("input", schedulePreview);
 
-    var pfWhyInput = document.getElementById("pf-why");
+      var pfWhyInput = document.getElementById("pf-why");
     if (pfWhyInput) pfWhyInput.addEventListener("input", scheduleWhyPreview);
+
+    var pfListedInput = document.getElementById("pf-listed");
+    if (pfListedInput) pfListedInput.addEventListener("change", markEditorDirty);
 
     bindMarkdownTools();
 

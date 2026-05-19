@@ -2991,6 +2991,37 @@ export function layoutPage(
     body.admin-app .admin-editor-toolbar__select:focus-visible {
       outline: none;
     }
+    body.admin-app .admin-editor-toolbar__index-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin: 0;
+      padding: 0.35rem 0.55rem;
+      font-family: var(--adm-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--adm-muted);
+      cursor: pointer;
+      border: 1px solid var(--adm-line);
+      border-radius: var(--radius-sm);
+      background: var(--adm-bg-soft);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    body.admin-app .admin-editor-toolbar__index-toggle:has(input:checked) {
+      color: var(--adm-fg-soft);
+      border-color: color-mix(in srgb, var(--adm-fg) 22%, var(--adm-line));
+    }
+    body.admin-app .admin-editor-toolbar__index-toggle:has(input:not(:checked)) {
+      color: color-mix(in srgb, var(--adm-accent) 55%, var(--adm-muted));
+      border-color: color-mix(in srgb, var(--adm-accent) 35%, var(--adm-line));
+    }
+    body.admin-app .admin-editor-toolbar__index-toggle input {
+      margin: 0;
+      accent-color: var(--adm-accent);
+    }
     body.admin-app .admin-editor-toolbar__settings {
       border-radius: var(--radius-sm);
     }

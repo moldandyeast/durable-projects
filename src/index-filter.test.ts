@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterIndexEntries, tagMatches } from "./index-filter";
+import { entriesForPublicHome, filterIndexEntries, tagMatches } from "./index-filter";
 import type { IndexEntry } from "./types";
 
 const entry = (over: Partial<IndexEntry>): IndexEntry => ({
@@ -12,6 +12,16 @@ const entry = (over: Partial<IndexEntry>): IndexEntry => ({
   total_views: 0,
   hidden: false,
   ...over,
+});
+
+describe("entriesForPublicHome", () => {
+  it("drops unlisted rows", () => {
+    const projects = [
+      entry({ id: "aaaaaaaa" }),
+      entry({ id: "bbbbbbbb", unlisted: true }),
+    ];
+    expect(entriesForPublicHome(projects).map((p) => p.id)).toEqual(["aaaaaaaa"]);
+  });
 });
 
 describe("filterIndexEntries", () => {

@@ -72,7 +72,7 @@ Regex: `^[0-9a-hjkmnpqrstvwxyz]{8}$`
 
 ### `GET /api/index`
 
-List **visible** (non-archived) projects. Sorted by `sort_date` then `edited_at` (newest first).
+List **non-archived** projects (includes **unlisted** — hidden from the public home page only). Sorted by `sort_date` then `edited_at` (newest first).
 
 **Query (optional):**
 
@@ -151,7 +151,7 @@ Standalone HTML download (attachment). **No CORS** — use server-side fetch or 
 }
 ```
 
-`hidden` projects never appear in the public index.
+**Archived** (`hidden: true`) projects are omitted everywhere public. **Unlisted** (`unlisted: true`) projects are omitted from the HTML home page only but remain in this API and at `/{slug}`.
 
 ### ProjectEnvelope
 

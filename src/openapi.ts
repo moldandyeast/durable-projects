@@ -26,7 +26,7 @@ export function buildOpenApiSpec(origin: string): Record<string, unknown> {
           tags: ["index"],
           summary: "List visible projects",
           description:
-            "Returns non-hidden index rows (same catalog as the public home page). " +
+            "Returns non-archived index rows (includes unlisted). The public home page omits unlisted projects. " +
             "Optional query filters mirror `GET /?tag=&client=`. Sorted by `sort_date` then `edited_at` (newest first).",
           parameters: [
             {
@@ -237,6 +237,10 @@ export function buildOpenApiSpec(origin: string): Record<string, unknown> {
             created_at: { type: "string", format: "date-time" },
             edited_at: { type: "string", format: "date-time" },
             total_views: { type: "integer" },
+            unlisted: {
+              type: "boolean",
+              description: "Omitted from public home index when true; still returned here and via project URLs.",
+            },
             client_ids: { type: "array", items: { type: "string" } },
             via_client_ids: { type: "array", items: { type: "string" } },
             sort_date: { type: "string", description: "YYYY-MM-DD display sort key" },

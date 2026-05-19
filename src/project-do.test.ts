@@ -210,6 +210,35 @@ describe("ProjectDO", () => {
     expect(updated.why).toBeUndefined();
   });
 
+  it("update toggles unlisted", async () => {
+    const project = makeProjectDO();
+    await project.fetch(
+      new Request("https://p/internal/create", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "abcdabcd",
+          title: "T",
+          summary: "",
+          tags: [],
+          body: "x",
+          team_member_ids: [],
+        }),
+      }),
+    );
+    const upd = await project.fetch(
+      new Request("https://p/internal/update", {
+        method: "POST",
+        body: JSON.stringify({ unlisted: true }),
+      }),
+    );
+    expect(upd.ok).toBe(true);
+    const data = await upd.json<{ unlisted?: boolean }>();
+    expect(data.unlisted).toBe(true);
+    const peek = await project.fetch(new Request("https://p/internal/peek"));
+    const peeked = await peek.json<{ unlisted?: boolean }>();
+    expect(peeked.unlisted).toBe(true);
+  });
+
   it("update clears project_links when empty array sent", async () => {
     const project = makeProjectDO();
     const createReq = new Request("https://p/internal/create", {

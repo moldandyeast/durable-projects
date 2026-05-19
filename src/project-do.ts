@@ -232,6 +232,7 @@ export class ProjectDO {
       edited_at: now,
       total_views: 0,
       hidden: false,
+      unlisted: false,
       ...(client_ids.length ? { client_ids } : {}),
       ...(via_client_ids.length ? { via_client_ids } : {}),
       ...(sort_date ? { sort_date } : {}),
@@ -355,6 +356,10 @@ export class ProjectDO {
     if (input.body !== undefined) {
       data.body = input.body;
       data.rendered_html = await renderMarkdown(input.body);
+    }
+
+    if ("unlisted" in input) {
+      data.unlisted = Boolean(input.unlisted);
     }
 
     data.edited_at = now;

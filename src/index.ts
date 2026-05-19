@@ -19,7 +19,7 @@ import { projectPublicPage } from "./views/project-public";
 import { renderMarkdown } from "./markdown";
 import { normalizeClientIds, normalizeViaClientIds } from "./project-do";
 import { apiDocsPage } from "./api-docs-page";
-import { effectiveEntryClientIds, filterIndexEntries } from "./index-filter";
+import { effectiveEntryClientIds, entriesForPublicHome, filterIndexEntries } from "./index-filter";
 import { buildOpenApiSpec } from "./openapi";
 import { corsPreflightResponse, isPublicCorsPath, withPublicCors } from "./public-api-cors";
 
@@ -194,6 +194,7 @@ function indexRowFromProject(p: ProjectData): IndexEntry {
     edited_at: p.edited_at,
     total_views: p.total_views,
     hidden: p.hidden,
+    unlisted: p.unlisted === true,
     client_ids: effectiveProjectClientIds(p),
     via_client_ids: p.via_client_ids ?? [],
     sort_date: p.sort_date,
@@ -506,7 +507,7 @@ async function getProjectExportHtml(id: string, request: Request, env: Env): Pro
 async function home(env: Env, url: URL): Promise<Response> {
   const res = await indexStub(env).fetch("https://idx/internal/list");
   const { projects } = await res.json<{ projects: IndexEntry[] }>();
-  const filtered = filterIndexEntries(projects, {
+  const filtered = filterIndexEntries(entriesForPublicHome(projects), {
     tag: url.searchParams.get("tag"),
     client: url.searchParams.get("client"),
   });

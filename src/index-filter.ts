@@ -17,6 +17,11 @@ export function effectiveEntryClientIds(entry: IndexEntry): string[] {
   return [];
 }
 
+/** Rows shown on the public home page (not archived, not unlisted). */
+export function entriesForPublicHome(projects: IndexEntry[]): IndexEntry[] {
+  return projects.filter((p) => !p.unlisted);
+}
+
 export function filterIndexEntries(
   projects: IndexEntry[],
   params: { tag?: string | null; client?: string | null },

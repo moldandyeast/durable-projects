@@ -47,6 +47,8 @@ export interface ProjectData {
   edited_at: string;
   total_views: number;
   hidden: boolean;
+  /** When true, omitted from the public home index; still in API index and direct URLs. */
+  unlisted?: boolean;
   /** @deprecated Stored legacy only — migrated to `client_ids` on read. */
   client_id?: string;
   /** Primary subject(s) of the work, in display order (e.g. Ethereum Foundation, Espresso, Optimism). */
@@ -79,6 +81,8 @@ export interface IndexEntry {
   edited_at: string;
   total_views: number;
   hidden: boolean;
+  /** When true, omitted from the public home index; still in API index and direct URLs. */
+  unlisted?: boolean;
   /** @deprecated use `client_ids` */
   client_id?: string;
   /** Primary clients; legacy rows may omit (fall back to `client_id`). */
