@@ -239,7 +239,7 @@ export function layoutPage(
        dek, then the muted micro-meta of the index column. Every layer reads
        distinctly without leaning on margins. */
     .project__hero-text {
-      grid-column: 3 / -1;
+      grid-column: 3 / span 7;
       margin: 0;
       display: flex;
       flex-direction: column;
@@ -268,7 +268,6 @@ export function layoutPage(
       letter-spacing: -0.022em;
       color: var(--fg-soft);
       line-height: 1.3;
-      max-width: 34rem;
       text-wrap: pretty;
       hanging-punctuation: first last;
       font-feature-settings: "kern", "calt", "liga", "ss01", "cv11";
@@ -351,12 +350,12 @@ export function layoutPage(
       border-radius: var(--radius-sm);
     }
 
-    /* Article body — measure tuned for reading; widened past the legacy 36rem
-       cap so prose uses more of the available column. */
+    /* Article body — sits in the 7-column prose lane. No internal max-width:
+       the column boundary defines the width so every prose block shares the
+       same visual edges (hero, body, takeaway). */
     .project__body {
       grid-column: 3 / span 7;
       min-width: 0;
-      max-width: 44rem;
     }
 
     /* Brief — editorial kicker rendered inside the "What we did" body, ahead of
@@ -375,10 +374,10 @@ export function layoutPage(
       hanging-punctuation: first last;
     }
 
-    /* Takeaway — demoted hierarchy vs. "What we did". Smaller font, sits at the
-       muted end of the tonal ramp (one step below body prose at --fg-dim) for a
-       clear visual step. Row gets extra top breathing room. */
-    .project__row--takeaway { margin-top: clamp(1.8rem, 3.4vw, 2.8rem); }
+    /* Takeaway — demoted hierarchy vs. "What we did". Smaller font, sits at
+       the muted end of the tonal ramp (one step below body prose at --fg-dim).
+       Section rule handles the separation; no extra row margin so the band
+       between work and reflection doesn't read as dead air. */
     .article-body.project__body--takeaway {
       font-size: var(--text-base);
       line-height: 1.65;
@@ -1376,7 +1375,6 @@ export function layoutPage(
       color: var(--fg);
       font-weight: 400;
       margin-bottom: 1.9rem;
-      max-width: 34rem;
     }
     .article-body > p:first-of-type strong { font-weight: 500; }
     .article-body strong { font-weight: 500; color: var(--fg); }
