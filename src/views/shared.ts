@@ -349,34 +349,52 @@ export function layoutPage(
       border-radius: var(--radius-sm);
     }
 
-    /* Article body — keep the measure under control so the eye can scan. */
+    /* Article body — measure tuned for reading; widened past the legacy 36rem
+       cap so prose uses more of the available column. */
     .project__body {
       grid-column: 3 / span 7;
       min-width: 0;
-      max-width: 36rem;
+      max-width: 44rem;
     }
 
-    /* Why — editorial preamble. Same size as body; tighter rhythm + display family
-       give it editorial gravity without breaking the reading hierarchy. */
-    .project__why {
-      grid-column: 3 / span 7;
-      min-width: 0;
-      max-width: 36rem;
-      margin: 0;
-    }
-    .project__why-p {
-      margin: 0 0 0.9em;
+    /* Brief — editorial kicker rendered inside the "What we did" body, ahead of
+       the prose. Smaller than the article body, italicised, more muted. Acts as
+       a one-line framing line that sets up the work. */
+    .project__brief {
+      margin: 0 0 1.6rem;
       font-family: var(--font-display);
-      font-size: var(--text-lg);
+      font-size: clamp(1.05rem, 1.55vw, 1.2rem);
+      font-style: italic;
       font-weight: 400;
-      letter-spacing: var(--tk-body);
-      line-height: 1.55;
-      color: color-mix(in srgb, var(--fg) 92%, var(--muted));
+      letter-spacing: -0.012em;
+      line-height: 1.4;
+      color: color-mix(in srgb, var(--fg) 75%, var(--muted));
       text-wrap: pretty;
       hanging-punctuation: first last;
-      font-feature-settings: var(--features-text);
     }
-    .project__why-p:last-child { margin-bottom: 0; }
+
+    /* Takeaway — demoted hierarchy vs. "What we did". Smaller font, more muted
+       colour, slightly tighter line height. The row itself gets extra breathing
+       room above it so the visual separation reads clearly. */
+    .project__row--takeaway { margin-top: clamp(1.5rem, 3vw, 2.4rem); }
+    .article-body.project__body--takeaway {
+      font-size: var(--text-base);
+      line-height: 1.6;
+      color: color-mix(in srgb, var(--fg-soft) 78%, var(--muted));
+    }
+    .article-body.project__body--takeaway h1,
+    .article-body.project__body--takeaway h2,
+    .article-body.project__body--takeaway h3,
+    .article-body.project__body--takeaway h4 {
+      color: color-mix(in srgb, var(--fg) 85%, var(--muted));
+      font-weight: 500;
+    }
+    .article-body.project__body--takeaway > p:first-of-type {
+      font-size: var(--text-base);
+      line-height: 1.6;
+      letter-spacing: var(--tk-body);
+      color: color-mix(in srgb, var(--fg-soft) 78%, var(--muted));
+    }
 
     /* Links */
     .project__links {

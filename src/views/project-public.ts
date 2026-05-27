@@ -91,19 +91,15 @@ function specSheet(
 </section>`;
 }
 
-function briefSubhead(project: ProjectData): string {
-  const brief = project.brief?.trim();
-  if (!brief) return "";
-  return `<p class="project__brief">${escapeHtml(brief)}</p>`;
-}
-
 function whatWeDidSection(project: ProjectData): string {
   const body = project.rendered_what_we_did?.trim();
-  if (!body) return "";
+  const brief = project.brief?.trim();
+  if (!body && !brief) return "";
+  const briefHtml = brief ? `<p class="project__brief">${escapeHtml(brief)}</p>` : "";
   return `${rule()}
 <section class="project__row project__row--article" aria-label="What we did">
   ${indexLabel("003", "What we did")}
-  <div class="project__body article-body" id="article-body">${project.rendered_what_we_did}</div>
+  <div class="project__body article-body" id="article-body">${briefHtml}${project.rendered_what_we_did ?? ""}</div>
 </section>`;
 }
 
@@ -252,7 +248,7 @@ export function projectArticleInnerHtml(
     ${indexLabel("001", "Project")}
     <div class="project__hero-text">
       <h1 class="project__title" id="project-heading">${escapeHtml(project.title)}</h1>
-      ${briefSubhead(project)}
+      ${project.summary ? `<p class="project__dek">${escapeHtml(project.summary)}</p>` : ""}
     </div>
   </header>
   ${specSheet(project, primaryRefs, viaClients, tags)}
