@@ -91,33 +91,29 @@ function specSheet(
 </section>`;
 }
 
-/** Split free-text on blank lines into paragraphs; escape and wrap each in <p>. */
-function whyParagraphs(why: string): string {
-  return why
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => `<p class="project__why-p">${escapeHtml(p).replace(/\n/g, "<br/>")}</p>`)
-    .join("\n");
+function briefSubhead(project: ProjectData): string {
+  const brief = project.brief?.trim();
+  if (!brief) return "";
+  return `<p class="project__brief">${escapeHtml(brief)}</p>`;
 }
 
-function whySection(project: ProjectData): string {
-  const why = project.why?.trim();
-  if (!why) return "";
+function whatWeDidSection(project: ProjectData): string {
+  const body = project.rendered_what_we_did?.trim();
+  if (!body) return "";
   return `${rule()}
-<section class="project__row project__row--why" aria-label="Why this project">
-  ${indexLabel("004", "Why")}
-  <div class="project__why">${whyParagraphs(why)}</div>
+<section class="project__row project__row--article" aria-label="What we did">
+  ${indexLabel("003", "What we did")}
+  <div class="project__body article-body" id="article-body">${project.rendered_what_we_did}</div>
 </section>`;
 }
 
-function articleSection(project: ProjectData): string {
-  const body = project.rendered_html?.trim();
+function takeawaySection(project: ProjectData): string {
+  const body = project.rendered_takeaway?.trim();
   if (!body) return "";
   return `${rule()}
-<section class="project__row project__row--article" aria-label="About">
-  ${indexLabel("003", "About")}
-  <div class="project__body article-body" id="article-body">${project.rendered_html}</div>
+<section class="project__row project__row--takeaway" aria-label="Takeaway">
+  ${indexLabel("004", "Takeaway")}
+  <div class="project__body project__body--takeaway article-body">${project.rendered_takeaway}</div>
 </section>`;
 }
 
@@ -256,12 +252,12 @@ export function projectArticleInnerHtml(
     ${indexLabel("001", "Project")}
     <div class="project__hero-text">
       <h1 class="project__title" id="project-heading">${escapeHtml(project.title)}</h1>
-      ${project.summary ? `<p class="project__dek">${escapeHtml(project.summary)}</p>` : ""}
+      ${briefSubhead(project)}
     </div>
   </header>
   ${specSheet(project, primaryRefs, viaClients, tags)}
-  ${articleSection(project)}
-  ${whySection(project)}
+  ${whatWeDidSection(project)}
+  ${takeawaySection(project)}
   ${linksSection(project.project_links)}
   ${gallerySection(project.gallery_images, galleryMode)}
   ${creditsSection(team)}
