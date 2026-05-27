@@ -164,6 +164,8 @@ export class ProjectDO {
           return await this.update(request);
         case "/internal/delete":
           return await this.delete();
+        case "/internal/migrate-editorial":
+          return await this.migrateEditorial(request);
         case "/internal/live":
           return await this.handleLive(request);
         default:
@@ -400,6 +402,60 @@ export class ProjectDO {
     data.edited_at = new Date().toISOString();
     await this.save(data);
     return new Response(null, { status: 204 });
+  }
+
+  private async migrateEditorial(request: Request): Promise<Response> {
+    type LegacyData = {
+      body?: string;
+      why?: string;
+      rendered_html?: string;
+      what_we_did?: string;
+    } & Record<string, unknown>;
+    const raw = (await this.state.storage.get<LegacyData>("data")) ?? null;
+    if (!raw) return Response.json({ skipped: true, reason: "no-data" });
+
+    if (typeof raw.what_we_did === "string") {
+      return Response.json({ skipped: true, reason: "already-migrated" });
+    }
+
+    let opts: { keep_backup?: boolean } = {};
+    if (request.method === "POST" && request.headers.get("Content-Length") !== "0") {
+      try {
+        const parsed = await request.json<{ keep_backup?: boolean }>();
+        if (parsed && typeof parsed === "object") opts = parsed;
+      } catch {
+        /* empty body acceptable */
+      }
+    }
+
+    const legacyBody = typeof raw.body === "string" ? raw.body : "";
+    const legacyWhy = typeof raw.why === "string" ? raw.why : "";
+    const legacyRendered = typeof raw.rendered_html === "string" ? raw.rendered_html : "";
+
+    if (opts.keep_backup) {
+      await this.state.storage.put("_legacy_backup", {
+        body: legacyBody,
+        rendered_html: legacyRendered,
+        why: legacyWhy,
+      });
+    }
+
+    const what_we_did = legacyBody;
+    const takeaway = legacyWhy;
+
+    const next = { ...raw } as Record<string, unknown>;
+    delete next.body;
+    delete next.rendered_html;
+    delete next.why;
+    next.brief = "";
+    next.what_we_did = what_we_did;
+    next.takeaway = takeaway;
+    next.rendered_what_we_did = legacyRendered || (what_we_did ? await renderMarkdown(what_we_did) : "");
+    next.rendered_takeaway = takeaway ? await renderMarkdown(takeaway) : "";
+    next.migration_review_needed = true;
+
+    await this.state.storage.put("data", next);
+    return Response.json({ migrated: true });
   }
 
   private async handleLive(request: Request): Promise<Response> {

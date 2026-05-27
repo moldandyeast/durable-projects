@@ -367,3 +367,98 @@ describe("ProjectDO.update dirty-rebuild caching", () => {
     expect(updData.rendered_takeaway).toBe("<p>New</p>");
   });
 });
+
+describe("ProjectDO.migrateEditorial", () => {
+  it("maps body→what_we_did and why→takeaway, sets migration_review_needed, deletes old fields", async () => {
+    const project = makeProjectDO();
+    const storage = (project as unknown as { state: { storage: MemoryStorage } }).state.storage;
+    await storage.put("data", {
+      id: "abcdefgh",
+      title: "Old",
+      summary: "S",
+      tags: [],
+      body: "Old body prose.",
+      rendered_html: "<p>Old body prose.</p>",
+      why: "Because reasons.",
+      created_at: "2024-01-01T00:00:00.000Z",
+      edited_at: "2024-01-01T00:00:00.000Z",
+      total_views: 0,
+      hidden: false,
+      gallery_images: [],
+      team_member_ids: [],
+    });
+
+    const res = await project.fetch(
+      new Request("https://p/internal/migrate-editorial", { method: "POST" }),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.migrated).toBe(true);
+
+    const after = (await storage.get("data")) as Record<string, unknown>;
+    expect(after.what_we_did).toBe("Old body prose.");
+    expect(after.takeaway).toBe("Because reasons.");
+    expect(after.brief).toBe("");
+    expect(after.rendered_what_we_did).toBe("<p>Old body prose.</p>");
+    expect(after.rendered_takeaway).toBe("<p>Because reasons.</p>");
+    expect(after.migration_review_needed).toBe(true);
+    expect(after).not.toHaveProperty("body");
+    expect(after).not.toHaveProperty("rendered_html");
+    expect(after).not.toHaveProperty("why");
+  });
+
+  it("is idempotent — second call returns skipped:true", async () => {
+    const project = makeProjectDO();
+    const storage = (project as unknown as { state: { storage: MemoryStorage } }).state.storage;
+    await storage.put("data", {
+      id: "abcdefgh",
+      title: "T",
+      summary: "S",
+      tags: [],
+      brief: "B",
+      what_we_did: "W",
+      takeaway: "K",
+      rendered_what_we_did: "<p>W</p>",
+      rendered_takeaway: "<p>K</p>",
+      created_at: "2024-01-01T00:00:00.000Z",
+      edited_at: "2024-01-01T00:00:00.000Z",
+      total_views: 0,
+      hidden: false,
+      gallery_images: [],
+      team_member_ids: [],
+    });
+    const res = await project.fetch(
+      new Request("https://p/internal/migrate-editorial", { method: "POST" }),
+    );
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.skipped).toBe(true);
+  });
+
+  it("writes _legacy_backup when keep_backup=true", async () => {
+    const project = makeProjectDO();
+    const storage = (project as unknown as { state: { storage: MemoryStorage } }).state.storage;
+    await storage.put("data", {
+      id: "abcdefgh",
+      title: "Old",
+      summary: "S",
+      tags: [],
+      body: "OB",
+      rendered_html: "<p>OB</p>",
+      why: "OW",
+      created_at: "2024-01-01T00:00:00.000Z",
+      edited_at: "2024-01-01T00:00:00.000Z",
+      total_views: 0,
+      hidden: false,
+      gallery_images: [],
+      team_member_ids: [],
+    });
+    await project.fetch(
+      new Request("https://p/internal/migrate-editorial", {
+        method: "POST",
+        body: JSON.stringify({ keep_backup: true }),
+      }),
+    );
+    const backup = (await storage.get("_legacy_backup")) as Record<string, unknown>;
+    expect(backup).toEqual({ body: "OB", rendered_html: "<p>OB</p>", why: "OW" });
+  });
+});
