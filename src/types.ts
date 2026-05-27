@@ -41,8 +41,18 @@ export interface ProjectData {
   title: string;
   summary: string;
   tags: string[];
-  body: string;
-  rendered_html: string;
+  /** Page subhead — single editorial sentence framing the project. Plain text. */
+  brief: string;
+  /** Long-form markdown — the work itself. */
+  what_we_did: string;
+  /** Long-form markdown — personal voice bracketing the project (why I cared and what stuck). */
+  takeaway: string;
+  /** Cached HTML for `what_we_did`, rebuilt only when the source changes. */
+  rendered_what_we_did: string;
+  /** Cached HTML for `takeaway`, rebuilt only when the source changes. */
+  rendered_takeaway: string;
+  /** True on rows migrated from the legacy schema until the first complete save. */
+  migration_review_needed?: boolean;
   created_at: string;
   edited_at: string;
   total_views: number;
@@ -61,8 +71,6 @@ export interface ProjectData {
   sort_date?: string;
   /** Free-text role the portfolio owner played on this engagement (e.g. "Design Lead"). */
   my_role?: string;
-  /** Editorial preamble — why I wanted to work with them. Plain text, blank-line paragraphs. */
-  why?: string;
   gallery_images: GalleryImage[];
   /** Ordered outbound links (case study, repo, demo); omit or empty when none. */
   project_links?: ProjectLink[];
@@ -90,6 +98,8 @@ export interface IndexEntry {
   via_client_ids?: string[];
   sort_date?: string;
   preview_image?: string;
+  /** True when the project still needs editorial backfill after the 2026-05 restructure. */
+  migration_review_needed?: boolean;
 }
 
 /** Public JSON shape for GET /api/projects/{id} */
@@ -98,7 +108,12 @@ export interface ProjectEnvelope {
   title: string;
   summary: string;
   tags: string[];
-  body: string;
+  /** Page subhead — single editorial sentence framing the project. */
+  brief: string;
+  /** Long-form markdown — the work itself. */
+  what_we_did: string;
+  /** Long-form markdown — personal voice bracketing the project. */
+  takeaway: string;
   created_at: string;
   edited_at: string;
   views: number;
@@ -118,8 +133,6 @@ export interface ProjectEnvelope {
   sort_date?: string;
   /** Free-text role the portfolio owner played on this engagement. Omitted when empty. */
   my_role?: string;
-  /** Editorial preamble — why I wanted to work with them. Omitted when empty. */
-  why?: string;
   gallery_images: GalleryImage[];
   /** Omitted when empty. */
   project_links?: ProjectLink[];
