@@ -512,7 +512,7 @@ export function adminTemplate(): string {
           <div class="admin-settings-section__fields admin-api-docs-prose">
             <p><code class="admin-code-inline">GET /api/projects/&lt;slug&gt;</code></p>
             <p><code class="admin-code-inline">&lt;slug&gt;</code> is eight characters (<span class="admin-doc-muted">Crockford base32</span>: <code class="admin-code-inline">0-9 a-h j-k m-n p-t v-z</code>, no i/l/o/u).</p>
-            <p>Returns a full public envelope: markdown body, resolved team and client refs, gallery, optional links, tags, ETag from <code class="admin-code-inline">edited_at</code>. <strong>404</strong> if unknown, <strong>410</strong> if deleted.</p>
+            <p>Returns a full public envelope: brief, what_we_did and takeaway markdown, resolved team and client refs, gallery, optional links, tags, ETag from <code class="admin-code-inline">edited_at</code>. <strong>404</strong> if unknown, <strong>410</strong> if deleted.</p>
             <pre class="admin-doc-pre" tabindex="0">curl -sS -H "Accept: application/json" "https://YOUR_ORIGIN/api/projects/xxxxxxxx"</pre>
           </div>
         </div>
@@ -520,7 +520,7 @@ export function adminTemplate(): string {
           <h3 class="admin-settings-section__label">Project page &amp; markdown</h3>
           <div class="admin-settings-section__fields admin-api-docs-prose">
             <p><code class="admin-code-inline">GET /&lt;slug&gt;</code> serves HTML by default. With header <code class="admin-code-inline">Accept: application/json</code> you get the same envelope as <code class="admin-code-inline">/api/projects/&lt;slug&gt;</code>.</p>
-            <p><code class="admin-code-inline">GET /&lt;slug&gt;.md</code> (or <code class="admin-code-inline">Accept: text/markdown</code>) returns YAML-front-matter-style headers plus raw markdown body.</p>
+            <p><code class="admin-code-inline">GET /&lt;slug&gt;.md</code> (or <code class="admin-code-inline">Accept: text/markdown</code>) returns YAML front-matter, then the title, brief as a blockquote, the what_we_did body, and the takeaway under a <code class="admin-code-inline">## Takeaway</code> heading.</p>
           </div>
         </div>
         <div class="admin-settings-section">

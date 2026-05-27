@@ -60,7 +60,7 @@ export function apiDocsPage(origin: string): string {
   <p><code>id, title, summary, tags[], created_at, edited_at, total_views, client_ids?, via_client_ids?, sort_date?, preview_image?</code> — archived projects are omitted.</p>
 
   <h2>ProjectEnvelope</h2>
-  <p>Full project: markdown <code>body</code>, resolved <code>project_clients</code>, <code>via_clients</code>, <code>team</code>, <code>gallery_images</code>, optional <code>my_role</code>, <code>why</code>, <code>project_links</code>, etc. See OpenAPI for every field.</p>
+  <p>Full project: page <code>brief</code> (subhead), <code>what_we_did</code> (long-form markdown), <code>takeaway</code> (long-form markdown), resolved <code>project_clients</code>, <code>via_clients</code>, <code>team</code>, <code>gallery_images</code>, optional <code>my_role</code>, <code>project_links</code>, etc. See OpenAPI for every field.</p>
 
   <h2>Writes</h2>
   <p class="muted"><code>/admin/api/*</code> requires Cloudflare Access (same-origin in the browser). Not on the public CORS surface.</p>
