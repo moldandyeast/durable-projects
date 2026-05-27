@@ -461,7 +461,11 @@ export function layoutPage(
       transform: translateX(2px);
     }
 
-    /* Gallery row */
+    /* Gallery row — opt out of baseline alignment because the strip has no
+       inline text baseline; with baseline alignment the row's content was
+       floating to the synthetic baseline, leaving a viewport-tall gap above
+       the first figure. */
+    .project__row--gallery { align-items: start; }
     .project__row--gallery .gallery-strip {
       grid-column: 3 / -1;
       max-width: none;

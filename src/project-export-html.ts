@@ -172,6 +172,7 @@ a{color:inherit}
 .project-links__num{font-family:var(--font-mono);font-size:var(--text-2xs);color:color-mix(in srgb,var(--muted) 70%,transparent);font-variant-numeric:tabular-nums}
 .project__links a{font-size:var(--text-md);font-weight:500;letter-spacing:var(--tk-ui);color:var(--fg);text-decoration:none}
 .project__links a::after{content:" →";margin-left:.4em;color:color-mix(in srgb,var(--muted) 55%,transparent)}
+.project__row--gallery{align-items:start}
 .project__row--gallery .gallery-strip{grid-column:3/-1;max-width:none;display:flex;flex-direction:column;gap:20px}
 .gallery-figure{margin:0;padding:clamp(4px,.65vw,7px);border:1px solid var(--hairline);background:color-mix(in srgb,var(--fg) 4%,var(--bg))}
 .gallery-figure--hero{padding:clamp(5px,.85vw,9px)}
