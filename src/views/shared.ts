@@ -1050,8 +1050,7 @@ export function layoutPage(
       border: 1px solid var(--hairline);
       border-radius: var(--radius-sm);
       overflow: hidden;
-      background: var(--bg-elevated);
-      box-shadow: 0 1px 0 color-mix(in srgb, var(--fg) 2.5%, transparent);
+      background: transparent;
     }
     /* First plate sits a hair larger but stays flat. */
     .gallery-strip .gallery-figure--hero {
@@ -1061,11 +1060,9 @@ export function layoutPage(
     @media (prefers-color-scheme: dark) {
       .gallery-figure {
         border-color: var(--border);
-        background: var(--bg-elevated);
-        box-shadow: 0 1px 0 color-mix(in srgb, var(--fg) 4%, transparent);
       }
       .gallery-strip .gallery-figcaption {
-        background: color-mix(in srgb, var(--bg-elevated) 88%, var(--fg) 12%);
+        background: transparent;
         border-top-color: color-mix(in srgb, var(--border) 80%, transparent);
         color: color-mix(in srgb, var(--muted) 88%, var(--fg-soft));
       }
@@ -1147,7 +1144,7 @@ export function layoutPage(
       line-height: 1.45;
       letter-spacing: var(--tk-small);
       border-top: 1px solid var(--hairline);
-      background: color-mix(in srgb, var(--bg-elevated) 95%, var(--fg) 5%);
+      background: transparent;
     }
     .gallery-figure:last-child .gallery-figcaption {
       padding-bottom: 0.5rem;

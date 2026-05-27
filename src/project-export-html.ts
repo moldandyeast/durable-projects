@@ -173,7 +173,7 @@ a{color:inherit}
 .project__links a::after{content:" →";margin-left:.4em;color:color-mix(in srgb,var(--muted) 55%,transparent)}
 .project__row--gallery{align-items:start}
 .project__row--gallery .gallery-strip{grid-column:3/-1;max-width:none;display:flex;flex-direction:column;gap:20px}
-.gallery-figure{margin:0;padding:clamp(4px,.65vw,7px);border:1px solid var(--hairline);background:color-mix(in srgb,var(--fg) 4%,var(--bg))}
+.gallery-figure{margin:0;padding:clamp(4px,.65vw,7px);border:1px solid var(--hairline);background:transparent}
 .gallery-figure--hero{padding:clamp(5px,.85vw,9px)}
 .gallery-export-img{display:block;width:100%;height:auto}
 .gallery-figure--video .gallery-video{position:relative;width:100%;aspect-ratio:16/9;background:#000;overflow:hidden}
