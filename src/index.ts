@@ -50,6 +50,20 @@ function requireJsonContentType(request: Request): Response | null {
   return null;
 }
 
+function validateEditorial(input: {
+  brief?: unknown;
+  what_we_did?: unknown;
+  takeaway?: unknown;
+}): Response | null {
+  const briefStr = typeof input.brief === "string" ? input.brief.trim() : "";
+  const wwdStr = typeof input.what_we_did === "string" ? input.what_we_did.trim() : "";
+  const takeawayStr = typeof input.takeaway === "string" ? input.takeaway.trim() : "";
+  if (!briefStr) return new Response("brief is required", { status: 400 });
+  if (!wwdStr) return new Response("what_we_did is required", { status: 400 });
+  if (!takeawayStr) return new Response("takeaway is required", { status: 400 });
+  return null;
+}
+
 async function allow(limit: Env["READ_LIMIT"], key: string): Promise<boolean> {
   if (!limit) return true;
   try {
@@ -199,6 +213,7 @@ function indexRowFromProject(p: ProjectData): IndexEntry {
     via_client_ids: p.via_client_ids ?? [],
     sort_date: p.sort_date,
     preview_image: p.preview_image,
+    ...(p.migration_review_needed ? { migration_review_needed: true } : {}),
   };
 }
 
@@ -214,7 +229,9 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
     title: data.title,
     summary: data.summary,
     tags: data.tags,
-    body: data.body,
+    brief: data.brief ?? "",
+    what_we_did: data.what_we_did ?? "",
+    takeaway: data.takeaway ?? "",
     created_at: data.created_at,
     edited_at: data.edited_at,
     views: data.total_views,
@@ -227,7 +244,6 @@ async function toEnvelope(data: ProjectData, team: TeamMember[], env: Env): Prom
     ...(viaClients.length ? { via_clients: viaClients } : {}),
     sort_date: data.sort_date,
     ...(data.my_role ? { my_role: data.my_role } : {}),
-    ...(data.why ? { why: data.why } : {}),
     gallery_images: data.gallery_images,
     ...(data.project_links?.length ? { project_links: data.project_links } : {}),
     preview_image: data.preview_image,
@@ -306,6 +322,12 @@ async function dispatchRequest(request: Request, env: Env, url: URL): Promise<Re
     if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
     if (!canAuthor(request, env)) return forbidden(request, url);
     return adminPreviewMarkdown(request);
+  }
+
+  if (url.pathname === "/admin/api/migrate-editorial" && request.method === "POST") {
+    if (!(await allow(env.WRITE_LIMIT, ip))) return rateLimited();
+    if (!canAuthor(request, env)) return forbidden(request, url);
+    return migrateEditorialAll(request, env);
   }
 
   if (url.pathname === "/admin/api/projects" && request.method === "POST") {
@@ -570,7 +592,7 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
   };
 
   if (asMarkdown || accept.includes("text/markdown")) {
-    const lines = [
+    const frontMatter = [
       "---",
       `title: ${JSON.stringify(project.title)}`,
       `summary: ${JSON.stringify(project.summary)}`,
@@ -585,7 +607,6 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
       : []),
       ...(project.sort_date ? [`sort_date: ${JSON.stringify(project.sort_date)}`] : []),
       ...(project.my_role ? [`my_role: ${JSON.stringify(project.my_role)}`] : []),
-      ...(project.why ? [`why: ${JSON.stringify(project.why)}`] : []),
       ...(project.preview_image ? [`preview_image: ${JSON.stringify(project.preview_image)}`] : []),
       `gallery_images: ${JSON.stringify(project.gallery_images)}`,
       ...(project.project_links?.length ?
@@ -596,10 +617,21 @@ async function getProjectHtml(id: string, asMarkdown: boolean, request: Request,
         [`team_member_roles: ${JSON.stringify(project.team_member_roles)}`]
       : []),
       "---",
-      "",
-      project.body,
     ];
-    return new Response(lines.join("\n"), {
+
+    const bodyParts: string[] = [`# ${project.title}`, ""];
+    const brief = project.brief?.trim();
+    if (brief) {
+      bodyParts.push(`> ${brief}`, "");
+    }
+    if (project.what_we_did?.trim()) {
+      bodyParts.push(project.what_we_did, "");
+    }
+    if (project.takeaway?.trim()) {
+      bodyParts.push("---", "", "## Takeaway", "", project.takeaway, "");
+    }
+
+    return new Response([...frontMatter, "", ...bodyParts].join("\n"), {
       headers: { ...baseHeaders, "Content-Type": "text/markdown; charset=utf-8" },
     });
   }
@@ -625,7 +657,14 @@ async function createProject(request: Request, env: Env): Promise<Response> {
   const rej = requireJsonContentType(request);
   if (rej) return rej;
 
-  let input: Partial<ProjectData> & { title?: string; summary?: string; tags?: string[]; body?: string };
+  let input: Partial<ProjectData> & {
+    title?: string;
+    summary?: string;
+    tags?: string[];
+    brief?: string;
+    what_we_did?: string;
+    takeaway?: string;
+  };
   try {
     input = (await readJsonBody(request, MAX_PROJECT_PAYLOAD)) as typeof input;
   } catch (e) {
@@ -637,6 +676,9 @@ async function createProject(request: Request, env: Env): Promise<Response> {
     }
     throw e;
   }
+
+  const editorialErr = validateEditorial(input);
+  if (editorialErr) return editorialErr;
 
   let id = "";
   for (let attempt = 0; attempt < 24; attempt++) {
@@ -664,14 +706,15 @@ async function createProject(request: Request, env: Env): Promise<Response> {
       title: input.title,
       summary: input.summary,
       tags: input.tags,
-      body: input.body,
+      brief: input.brief,
+      what_we_did: input.what_we_did,
+      takeaway: input.takeaway,
       created_at: input.created_at,
       client_ids: input.client_ids,
       client_id: input.client_id,
       via_client_ids: input.via_client_ids,
       sort_date: input.sort_date,
       my_role: input.my_role,
-      why: input.why,
       gallery_images: input.gallery_images,
       preview_image: input.preview_image,
       team_member_ids: input.team_member_ids,
@@ -758,6 +801,21 @@ async function updateProject(id: string, request: Request, env: Env): Promise<Re
 
   const peek = await peekProject(env, id);
   if (!peek) return new Response("Not found", { status: 404 });
+
+  // Editorial validation: only enforce when a project that is already complete would be
+  // saved with an empty field. Migrated rows (migration_review_needed=true) are allowed
+  // to save with empties so unrelated fields can be edited incrementally.
+  if ("brief" in parsed || "what_we_did" in parsed || "takeaway" in parsed) {
+    if (!peek.migration_review_needed) {
+      const proposed = {
+        brief: "brief" in parsed ? parsed.brief : peek.brief,
+        what_we_did: "what_we_did" in parsed ? parsed.what_we_did : peek.what_we_did,
+        takeaway: "takeaway" in parsed ? parsed.takeaway : peek.takeaway,
+      };
+      const editorialErr = validateEditorial(proposed);
+      if (editorialErr) return editorialErr;
+    }
+  }
 
   let nextPrimaries = effectiveProjectClientIds(peek);
   if ("client_ids" in parsed) {
