@@ -118,7 +118,9 @@ describe("ProjectDO", () => {
           title: "T",
           summary: "S",
           tags: ["x"],
-          body: "Hello",
+          brief: "B",
+          what_we_did: "Hello",
+          takeaway: "Y",
           client_ids: ["cccccccc"],
           sort_date: "2024-03-15",
           gallery_images: [{ url: "https://example.com/a.jpg", caption: "A" }],
@@ -127,9 +129,9 @@ describe("ProjectDO", () => {
       }),
     );
     expect(res.ok).toBe(true);
-    const data = await res.json<{ rendered_html: string; client_ids?: string[] }>();
+    const data = await res.json<{ rendered_what_we_did: string; client_ids?: string[] }>();
     expect(data.client_ids).toEqual(["cccccccc"]);
-    expect(data.rendered_html).toContain("Hello");
+    expect(data.rendered_what_we_did).toContain("Hello");
   });
 
   it("create stores via_client_ids", async () => {
@@ -142,7 +144,9 @@ describe("ProjectDO", () => {
           title: "T",
           summary: "",
           tags: [],
-          body: "x",
+          brief: "B",
+          what_we_did: "x",
+          takeaway: "y",
           client_ids: ["aaaaaaaa"],
           via_client_ids: ["bbbbbbbb", "aaaaaaaa", "cccccccc"],
           team_member_ids: [],
@@ -165,7 +169,9 @@ describe("ProjectDO", () => {
           title: "T",
           summary: "",
           tags: [],
-          body: "x",
+          brief: "B",
+          what_we_did: "x",
+          takeaway: "y",
           team_member_ids: ["aaaaaaaa", "bbbbbbbb"],
           team_member_roles: { aaaaaaaa: "Art direction", bbbbbbbb: " ", zzzzzzzz: "skip" },
         }),
@@ -176,7 +182,7 @@ describe("ProjectDO", () => {
     expect(data.team_member_roles).toEqual({ aaaaaaaa: "Art direction" });
   });
 
-  it("create stores and update clears my_role and why", async () => {
+  it("create stores and update clears my_role", async () => {
     const project = makeProjectDO();
     const createRes = await project.fetch(
       new Request("https://p/internal/create", {
@@ -186,28 +192,27 @@ describe("ProjectDO", () => {
           title: "T",
           summary: "",
           tags: [],
-          body: "x",
+          brief: "B",
+          what_we_did: "x",
+          takeaway: "y",
           team_member_ids: [],
           my_role: "  Design Lead  ",
-          why: "  First paragraph.\n\nSecond paragraph.  ",
         }),
       }),
     );
     expect(createRes.ok).toBe(true);
-    const created = await createRes.json<{ my_role?: string; why?: string }>();
+    const created = await createRes.json<{ my_role?: string }>();
     expect(created.my_role).toBe("Design Lead");
-    expect(created.why).toBe("First paragraph.\n\nSecond paragraph.");
 
     const updRes = await project.fetch(
       new Request("https://p/internal/update", {
         method: "POST",
-        body: JSON.stringify({ my_role: "  ", why: "" }),
+        body: JSON.stringify({ my_role: "  " }),
       }),
     );
     expect(updRes.ok).toBe(true);
-    const updated = await updRes.json<{ my_role?: string; why?: string }>();
+    const updated = await updRes.json<{ my_role?: string }>();
     expect(updated.my_role).toBeUndefined();
-    expect(updated.why).toBeUndefined();
   });
 
   it("update toggles unlisted", async () => {
@@ -220,7 +225,9 @@ describe("ProjectDO", () => {
           title: "T",
           summary: "",
           tags: [],
-          body: "x",
+          brief: "B",
+          what_we_did: "x",
+          takeaway: "y",
           team_member_ids: [],
         }),
       }),
@@ -248,7 +255,9 @@ describe("ProjectDO", () => {
         title: "T",
         summary: "",
         tags: [],
-        body: "x",
+        brief: "B",
+        what_we_did: "x",
+        takeaway: "y",
         team_member_ids: [],
         project_links: [{ label: "A", url: "https://a.test" }],
       }),
@@ -263,5 +272,98 @@ describe("ProjectDO", () => {
     expect(upd.ok).toBe(true);
     const data = await upd.json<{ project_links?: unknown[] }>();
     expect(data.project_links).toBeUndefined();
+  });
+});
+
+describe("ProjectDO.create with new editorial fields", () => {
+  it("stores brief/what_we_did/takeaway and caches rendered HTML for each long-form field", async () => {
+    const project = makeProjectDO();
+    const res = await project.fetch(
+      new Request("https://p/internal/create", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "abcdefgh",
+          title: "T",
+          summary: "S",
+          brief: "One-line framing.",
+          what_we_did: "# Heading\nProse.",
+          takeaway: "Reflective close.",
+          gallery_images: [],
+          team_member_ids: [],
+        }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as Record<string, unknown>;
+    expect(data.brief).toBe("One-line framing.");
+    expect(data.what_we_did).toBe("# Heading\nProse.");
+    expect(data.takeaway).toBe("Reflective close.");
+    expect(data.rendered_what_we_did).toBe("<p># Heading\nProse.</p>");
+    expect(data.rendered_takeaway).toBe("<p>Reflective close.</p>");
+    expect(data).not.toHaveProperty("body");
+    expect(data).not.toHaveProperty("rendered_html");
+    expect(data).not.toHaveProperty("why");
+  });
+});
+
+describe("ProjectDO.update dirty-rebuild caching", () => {
+  it("does not re-render what_we_did when only brief changes", async () => {
+    const project = makeProjectDO();
+    await project.fetch(
+      new Request("https://p/internal/create", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "abcdefgh",
+          title: "T",
+          summary: "S",
+          brief: "First brief.",
+          what_we_did: "Original prose.",
+          takeaway: "Original takeaway.",
+          gallery_images: [],
+          team_member_ids: [],
+        }),
+      }),
+    );
+    const before = await project.fetch(new Request("https://p/internal/peek"));
+    const beforeData = (await before.json()) as Record<string, string>;
+    const originalRendered = beforeData.rendered_what_we_did;
+
+    const upd = await project.fetch(
+      new Request("https://p/internal/update", {
+        method: "POST",
+        body: JSON.stringify({ brief: "Second brief." }),
+      }),
+    );
+    const updData = (await upd.json()) as Record<string, string>;
+    expect(updData.brief).toBe("Second brief.");
+    expect(updData.rendered_what_we_did).toBe(originalRendered);
+  });
+
+  it("rebuilds rendered_takeaway when takeaway changes", async () => {
+    const project = makeProjectDO();
+    await project.fetch(
+      new Request("https://p/internal/create", {
+        method: "POST",
+        body: JSON.stringify({
+          id: "abcdefgh",
+          title: "T",
+          summary: "S",
+          brief: "B",
+          what_we_did: "W",
+          takeaway: "Old",
+          gallery_images: [],
+          team_member_ids: [],
+        }),
+      }),
+    );
+    const upd = await project.fetch(
+      new Request("https://p/internal/update", {
+        method: "POST",
+        body: JSON.stringify({ takeaway: "New" }),
+      }),
+    );
+    const updData = (await upd.json()) as Record<string, string>;
+    expect(updData.takeaway).toBe("New");
+    expect(updData.rendered_takeaway).toBe("<p>New</p>");
   });
 });

@@ -202,12 +202,14 @@ export class ProjectDO {
 
     const input = await request.json<Partial<ProjectData>>();
     const now = new Date().toISOString();
-    const body = input.body ?? "";
+
+    const brief = typeof input.brief === "string" ? input.brief : "";
+    const what_we_did = typeof input.what_we_did === "string" ? input.what_we_did : "";
+    const takeaway = typeof input.takeaway === "string" ? input.takeaway : "";
 
     const preview = normalizePreviewUrl(input.preview_image);
     const sort_date = normalizeOptionalTrimmed(input.sort_date);
     const my_role = normalizeOptionalTrimmed(input.my_role);
-    const why = normalizeOptionalTrimmed(input.why);
     const client_ids = normalizeClientIds(
       Array.isArray(input.client_ids) && input.client_ids.length ?
         input.client_ids
@@ -226,8 +228,11 @@ export class ProjectDO {
       title: input.title ?? "Untitled",
       summary: input.summary ?? "",
       tags: Array.isArray(input.tags) ? input.tags.map(String) : [],
-      body,
-      rendered_html: await renderMarkdown(body),
+      brief,
+      what_we_did,
+      takeaway,
+      rendered_what_we_did: what_we_did ? await renderMarkdown(what_we_did) : "",
+      rendered_takeaway: takeaway ? await renderMarkdown(takeaway) : "",
       created_at: input.created_at ?? now,
       edited_at: now,
       total_views: 0,
@@ -237,7 +242,6 @@ export class ProjectDO {
       ...(via_client_ids.length ? { via_client_ids } : {}),
       ...(sort_date ? { sort_date } : {}),
       ...(my_role ? { my_role } : {}),
-      ...(why ? { why } : {}),
       gallery_images,
       ...(project_links.length ? { project_links } : {}),
       team_member_ids,
@@ -314,12 +318,6 @@ export class ProjectDO {
       else data.my_role = mr;
     }
 
-    if ("why" in input) {
-      const wy = normalizeOptionalTrimmed(input.why);
-      if (wy === undefined) delete data.why;
-      else data.why = wy;
-    }
-
     if (input.preview_image !== undefined) {
       const pv = normalizePreviewUrl(input.preview_image);
       if (pv === undefined) delete data.preview_image;
@@ -353,20 +351,43 @@ export class ProjectDO {
       else delete data.via_client_ids;
     }
 
-    if (input.body !== undefined) {
-      data.body = input.body;
-      data.rendered_html = await renderMarkdown(input.body);
+    if (input.brief !== undefined) {
+      data.brief = input.brief;
+    }
+
+    if (input.what_we_did !== undefined && input.what_we_did !== data.what_we_did) {
+      data.what_we_did = input.what_we_did;
+      data.rendered_what_we_did = input.what_we_did ? await renderMarkdown(input.what_we_did) : "";
+    }
+
+    if (input.takeaway !== undefined && input.takeaway !== data.takeaway) {
+      data.takeaway = input.takeaway;
+      data.rendered_takeaway = input.takeaway ? await renderMarkdown(input.takeaway) : "";
     }
 
     if ("unlisted" in input) {
       data.unlisted = Boolean(input.unlisted);
     }
 
+    // Clear migration_review_needed once all three editorial fields are non-empty.
+    // Optional chaining guards against any legacy storage shape that bypassed migration.
+    if (
+      data.migration_review_needed &&
+      data.brief?.trim() &&
+      data.what_we_did?.trim() &&
+      data.takeaway?.trim()
+    ) {
+      delete data.migration_review_needed;
+    }
+
     data.edited_at = now;
     this.prepareStoredClients(data);
     await this.save(data);
 
-    this.broadcast({ type: "edit", body: data.body, edited_at: data.edited_at });
+    // Broadcast field name stays `body` for project-runtime.js compatibility (the bundled
+    // public-page script listens for `body` on edit broadcasts). Internally the source is
+    // now `what_we_did`.
+    this.broadcast({ type: "edit", body: data.what_we_did, edited_at: data.edited_at });
 
     return Response.json(data);
   }
