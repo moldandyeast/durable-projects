@@ -106,7 +106,7 @@ export function adminTemplate(): string {
               <div class="admin-editor-pair">
                 <div class="admin-editor-md">
               <div class="admin-md-head">
-                <label class="admin-label" for="pf-body">About</label>
+                <label class="admin-label" for="pf-what-we-did">What we did</label>
                 <div class="admin-md-tools" role="toolbar" aria-label="Insert markdown">
                   <button type="button" class="admin-md-tool" id="md-tool-bold" aria-label="Bold" title="Bold (⌘B / Ctrl+B)">
                     <span class="admin-md-tool__glyph admin-md-tool__b" aria-hidden="true">B</span>
@@ -122,23 +122,23 @@ export function adminTemplate(): string {
                   </button>
                 </div>
               </div>
-              <textarea id="pf-body" name="body" placeholder="#" spellcheck="false"></textarea>
+              <textarea id="pf-what-we-did" name="what_we_did" placeholder="#" spellcheck="false"></textarea>
             </div>
             <aside class="admin-editor-preview">
-              <div class="admin-label" id="preview-label">About preview</div>
+              <div class="admin-label" id="preview-label">What we did preview</div>
               <div id="md-preview" class="admin-preview-pane article-body" aria-labelledby="preview-label" aria-live="polite"></div>
             </aside>
               </div>
-              <div class="admin-editor-pair admin-editor-pair--why">
-                <div class="admin-editor-md admin-editor-md--why">
+              <div class="admin-editor-pair admin-editor-pair--takeaway">
+                <div class="admin-editor-md admin-editor-md--takeaway">
                   <div class="admin-md-head">
-                    <label class="admin-label" for="pf-why">Why</label>
+                    <label class="admin-label" for="pf-takeaway">Takeaway</label>
                   </div>
-                  <textarea id="pf-why" name="why" placeholder="Why I wanted to work with them — blank line between paragraphs." spellcheck="false"></textarea>
+                  <textarea id="pf-takeaway" name="takeaway" placeholder="Why I cared about this and what I took away — markdown supported." spellcheck="false"></textarea>
                 </div>
                 <aside class="admin-editor-preview">
-                  <div class="admin-label" id="why-preview-label">Why preview</div>
-                  <div id="why-preview" class="admin-preview-pane admin-preview-pane--why" aria-labelledby="why-preview-label" aria-live="polite"></div>
+                  <div class="admin-label" id="takeaway-preview-label">Takeaway preview</div>
+                  <div id="takeaway-preview" class="admin-preview-pane admin-preview-pane--takeaway article-body" aria-labelledby="takeaway-preview-label" aria-live="polite"></div>
                 </aside>
               </div>
             </div>
@@ -328,6 +328,12 @@ export function adminTemplate(): string {
             <div>
               <label class="admin-label" for="pf-summary">Summary</label>
               <input form="proj-form" id="pf-summary" name="summary" placeholder="" />
+              <p class="admin-field-hint">Catalog / card / OG one-liner. Shown on listings.</p>
+            </div>
+            <div>
+              <label class="admin-label" for="pf-brief">Brief</label>
+              <input form="proj-form" id="pf-brief" name="brief" placeholder="One editorial sentence." maxlength="200" />
+              <p class="admin-field-hint">Page subhead under the title. Aim for ~140 chars.</p>
             </div>
             <div>
               <label class="admin-label" for="pf-tags">Tags</label>
@@ -560,7 +566,7 @@ export function adminTemplate(): string {
     }
 
     var previewTimer;
-    var whyPreviewTimer;
+    var takeawayPreviewTimer;
     var previewAbort;
     var projSaveStatusTimer;
     var cachedClients = [];
@@ -665,7 +671,7 @@ export function adminTemplate(): string {
     }
 
     async function refreshPreview() {
-      var ta = document.getElementById("pf-body");
+      var ta = document.getElementById("pf-what-we-did");
       var pane = document.getElementById("md-preview");
       if (!ta || !pane) return;
       if (!ta.value.trim()) {
@@ -701,39 +707,55 @@ export function adminTemplate(): string {
         .replace(/"/g, "&quot;");
     }
 
-    function whyPreviewPlaceholder() {
-      var pane = document.getElementById("why-preview");
+    function takeawayPreviewPlaceholder() {
+      var pane = document.getElementById("takeaway-preview");
       if (!pane) return;
-      pane.innerHTML = '<p class="admin-preview-placeholder">Why preview — plain text, blank line between paragraphs</p>';
+      pane.innerHTML = '<p class="admin-preview-placeholder">Takeaway preview</p>';
     }
 
-    function refreshWhyPreview() {
-      var ta = document.getElementById("pf-why");
-      var pane = document.getElementById("why-preview");
+    async function refreshTakeawayPreview() {
+      var ta = document.getElementById("pf-takeaway");
+      var pane = document.getElementById("takeaway-preview");
       if (!ta || !pane) return;
       var raw = String(ta.value || "").trim();
       if (!raw) {
-        whyPreviewPlaceholder();
+        takeawayPreviewPlaceholder();
         return;
       }
-      var parts = raw.split(/\\n\\s*\\n/).map(function(p) {
-        return p.trim();
-      }).filter(Boolean);
-      if (!parts.length) {
-        whyPreviewPlaceholder();
-        return;
+      try {
+        var res = await fetch("/admin/api/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body: ta.value }),
+        });
+        if (!res.ok) {
+          takeawayPreviewPlaceholder();
+          return;
+        }
+        var data = await res.json();
+        pane.innerHTML = '<div class="project__body project__body--takeaway article-body">' + (data.html || "") + "</div>";
+      } catch (e) {
+        takeawayPreviewPlaceholder();
       }
-      var html = parts
-        .map(function(p) {
-          return '<p class="project__why-p">' + escapePreviewText(p).replace(/\\n/g, "<br/>") + "</p>";
-        })
-        .join("");
-      pane.innerHTML = '<div class="project__why">' + html + "</div>";
     }
 
-    function scheduleWhyPreview() {
-      clearTimeout(whyPreviewTimer);
-      whyPreviewTimer = setTimeout(refreshWhyPreview, 120);
+    function scheduleTakeawayPreview() {
+      clearTimeout(takeawayPreviewTimer);
+      takeawayPreviewTimer = setTimeout(refreshTakeawayPreview, 120);
+    }
+
+    function setIncompleteBanner(show) {
+      var banner = document.getElementById("editor-incomplete-banner");
+      if (!banner) {
+        var form = document.getElementById("proj-form");
+        if (!form || !form.parentNode) return;
+        banner = document.createElement("div");
+        banner.id = "editor-incomplete-banner";
+        banner.className = "admin-editor-banner admin-editor-banner--warn";
+        banner.textContent = "This project needs editorial backfill. Add a brief and review the takeaway.";
+        form.parentNode.insertBefore(banner, form);
+      }
+      banner.hidden = !show;
     }
 
     function insertIntoMarkdown(ta, text) {
@@ -774,7 +796,7 @@ export function adminTemplate(): string {
         entries.push({ url: u, alt: (it.alt || "").trim(), tag: String(i + 1) });
       });
       emptyMsg.hidden = entries.length > 0;
-      var ta = document.getElementById("pf-body");
+      var ta = document.getElementById("pf-what-we-did");
       entries.forEach(function(ent) {
         var snippet = mdImageMarkdown(ent.url, ent.alt);
         if (!snippet) return;
@@ -821,7 +843,7 @@ export function adminTemplate(): string {
     }
 
     function initEditorMediaRail() {
-      var ta = document.getElementById("pf-body");
+      var ta = document.getElementById("pf-what-we-did");
       var pv = document.getElementById("pf-preview");
       if (ta && !ta.getAttribute("data-md-drop")) {
         ta.setAttribute("data-md-drop", "1");
@@ -895,7 +917,7 @@ export function adminTemplate(): string {
     }
 
     function bindMarkdownTools() {
-      var ta = document.getElementById("pf-body");
+      var ta = document.getElementById("pf-what-we-did");
       if (!ta) return;
       function wireTool(id, fn) {
         var b = document.getElementById(id);
@@ -952,7 +974,7 @@ export function adminTemplate(): string {
       } catch (e2) {}
       if (name === "editor") {
         schedulePreview();
-        scheduleWhyPreview();
+        scheduleTakeawayPreview();
       }
     }
 
@@ -1556,7 +1578,9 @@ export function adminTemplate(): string {
         (projects.projects || []).forEach(function(p) {
           var o = document.createElement("option");
           o.value = p.id;
-          o.textContent = p.title + " · " + p.id;
+          var label = (p.title || "Untitled") + " · " + p.id;
+          if (p.migration_review_needed) label += " · (incomplete)";
+          o.textContent = label;
           sel.appendChild(o);
         });
       }
@@ -2071,7 +2095,7 @@ export function adminTemplate(): string {
         renderGalleryEditor([]);
         renderLinksEditor([]);
         previewPlaceholder();
-        whyPreviewPlaceholder();
+        takeawayPreviewPlaceholder();
         var pfListedReset = document.getElementById("pf-listed");
         if (pfListedReset) pfListedReset.checked = true;
         setEditorDocHeader("", "");
@@ -2086,17 +2110,19 @@ export function adminTemplate(): string {
       setEditorDocHeader(p.id || id, p.title || "");
       var pfTitle = document.getElementById("pf-title");
       var pfSummary = document.getElementById("pf-summary");
+      var pfBrief = document.getElementById("pf-brief");
       var pfTags = document.getElementById("pf-tags");
       var pfSort = document.getElementById("pf-sort");
       var pfMyRole = document.getElementById("pf-my-role");
-      var pfWhy = document.getElementById("pf-why");
+      var pfTakeaway = document.getElementById("pf-takeaway");
       var pfPreview = document.getElementById("pf-preview");
-      var pfBody = document.getElementById("pf-body");
+      var pfWhatWeDid = document.getElementById("pf-what-we-did");
       if (pfTitle) pfTitle.value = p.title || "";
       if (pfSummary) pfSummary.value = p.summary || "";
+      if (pfBrief) pfBrief.value = p.brief || "";
       if (pfTags) pfTags.value = (p.tags || []).join(", ");
       if (pfMyRole) pfMyRole.value = p.my_role || "";
-      if (pfWhy) pfWhy.value = p.why || "";
+      if (pfTakeaway) pfTakeaway.value = p.takeaway || "";
       var pfListed = document.getElementById("pf-listed");
       if (pfListed) pfListed.checked = !p.unlisted;
       var cids = (p.client_ids && p.client_ids.length) ? p.client_ids.slice() : (p.client_id ? [p.client_id] : []);
@@ -2111,9 +2137,10 @@ export function adminTemplate(): string {
       if (pfPreview) pfPreview.value = p.preview_image || "";
       renderGalleryEditor(p.gallery_images || []);
       renderLinksEditor(p.project_links || []);
-      if (pfBody) pfBody.value = p.body || "";
+      if (pfWhatWeDid) pfWhatWeDid.value = p.what_we_did || "";
+      setIncompleteBanner(!!p.migration_review_needed);
       schedulePreview();
-      scheduleWhyPreview();
+      scheduleTakeawayPreview();
     }
 
     bindNav();
@@ -2235,16 +2262,33 @@ export function adminTemplate(): string {
       var id = selEl ? selEl.value : "";
       var pfTitle = document.getElementById("pf-title");
       var pfSummary = document.getElementById("pf-summary");
+      var pfBrief = document.getElementById("pf-brief");
       var pfTags = document.getElementById("pf-tags");
       var pfSort = document.getElementById("pf-sort");
       var pfPreview = document.getElementById("pf-preview");
-      var pfBody = document.getElementById("pf-body");
+      var pfWhatWeDid = document.getElementById("pf-what-we-did");
+      var pfTakeaway = document.getElementById("pf-takeaway");
       var titleVal = pfTitle ? String(pfTitle.value || "").trim() : "";
       if (!titleVal) {
         setProjSaveStatus("error", "Add a title in Settings, then save.");
         openOverlay("overlay-project-settings");
         return;
       }
+
+      // Editorial validation: every project must have brief, what_we_did, takeaway.
+      var briefVal = pfBrief ? String(pfBrief.value || "").trim() : "";
+      var wwdVal = pfWhatWeDid ? String(pfWhatWeDid.value || "").trim() : "";
+      var takeawayVal = pfTakeaway ? String(pfTakeaway.value || "").trim() : "";
+      var missing = [];
+      if (!briefVal) missing.push("Brief");
+      if (!wwdVal) missing.push("What we did");
+      if (!takeawayVal) missing.push("Takeaway");
+      if (missing.length) {
+        setProjSaveStatus("error", "Please fill in: " + missing.join(", ") + ".");
+        if (!briefVal) openOverlay("overlay-project-settings");
+        return;
+      }
+
       var tagsRaw = pfTags ? pfTags.value : "";
       var tags = String(tagsRaw || "")
         .split(",")
@@ -2258,22 +2302,22 @@ export function adminTemplate(): string {
       var clientIds = clientPickOrder.slice();
       var viaIds = computeViaIds();
       var pfMyRoleField = document.getElementById("pf-my-role");
-      var pfWhyField = document.getElementById("pf-why");
       var pfListedField = document.getElementById("pf-listed");
       var payload = {
         title: titleVal,
         summary: pfSummary ? pfSummary.value : "",
+        brief: pfBrief ? pfBrief.value : "",
         tags: tags,
         client_ids: clientIds,
         via_client_ids: viaIds,
         sort_date: pfSort && pfSort.value ? pfSort.value : undefined,
         my_role: pfMyRoleField && pfMyRoleField.value ? pfMyRoleField.value : undefined,
-        why: pfWhyField && pfWhyField.value ? pfWhyField.value : undefined,
         preview_image: pfPreview && pfPreview.value ? pfPreview.value : undefined,
         team_member_ids: teamIds,
         gallery_images: collectGalleryFromEditor(),
         project_links: collectLinksFromEditor(),
-        body: pfBody ? pfBody.value : "",
+        what_we_did: pfWhatWeDid ? pfWhatWeDid.value : "",
+        takeaway: pfTakeaway ? pfTakeaway.value : "",
         team_member_roles: collectTeamMemberRolesPayload(),
         unlisted: pfListedField ? !pfListedField.checked : false,
       };
@@ -2347,10 +2391,10 @@ export function adminTemplate(): string {
       loadProject("");
     });
 
-    document.getElementById("pf-body").addEventListener("input", schedulePreview);
+    document.getElementById("pf-what-we-did").addEventListener("input", schedulePreview);
 
-      var pfWhyInput = document.getElementById("pf-why");
-    if (pfWhyInput) pfWhyInput.addEventListener("input", scheduleWhyPreview);
+      var pfTakeawayInput = document.getElementById("pf-takeaway");
+    if (pfTakeawayInput) pfTakeawayInput.addEventListener("input", scheduleTakeawayPreview);
 
     var pfListedInput = document.getElementById("pf-listed");
     if (pfListedInput) pfListedInput.addEventListener("change", markEditorDirty);
@@ -2369,7 +2413,7 @@ export function adminTemplate(): string {
       return loadProject(sel && sel.value ? sel.value : "");
     });
     previewPlaceholder();
-    whyPreviewPlaceholder();
+    takeawayPreviewPlaceholder();
   </script>`;
 
   return layoutPage("Admin", inner, { bodyClass: "admin-app" });
