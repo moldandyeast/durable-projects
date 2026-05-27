@@ -1043,6 +1043,63 @@ async function adminPutClient(id: string, request: Request, env: Env): Promise<R
   });
 }
 
+async function migrateEditorialAll(request: Request, env: Env): Promise<Response> {
+  let opts: { dry_run?: boolean; keep_backup?: boolean } = {};
+  try {
+    const text = await request.text();
+    if (text.trim()) opts = JSON.parse(text);
+  } catch {
+    return new Response("Invalid JSON", { status: 400 });
+  }
+
+  const res = await indexStub(env).fetch("https://idx/internal/list-all");
+  if (!res.ok) return new Response("Index list failed", { status: 500 });
+  const { projects } = await res.json<{ projects: IndexEntry[] }>();
+
+  let migrated = 0;
+  let skipped = 0;
+  const errors: Array<{ id: string; message: string }> = [];
+
+  for (const entry of projects) {
+    if (opts.dry_run) {
+      const probe = await projectStub(env, entry.id).fetch("https://p/internal/peek");
+      if (!probe.ok) {
+        errors.push({ id: entry.id, message: `peek ${probe.status}` });
+        continue;
+      }
+      const data = (await probe.json()) as Record<string, unknown>;
+      if (typeof data.what_we_did === "string") skipped++;
+      else migrated++;
+      continue;
+    }
+
+    const mig = await projectStub(env, entry.id).fetch("https://p/internal/migrate-editorial", {
+      method: "POST",
+      body: JSON.stringify({ keep_backup: !!opts.keep_backup }),
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!mig.ok) {
+      errors.push({ id: entry.id, message: `migrate ${mig.status}` });
+      continue;
+    }
+    const body = (await mig.json()) as { migrated?: boolean; skipped?: boolean };
+    if (body.skipped) skipped++;
+    else if (body.migrated) {
+      migrated++;
+      const after = await projectStub(env, entry.id).fetch("https://p/internal/peek");
+      if (after.ok) {
+        const data = (await after.json()) as ProjectData;
+        await indexStub(env).fetch("https://idx/internal/update", {
+          method: "POST",
+          body: JSON.stringify(indexRowFromProject(data)),
+        });
+      }
+    }
+  }
+
+  return Response.json({ migrated, skipped, errors, dry_run: !!opts.dry_run });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
