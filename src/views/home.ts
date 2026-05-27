@@ -76,7 +76,7 @@ export function homePage(entries: IndexEntry[], clientLabels: Map<string, string
       <span class="project__index" aria-hidden="true"><span class="project__index-num">000</span><span class="project__index-sep"> / </span><span class="project__index-label">Index</span></span>
       <div class="project__hero-text index__intro">
         <h1 class="project__title index__display">Hello there.</h1>
-        <p class="index__lede">Below is a selection of some of my work of the last few years. For more please reach out to <a href="mailto:hej@ramonmarc.com">hej@ramonmarc.com</a> or <a href="https://twitter.com/nilsedison" rel="noopener noreferrer">@nilsedison</a>.</p>
+        <p class="index__lede">This is a selection of work that is public to share. Most of the work I am most proud of sits at the early stages internally and not made for public eyes. This selection is made to showcase my interests and a glance at some of my professional past. Feel free to reach out <a href="https://twitter.com/nilsedison" rel="noopener noreferrer">@nilsedison</a>.</p>
       </div>
     </header>
     <hr class="project__rule" aria-hidden="true"/>
