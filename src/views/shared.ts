@@ -53,6 +53,7 @@ export function layoutPage(
       --bg-elevated: #fafafa;
       --fg: #1b1b1b;
       --fg-soft: #353535;
+      --fg-dim: #5a5a5a;
       --muted: #5d5c5c;
       --bg-card: var(--bg-elevated);
       --border: rgba(27, 27, 27, 0.075);
@@ -117,6 +118,7 @@ export function layoutPage(
         --bg-elevated: #161616;
         --fg: #f3f3f3;
         --fg-soft: #d8d8d8;
+        --fg-dim: #a8a8a8;
         --muted: #5d5c5c;
         --border: rgba(243, 243, 243, 0.06);
         --line: rgba(243, 243, 243, 0.075);
@@ -194,7 +196,7 @@ export function layoutPage(
       height: 0;
       border: none;
       border-top: 1px solid var(--hairline);
-      margin: 5px 0;
+      margin: clamp(1.4rem, 2.6vw, 2.1rem) 0;
     }
     .project__row {
       grid-column: 1 / -1;
@@ -361,39 +363,39 @@ export function layoutPage(
        the prose. Smaller than the article body, italicised, more muted. Acts as
        a one-line framing line that sets up the work. */
     .project__brief {
-      margin: 0 0 1.6rem;
+      margin: 0 0 2rem;
       font-family: var(--font-display);
       font-size: clamp(1.05rem, 1.55vw, 1.2rem);
       font-style: italic;
       font-weight: 400;
       letter-spacing: -0.012em;
-      line-height: 1.4;
-      color: color-mix(in srgb, var(--fg) 75%, var(--muted));
+      line-height: 1.45;
+      color: var(--fg-soft);
       text-wrap: pretty;
       hanging-punctuation: first last;
     }
 
-    /* Takeaway — demoted hierarchy vs. "What we did". Smaller font, more muted
-       colour, slightly tighter line height. The row itself gets extra breathing
-       room above it so the visual separation reads clearly. */
-    .project__row--takeaway { margin-top: clamp(1.5rem, 3vw, 2.4rem); }
+    /* Takeaway — demoted hierarchy vs. "What we did". Smaller font, sits at the
+       muted end of the tonal ramp (one step below body prose at --fg-dim) for a
+       clear visual step. Row gets extra top breathing room. */
+    .project__row--takeaway { margin-top: clamp(1.8rem, 3.4vw, 2.8rem); }
     .article-body.project__body--takeaway {
       font-size: var(--text-base);
-      line-height: 1.6;
-      color: color-mix(in srgb, var(--fg-soft) 78%, var(--muted));
+      line-height: 1.65;
+      color: color-mix(in srgb, var(--fg-dim) 55%, var(--muted));
     }
     .article-body.project__body--takeaway h1,
     .article-body.project__body--takeaway h2,
     .article-body.project__body--takeaway h3,
     .article-body.project__body--takeaway h4 {
-      color: color-mix(in srgb, var(--fg) 85%, var(--muted));
+      color: var(--fg-soft);
       font-weight: 500;
     }
     .article-body.project__body--takeaway > p:first-of-type {
       font-size: var(--text-base);
-      line-height: 1.6;
+      line-height: 1.65;
       letter-spacing: var(--tk-body);
-      color: color-mix(in srgb, var(--fg-soft) 78%, var(--muted));
+      color: color-mix(in srgb, var(--fg-dim) 55%, var(--muted));
     }
 
     /* Links */
@@ -1309,13 +1311,15 @@ export function layoutPage(
     /* Note: project-team / project-links / project-footer-meta have been replaced by
        the Swiss grid system (.project__team, .project__links, .project__updated). */
 
-    /* Markdown body — long-form reading */
+    /* Markdown body — long-form reading. Body paragraphs sit one tone below
+       fg-soft (--fg-dim) so headings and the lede pop above them; gives the
+       page a clearer 3-tier rhythm (fg / fg-soft / fg-dim). */
     .article-body {
       font-size: var(--text-lg);
-      line-height: 1.62;
+      line-height: 1.7;
       letter-spacing: var(--tk-body);
       font-weight: 400;
-      color: color-mix(in srgb, var(--fg-soft) 96%, var(--muted));
+      color: var(--fg-dim);
       margin: 0;
       text-wrap: pretty;
       hanging-punctuation: first last;
@@ -1332,7 +1336,7 @@ export function layoutPage(
       color: var(--fg);
       font-weight: 500;
       line-height: 1.2;
-      margin: 2.4rem 0 0.65rem;
+      margin: 2.8rem 0 0.9rem;
       text-wrap: balance;
       letter-spacing: var(--tk-h2);
     }
@@ -1358,16 +1362,16 @@ export function layoutPage(
     .article-body h2:first-child,
     .article-body h3:first-child,
     .article-body h4:first-child { margin-top: 0; }
-    .article-body p { margin: 0 0 1.25rem; }
+    .article-body p { margin: 0 0 1.45rem; }
     /* Lede — first paragraph reads as a proper editorial lede so the
        hierarchy below it (h2 / body) has air to breathe. */
     .article-body > p:first-of-type {
       font-size: clamp(1.15rem, 1.6vw, 1.3rem);
-      line-height: 1.4;
+      line-height: 1.45;
       letter-spacing: -0.014em;
       color: var(--fg);
       font-weight: 400;
-      margin-bottom: 1.55rem;
+      margin-bottom: 1.9rem;
       max-width: 34rem;
     }
     .article-body > p:first-of-type strong { font-weight: 500; }
